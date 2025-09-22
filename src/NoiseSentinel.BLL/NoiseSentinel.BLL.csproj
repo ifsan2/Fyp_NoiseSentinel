@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NoiseSentinel.DAL\NoiseSentinel.DAL.csproj" />
+    <ProjectReference Include="..\NoiseSentinel.Domain\NoiseSentinel.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
