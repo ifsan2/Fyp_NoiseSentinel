@@ -17,7 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\NoiseSentinel.BLL\NoiseSentinel.BLL.csproj" />
     <ProjectReference Include="..\NoiseSentinel.DAL\NoiseSentinel.DAL.csproj" />
-    <ProjectReference Include="..\NoiseSentinel.Domain\NoiseSentinel.Domain.csproj" />
   </ItemGroup>
 
 </Project>
