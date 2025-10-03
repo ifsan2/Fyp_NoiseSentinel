@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace NoiseSentinel.DAL.Models;
 
 [Table("ROLE")]
-[Index("RoleName", Name = "UQ__ROLE__8A2B6160E9B388B1", IsUnique = true)]
+[Index("RoleName", IsUnique = true)]
 public partial class Role
 {
     [Key]

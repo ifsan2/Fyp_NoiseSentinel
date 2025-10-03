@@ -2,31 +2,32 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace NoiseSentinel.DAL.Models;
 
 [Table("USER")]
-[Index("Username", Name = "UQ__USER__536C85E42AE6128F", IsUnique = true)]
-[Index("Email", Name = "UQ__USER__A9D10534E693CC7D", IsUnique = true)]
-public partial class User
+public partial class User : IdentityUser<int>
 {
-    [Key]
     [Column("UserID")]
-    public int UserId { get; set; }
+    public override int Id { get; set; }
 
     [StringLength(255)]
     public string? FullName { get; set; }
 
+    [Column("Email")]
     [StringLength(255)]
-    public string? Email { get; set; }
+    public override string? NormalizedEmail { get; set; }
 
+    [Column("Username")]
     [StringLength(255)]
-    public string? Username { get; set; }
+    public override string? NormalizedUserName { get; set; }
 
+    [Column("PasswordHash")]
     [StringLength(255)]
-    public string? PasswordHash { get; set; }
+    public override string? PasswordHash { get; set; }
 
+    [Column("IsActive")]
     public bool? IsActive { get; set; }
 
     [Column(TypeName = "datetime")]
