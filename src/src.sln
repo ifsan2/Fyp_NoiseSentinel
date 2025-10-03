@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoiseSentinel.BLL", "NoiseS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoiseSentinel.WebApi", "NoiseSentinel.WebApi\NoiseSentinel.WebApi.csproj", "{84534289-F65A-4195-9E09-906667BDE638}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "noisesentinel.webportal", "NoiseSentinel.WebPortal\noisesentinel.webportal.esproj", "{7649701E-2FC4-D676-932E-2090A4188678}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "NoiseSentinel.WebPortal", "NoiseSentinel.WebPortal\NoiseSentinel.WebPortal.esproj", "{7649701E-2FC4-D676-932E-2090A4188678}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
