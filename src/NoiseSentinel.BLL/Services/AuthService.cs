@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;  // ← ADD THIS
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.Configuration;
 using NoiseSentinel.BLL.DTOs.Auth;
 using NoiseSentinel.BLL.Services.Interfaces;
+using NoiseSentinel.DAL.Contexts;  // ← ADD THIS
 using NoiseSentinel.DAL.Models;
 using NoiseSentinel.DAL.Repositories.Interfaces;
 using System;
@@ -17,49 +19,45 @@ using System.Threading.Tasks;
 
 namespace NoiseSentinel.BLL.Services;
 
-/// <summary>
-/// Service implementation for authentication and user management.
-/// Handles user registration, login, password management, and JWT token generation.
-/// </summary>
 public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;  // ← ADD THIS
     private readonly IRoleRepository _roleRepository;
     private readonly IJudgeRepository _judgeRepository;
     private readonly IPoliceofficerRepository _policeofficerRepository;
     private readonly IUserRepository _userRepository;
+    private readonly NoiseSentinelDbContext _context;  // ← ADD THIS
     private readonly JwtSettings _jwtSettings;
 
     public AuthService(
         UserManager<User> userManager,
+        RoleManager<ApplicationRole> roleManager,  // ← ADD THIS
         IRoleRepository roleRepository,
         IJudgeRepository judgeRepository,
         IPoliceofficerRepository policeofficerRepository,
         IUserRepository userRepository,
+        NoiseSentinelDbContext context,  // ← ADD THIS
         IOptions<JwtSettings> jwtSettings)
     {
         _userManager = userManager;
+        _roleManager = roleManager;  // ← ADD THIS
         _roleRepository = roleRepository;
         _judgeRepository = judgeRepository;
         _policeofficerRepository = policeofficerRepository;
         _userRepository = userRepository;
+        _context = context;  // ← ADD THIS
         _jwtSettings = jwtSettings.Value;
     }
 
-    /// <summary>
-    /// Register a new Court Authority or Station Authority user.
-    /// Validates role, creates user with Identity, and assigns role.
-    /// </summary>
     public async Task<ServiceResult<AuthResponseDto>> RegisterAuthorityAsync(RegisterAuthorityDto dto)
     {
-        // Validate role
         if (dto.Role != "Court Authority" && dto.Role != "Station Authority")
         {
             return ServiceResult<AuthResponseDto>.FailureResult(
                 "Invalid role. Only Court Authority and Station Authority can self-register.");
         }
 
-        // Check if user already exists
         var existingUser = await _userManager.FindByNameAsync(dto.Username);
         if (existingUser != null)
         {
@@ -72,7 +70,6 @@ public class AuthService : IAuthService
             return ServiceResult<AuthResponseDto>.FailureResult("Email already exists.");
         }
 
-        // Get or create role in business table
         var role = await _roleRepository.GetByNameAsync(dto.Role);
         if (role == null)
         {
@@ -80,7 +77,9 @@ public class AuthService : IAuthService
             await _roleRepository.CreateAsync(role);
         }
 
-        // Create user
+        // ✅ Ensure role exists in AspNetRoles
+        await EnsureIdentityRoleExistsAsync(dto.Role);
+
         var user = new User
         {
             UserName = dto.Username,
@@ -100,17 +99,15 @@ public class AuthService : IAuthService
                 result.Errors.Select(e => e.Description).ToList());
         }
 
-        // Add to Identity role
         await _userManager.AddToRoleAsync(user, dto.Role);
 
-        // Generate JWT token
         var token = GenerateJwtToken(user, dto.Role);
 
         var response = new AuthResponseDto
         {
             UserId = user.Id,
-            Username = user.UserName!,
-            Email = user.Email!,
+            Username = user.NormalizedUserName!,
+            Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = dto.Role,
             Token = token,
@@ -120,21 +117,19 @@ public class AuthService : IAuthService
         return ServiceResult<AuthResponseDto>.SuccessResult(response, "Authority registered successfully.");
     }
 
-    /// <summary>
-    /// Create a Judge account. Only Court Authority users can create Judges.
-    /// Creates User record and corresponding Judge record with additional details.
-    /// </summary>
     public async Task<ServiceResult<UserCreatedResponseDto>> CreateJudgeAsync(CreateJudgeDto dto, int creatorUserId)
     {
-        // Verify creator is Court Authority
-        var creator = await _userRepository.GetByIdAsync(creatorUserId);
+        // ✅ Load creator with Role navigation property
+        var creator = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == creatorUserId);
+
         if (creator?.Role?.RoleName != "Court Authority")
         {
             return ServiceResult<UserCreatedResponseDto>.FailureResult(
                 "Only Court Authority can create Judge accounts.");
         }
 
-        // Check if user already exists
         var existingUser = await _userManager.FindByNameAsync(dto.Username);
         if (existingUser != null)
         {
@@ -147,7 +142,14 @@ public class AuthService : IAuthService
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Email already exists.");
         }
 
-        // Get or create Judge role
+        // ✅ Validate CourtId exists
+        var courtExists = await _context.Courts.AnyAsync(c => c.CourtId == dto.CourtId);
+        if (!courtExists)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Court with ID {dto.CourtId} does not exist.");
+        }
+
         var role = await _roleRepository.GetByNameAsync("Judge");
         if (role == null)
         {
@@ -155,7 +157,9 @@ public class AuthService : IAuthService
             await _roleRepository.CreateAsync(role);
         }
 
-        // Create user
+        // ✅ Ensure role exists in AspNetRoles
+        await EnsureIdentityRoleExistsAsync("Judge");
+
         var user = new User
         {
             UserName = dto.Username,
@@ -175,10 +179,8 @@ public class AuthService : IAuthService
                 result.Errors.Select(e => e.Description).ToList());
         }
 
-        // Add to Identity role
         await _userManager.AddToRoleAsync(user, "Judge");
 
-        // Create Judge record
         var judge = new Judge
         {
             UserId = user.Id,
@@ -194,8 +196,8 @@ public class AuthService : IAuthService
         var response = new UserCreatedResponseDto
         {
             UserId = user.Id,
-            Username = user.UserName!,
-            Email = user.Email!,
+            Username = user.NormalizedUserName!,
+            Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Judge",
             Message = "Judge account created successfully."
@@ -204,22 +206,20 @@ public class AuthService : IAuthService
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
     }
 
-    /// <summary>
-    /// Create a Police Officer account. Only Station Authority users can create Police Officers.
-    /// Creates User record and corresponding Policeofficer record with additional details.
-    /// </summary>
     public async Task<ServiceResult<UserCreatedResponseDto>> CreatePoliceOfficerAsync(
         CreatePoliceOfficerDto dto, int creatorUserId)
     {
-        // Verify creator is Station Authority
-        var creator = await _userRepository.GetByIdAsync(creatorUserId);
+        // ✅ Load creator with Role navigation property
+        var creator = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == creatorUserId);
+
         if (creator?.Role?.RoleName != "Station Authority")
         {
             return ServiceResult<UserCreatedResponseDto>.FailureResult(
                 "Only Station Authority can create Police Officer accounts.");
         }
 
-        // Check if user already exists
         var existingUser = await _userManager.FindByNameAsync(dto.Username);
         if (existingUser != null)
         {
@@ -232,7 +232,14 @@ public class AuthService : IAuthService
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Email already exists.");
         }
 
-        // Get or create Police Officer role
+        // ✅ Validate StationId exists
+        var stationExists = await _context.Policestations.AnyAsync(s => s.StationId == dto.StationId);
+        if (!stationExists)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Police Station with ID {dto.StationId} does not exist.");
+        }
+
         var role = await _roleRepository.GetByNameAsync("Police Officer");
         if (role == null)
         {
@@ -240,7 +247,9 @@ public class AuthService : IAuthService
             await _roleRepository.CreateAsync(role);
         }
 
-        // Create user
+        // ✅ Ensure role exists in AspNetRoles
+        await EnsureIdentityRoleExistsAsync("Police Officer");
+
         var user = new User
         {
             UserName = dto.Username,
@@ -260,10 +269,8 @@ public class AuthService : IAuthService
                 result.Errors.Select(e => e.Description).ToList());
         }
 
-        // Add to Identity role
         await _userManager.AddToRoleAsync(user, "Police Officer");
 
-        // Create Police Officer record
         var officer = new Policeofficer
         {
             UserId = user.Id,
@@ -281,8 +288,8 @@ public class AuthService : IAuthService
         var response = new UserCreatedResponseDto
         {
             UserId = user.Id,
-            Username = user.UserName!,
-            Email = user.Email!,
+            Username = user.NormalizedUserName!,
+            Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Police Officer",
             Message = "Police Officer account created successfully."
@@ -291,13 +298,15 @@ public class AuthService : IAuthService
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
     }
 
-    /// <summary>
-    /// Authenticate user and generate JWT token.
-    /// Validates credentials and returns token with user information.
-    /// </summary>
     public async Task<ServiceResult<AuthResponseDto>> LoginAsync(LoginDto dto)
     {
-        var user = await _userManager.FindByNameAsync(dto.Username);
+        var normalizedUsername = dto.Username.ToUpperInvariant();
+
+        // ✅ Load user with Role navigation property
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUsername);
+
         if (user == null)
         {
             return ServiceResult<AuthResponseDto>.FailureResult("Invalid username or password.");
@@ -314,18 +323,16 @@ public class AuthService : IAuthService
             return ServiceResult<AuthResponseDto>.FailureResult("Invalid username or password.");
         }
 
-        // Get user roles
-        var roles = await _userManager.GetRolesAsync(user);
-        var roleName = roles.FirstOrDefault() ?? "Unknown";
+        // ✅ Get role from loaded navigation property
+        var roleName = user.Role?.RoleName ?? "Unknown";
 
-        // Generate JWT token
         var token = GenerateJwtToken(user, roleName);
 
         var response = new AuthResponseDto
         {
             UserId = user.Id,
-            Username = user.UserName!,
-            Email = user.Email!,
+            Username = user.NormalizedUserName ?? string.Empty,
+            Email = user.NormalizedEmail ?? string.Empty,
             FullName = user.FullName ?? string.Empty,
             Role = roleName,
             Token = token,
@@ -335,10 +342,6 @@ public class AuthService : IAuthService
         return ServiceResult<AuthResponseDto>.SuccessResult(response, "Login successful.");
     }
 
-    /// <summary>
-    /// Change user password.
-    /// Validates current password and updates to new password (must meet policy).
-    /// </summary>
     public async Task<ServiceResult<string>> ChangePasswordAsync(ChangePasswordDto dto, int userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -359,36 +362,47 @@ public class AuthService : IAuthService
         return ServiceResult<string>.SuccessResult("Password changed successfully.");
     }
 
-    /// <summary>
-    /// Initialize system roles if they don't exist.
-    /// Should be called on application startup.
-    /// </summary>
     public async Task InitializeRolesAsync()
     {
         var roleNames = new[] { "Court Authority", "Station Authority", "Judge", "Police Officer" };
 
         foreach (var roleName in roleNames)
         {
+            // Create in ROLE table
             var existingRole = await _roleRepository.GetByNameAsync(roleName);
             if (existingRole == null)
             {
                 var role = new Role { RoleName = roleName };
                 await _roleRepository.CreateAsync(role);
             }
+
+            // Create in AspNetRoles table
+            await EnsureIdentityRoleExistsAsync(roleName);
         }
     }
 
-    /// <summary>
-    /// Generate JWT token with user claims and role.
-    /// Token includes UserId, Username, Email, and Role claims.
-    /// </summary>
+    // ✅ ADD THIS HELPER METHOD
+    private async Task EnsureIdentityRoleExistsAsync(string roleName)
+    {
+        var roleExists = await _roleManager.RoleExistsAsync(roleName);
+        if (!roleExists)
+        {
+            var identityRole = new ApplicationRole
+            {
+                Name = roleName,
+                NormalizedName = roleName.ToUpperInvariant()
+            };
+            await _roleManager.CreateAsync(identityRole);
+        }
+    }
+
     private string GenerateJwtToken(User user, string role)
     {
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+            new Claim(ClaimTypes.Name, user.NormalizedUserName ?? string.Empty),
+            new Claim(ClaimTypes.Email, user.NormalizedEmail ?? string.Empty),
             new Claim(ClaimTypes.Role, role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };

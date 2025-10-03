@@ -45,4 +45,19 @@ public partial class User : IdentityUser<int>
     [ForeignKey("RoleId")]
     [InverseProperty("Users")]
     public virtual Role? Role { get; set; }
+
+    // ✅ Add computed properties for Email and UserName
+    [NotMapped]
+    public override string? Email
+    {
+        get => NormalizedEmail;
+        set => NormalizedEmail = value?.ToUpperInvariant();
+    }
+
+    [NotMapped]
+    public override string? UserName
+    {
+        get => NormalizedUserName;
+        set => NormalizedUserName = value?.ToUpperInvariant();
+    }
 }
