@@ -24,7 +24,7 @@ public partial class NoiseSentinelDbContext : IdentityDbContext<User, Applicatio
     public virtual DbSet<Judge> Judges { get; set; }
     public virtual DbSet<Policeofficer> Policeofficers { get; set; }
     public virtual DbSet<Policestation> Policestations { get; set; }
-    public virtual DbSet<Role> Roles { get; set; }
+    public new virtual DbSet<Role> Roles { get; set; }
     public virtual DbSet<Vehicle> Vehicles { get; set; }
     public virtual DbSet<Violation> Violations { get; set; }
 
