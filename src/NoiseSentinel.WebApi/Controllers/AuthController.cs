@@ -25,48 +25,52 @@ public class AuthController : ControllerBase
     }
 
     // ========================================================================
-    // REGISTRATION ENDPOINTS
+    // ADMIN ENDPOINTS
     // ========================================================================
 
     /// <summary>
-    /// Register a new Court Authority user.
+    /// Register first admin (public endpoint - only works if no admin exists).
     /// </summary>
     /// <remarks>
+    /// **Public Endpoint - First Admin Bootstrap**
+    /// 
+    /// This endpoint is used for initial system setup to create the first admin account.
+    /// After the first admin is created, this endpoint will reject all further registration attempts.
+    /// 
     /// Sample request:
     /// 
-    ///     POST /api/auth/register/court-authority
+    ///     POST /api/auth/register/admin
     ///     {
-    ///         "fullName": "John Doe",
-    ///         "email": "john.court@noisesentinel.com",
-    ///         "username": "johndoe_court",
-    ///         "password": "SecurePass@123",
-    ///         "role": "Court Authority"
+    ///         "fullName": "System Administrator",
+    ///         "email": "admin@noisesentinel.com",
+    ///         "username": "admin",
+    ///         "password": "Admin@1234",
+    ///         "confirmPassword": "Admin@1234"
     ///     }
     /// 
     /// </remarks>
-    /// <param name="dto">Court Authority registration details</param>
+    /// <param name="dto">Admin registration details</param>
     /// <returns>Authentication response with JWT token</returns>
-    /// <response code="200">Registration successful, returns user info and JWT token</response>
-    /// <response code="400">Invalid request or validation failed</response>
-    [HttpPost("register/court-authority")]
+    /// <response code="200">First admin registered successfully, returns JWT token</response>
+    /// <response code="400">Admin already exists or validation failed</response>
+    [HttpPost("register/admin")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterCourtAuthority([FromBody] RegisterAuthorityDto dto)
+    public async Task<IActionResult> RegisterAdmin([FromBody] RegisterAdminDto dto)
     {
-        _logger.LogInformation("Court Authority registration attempt for username: {Username}", dto.Username);
+        _logger.LogInformation("Admin registration attempt for username: {Username}", dto.Username);
 
         if (!ModelState.IsValid)
         {
             return BadRequest(new { message = "Validation failed", errors = ModelState });
         }
 
-        dto.Role = "Court Authority"; // Force role to Court Authority
-        var result = await _authService.RegisterAuthorityAsync(dto);
+        var result = await _authService.RegisterAdminAsync(dto);
 
         if (!result.Success)
         {
-            _logger.LogWarning("Court Authority registration failed for {Username}: {Message}", dto.Username, result.Message);
+            _logger.LogWarning("Admin registration failed for {Username}: {Message}", dto.Username, result.Message);
             return BadRequest(new
             {
                 message = result.Message,
@@ -74,53 +78,61 @@ public class AuthController : ControllerBase
             });
         }
 
-        _logger.LogInformation("Court Authority registered successfully: {Username}", dto.Username);
+        _logger.LogInformation("First admin registered successfully: {Username}", dto.Username);
         return Ok(new
         {
-            message = "Court Authority registered successfully",
+            message = result.Message,
             data = result.Data
         });
     }
 
     /// <summary>
-    /// Register a new Station Authority user.
+    /// Create additional admin account (Admin only).
     /// </summary>
     /// <remarks>
+    /// **Authorization Required:** Admin role
+    /// 
+    /// Existing admin creates another admin account.
+    /// 
     /// Sample request:
     /// 
-    ///     POST /api/auth/register/station-authority
+    ///     POST /api/auth/admin/create/admin
+    ///     Authorization: Bearer {your-admin-token}
     ///     {
-    ///         "fullName": "Jane Smith",
-    ///         "email": "jane.station@noisesentinel.com",
-    ///         "username": "janesmith_station",
-    ///         "password": "SecurePass@456",
-    ///         "role": "Station Authority"
+    ///         "fullName": "Secondary Admin",
+    ///         "email": "admin2@noisesentinel.com",
+    ///         "username": "admin2",
+    ///         "password": "SecureAdmin@5678"
     ///     }
     /// 
     /// </remarks>
-    /// <param name="dto">Station Authority registration details</param>
-    /// <returns>Authentication response with JWT token</returns>
-    /// <response code="200">Registration successful, returns user info and JWT token</response>
-    /// <response code="400">Invalid request or validation failed</response>
-    [HttpPost("register/station-authority")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    /// <param name="dto">Admin creation details</param>
+    /// <returns>Created admin information</returns>
+    /// <response code="200">Admin created successfully</response>
+    /// <response code="400">Validation failed or user already exists</response>
+    /// <response code="401">Unauthorized - No valid token</response>
+    /// <response code="403">Forbidden - Only Admin can create admins</response>
+    [HttpPost("admin/create/admin")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(UserCreatedResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterStationAuthority([FromBody] RegisterAuthorityDto dto)
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CreateAdmin([FromBody] CreateAdminDto dto)
     {
-        _logger.LogInformation("Station Authority registration attempt for username: {Username}", dto.Username);
+        var creatorUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        _logger.LogInformation("Admin creation attempt by Admin {CreatorId}", creatorUserId);
 
         if (!ModelState.IsValid)
         {
             return BadRequest(new { message = "Validation failed", errors = ModelState });
         }
 
-        dto.Role = "Station Authority"; // Force role to Station Authority
-        var result = await _authService.RegisterAuthorityAsync(dto);
+        var result = await _authService.CreateAdminAsync(dto, creatorUserId);
 
         if (!result.Success)
         {
-            _logger.LogWarning("Station Authority registration failed for {Username}: {Message}", dto.Username, result.Message);
+            _logger.LogWarning("Admin creation failed: {Message}", result.Message);
             return BadRequest(new
             {
                 message = result.Message,
@@ -128,16 +140,140 @@ public class AuthController : ControllerBase
             });
         }
 
-        _logger.LogInformation("Station Authority registered successfully: {Username}", dto.Username);
+        _logger.LogInformation("Admin created successfully: {Username}", dto.Username);
         return Ok(new
         {
-            message = "Station Authority registered successfully",
+            message = "Admin account created successfully",
+            data = result.Data
+        });
+    }
+
+    /// <summary>
+    /// Admin creates a Court Authority account.
+    /// </summary>
+    /// <remarks>
+    /// **Authorization Required:** Admin role
+    /// 
+    /// Admin creates a Court Authority who can then create Judge accounts.
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/auth/admin/create/court-authority
+    ///     Authorization: Bearer {your-admin-token}
+    ///     {
+    ///         "fullName": "Lahore High Court Admin",
+    ///         "email": "lhc@court.gov.pk",
+    ///         "username": "lhc_admin",
+    ///         "password": "Court@1234"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="dto">Court Authority creation details</param>
+    /// <returns>Created Court Authority information</returns>
+    /// <response code="200">Court Authority created successfully</response>
+    /// <response code="400">Validation failed or user already exists</response>
+    /// <response code="401">Unauthorized - No valid token</response>
+    /// <response code="403">Forbidden - Only Admin can create Court Authority</response>
+    [HttpPost("admin/create/court-authority")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(UserCreatedResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CreateCourtAuthority([FromBody] CreateCourtAuthorityDto dto)
+    {
+        var creatorUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        _logger.LogInformation("Court Authority creation attempt by Admin {CreatorId}", creatorUserId);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        var result = await _authService.CreateCourtAuthorityAsync(dto, creatorUserId);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Court Authority creation failed: {Message}", result.Message);
+            return BadRequest(new
+            {
+                message = result.Message,
+                errors = result.Errors
+            });
+        }
+
+        _logger.LogInformation("Court Authority created successfully: {Username}", dto.Username);
+        return Ok(new
+        {
+            message = "Court Authority account created successfully",
+            data = result.Data
+        });
+    }
+
+    /// <summary>
+    /// Admin creates a Station Authority account.
+    /// </summary>
+    /// <remarks>
+    /// **Authorization Required:** Admin role
+    /// 
+    /// Admin creates a Station Authority who can then create Police Officer accounts.
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/auth/admin/create/station-authority
+    ///     Authorization: Bearer {your-admin-token}
+    ///     {
+    ///         "fullName": "Lahore Police Admin",
+    ///         "email": "lahore@police.gov.pk",
+    ///         "username": "lahore_station",
+    ///         "password": "Station@1234"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="dto">Station Authority creation details</param>
+    /// <returns>Created Station Authority information</returns>
+    /// <response code="200">Station Authority created successfully</response>
+    /// <response code="400">Validation failed or user already exists</response>
+    /// <response code="401">Unauthorized - No valid token</response>
+    /// <response code="403">Forbidden - Only Admin can create Station Authority</response>
+    [HttpPost("admin/create/station-authority")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(UserCreatedResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CreateStationAuthority([FromBody] CreateStationAuthorityDto dto)
+    {
+        var creatorUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        _logger.LogInformation("Station Authority creation attempt by Admin {CreatorId}", creatorUserId);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        var result = await _authService.CreateStationAuthorityAsync(dto, creatorUserId);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Station Authority creation failed: {Message}", result.Message);
+            return BadRequest(new
+            {
+                message = result.Message,
+                errors = result.Errors
+            });
+        }
+
+        _logger.LogInformation("Station Authority created successfully: {Username}", dto.Username);
+        return Ok(new
+        {
+            message = "Station Authority account created successfully",
             data = result.Data
         });
     }
 
     // ========================================================================
-    // USER CREATION ENDPOINTS (BY AUTHORITIES)
+    // AUTHORITY USER CREATION ENDPOINTS
     // ========================================================================
 
     /// <summary>
@@ -149,7 +285,7 @@ public class AuthController : ControllerBase
     /// Sample request:
     /// 
     ///     POST /api/auth/create/judge
-    ///     Authorization: Bearer {token}
+    ///     Authorization: Bearer {court-authority-token}
     ///     {
     ///         "fullName": "Judge William Roberts",
     ///         "email": "w.roberts@court.gov",
@@ -214,7 +350,7 @@ public class AuthController : ControllerBase
     /// Sample request:
     /// 
     ///     POST /api/auth/create/police-officer
-    ///     Authorization: Bearer {your-token}
+    ///     Authorization: Bearer {station-authority-token}
     ///     {
     ///         "fullName": "Officer Muhammad Ali",
     ///         "email": "m.ali@police.gov",
@@ -284,8 +420,8 @@ public class AuthController : ControllerBase
     /// 
     ///     POST /api/auth/login
     ///     {
-    ///         "username": "johndoe_court",
-    ///         "password": "SecurePass@123"
+    ///         "username": "admin",
+    ///         "password": "Admin@1234"
     ///     }
     /// 
     /// </remarks>
@@ -317,7 +453,8 @@ public class AuthController : ControllerBase
             });
         }
 
-        _logger.LogInformation("Login successful for {Username}", dto.Username);
+        _logger.LogInformation("Login successful for {Username}, Role: {Role}",
+            dto.Username, result.Data?.Role);
         return Ok(new
         {
             message = "Login successful",

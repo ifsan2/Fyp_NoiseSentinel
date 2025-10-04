@@ -141,6 +141,10 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
+    // Admin policy
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+
     // Individual role policies
     options.AddPolicy("CourtAuthorityOnly", policy =>
         policy.RequireRole("Court Authority"));
@@ -156,16 +160,16 @@ builder.Services.AddAuthorization(options =>
 
     // Combined policies
     options.AddPolicy("AuthorityRoles", policy =>
-        policy.RequireRole("Court Authority", "Station Authority"));
+        policy.RequireRole("Admin", "Court Authority", "Station Authority"));
 
     options.AddPolicy("CourtRoles", policy =>
-        policy.RequireRole("Court Authority", "Judge"));
+        policy.RequireRole("Admin", "Court Authority", "Judge"));
 
     options.AddPolicy("StationRoles", policy =>
-        policy.RequireRole("Station Authority", "Police Officer"));
+        policy.RequireRole("Admin", "Station Authority", "Police Officer"));
 
     options.AddPolicy("AllRoles", policy =>
-        policy.RequireRole("Court Authority", "Station Authority", "Judge", "Police Officer"));
+        policy.RequireRole("Admin", "Court Authority", "Station Authority", "Judge", "Police Officer"));
 });
 
 // ============================================================================
