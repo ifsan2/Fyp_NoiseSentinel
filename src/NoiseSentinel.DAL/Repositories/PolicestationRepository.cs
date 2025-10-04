@@ -38,6 +38,7 @@ public class PolicestationRepository : IPolicestationRepository
     public async Task<IEnumerable<Policestation>> GetAllAsync()
     {
         return await _context.Policestations
+            .Include(s => s.Policeofficers)  // ✅ FIXED: Added this line
             .OrderBy(s => s.StationName)
             .ToListAsync();
     }
@@ -45,6 +46,7 @@ public class PolicestationRepository : IPolicestationRepository
     public async Task<IEnumerable<Policestation>> GetByProvinceAsync(string province)
     {
         return await _context.Policestations
+            .Include(s => s.Policeofficers)  // ✅ FIXED: Added this line
             .Where(s => s.Province == province)
             .OrderBy(s => s.StationName)
             .ToListAsync();
@@ -53,6 +55,8 @@ public class PolicestationRepository : IPolicestationRepository
     public async Task<Policestation?> GetByStationCodeAsync(string stationCode)
     {
         return await _context.Policestations
+            .Include(s => s.Policeofficers)  // ✅ FIXED: Added this line
+                .ThenInclude(o => o.User)
             .FirstOrDefaultAsync(s => s.StationCode == stationCode);
     }
 

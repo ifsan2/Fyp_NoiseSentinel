@@ -40,6 +40,7 @@ public class CourtRepository : ICourtRepository
     {
         return await _context.Courts
             .Include(c => c.CourtType)
+            .Include(c => c.Judges)  // ✅ FIXED: Added this line
             .OrderBy(c => c.CourtName)
             .ToListAsync();
     }
@@ -48,6 +49,7 @@ public class CourtRepository : ICourtRepository
     {
         return await _context.Courts
             .Include(c => c.CourtType)
+            .Include(c => c.Judges)  // ✅ FIXED: Added this line
             .Where(c => c.CourtTypeId == courtTypeId)
             .OrderBy(c => c.CourtName)
             .ToListAsync();
@@ -57,6 +59,7 @@ public class CourtRepository : ICourtRepository
     {
         return await _context.Courts
             .Include(c => c.CourtType)
+            .Include(c => c.Judges)  // ✅ FIXED: Added this line
             .Where(c => c.Province == province)
             .OrderBy(c => c.CourtName)
             .ToListAsync();
