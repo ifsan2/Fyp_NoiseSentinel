@@ -180,12 +180,17 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IJudgeRepository, JudgeRepository>();
 builder.Services.AddScoped<IPoliceofficerRepository, PoliceofficerRepository>();
+builder.Services.AddScoped<ICourtRepository, CourtRepository>();
+builder.Services.AddScoped<ICourttypeRepository, CourttypeRepository>();
+builder.Services.AddScoped<IPolicestationRepository, PolicestationRepository>();
 
 // ============================================================================
 // DEPENDENCY INJECTION - SERVICES
 // ============================================================================
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICourtService, CourtService>();
+builder.Services.AddScoped<IPolicestationService, PolicestationService>();
 
 // ============================================================================
 // CONTROLLERS CONFIGURATION
