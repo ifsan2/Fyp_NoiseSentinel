@@ -149,7 +149,7 @@ public class AuthController : ControllerBase
     /// Sample request:
     /// 
     ///     POST /api/auth/create/judge
-    ///     Authorization: Bearer {your-token}
+    ///     Authorization: Bearer {token}
     ///     {
     ///         "fullName": "Judge William Roberts",
     ///         "email": "w.roberts@court.gov",

@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;  // ← ADD THIS
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.Configuration;
 using NoiseSentinel.BLL.DTOs.Auth;
 using NoiseSentinel.BLL.Services.Interfaces;
-using NoiseSentinel.DAL.Contexts;  // ← ADD THIS
+using NoiseSentinel.DAL.Contexts; 
 using NoiseSentinel.DAL.Models;
 using NoiseSentinel.DAL.Repositories.Interfaces;
 using System;
@@ -22,31 +22,31 @@ namespace NoiseSentinel.BLL.Services;
 public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
-    private readonly RoleManager<ApplicationRole> _roleManager;  // ← ADD THIS
+    private readonly RoleManager<ApplicationRole> _roleManager;  
     private readonly IRoleRepository _roleRepository;
     private readonly IJudgeRepository _judgeRepository;
     private readonly IPoliceofficerRepository _policeofficerRepository;
     private readonly IUserRepository _userRepository;
-    private readonly NoiseSentinelDbContext _context;  // ← ADD THIS
+    private readonly NoiseSentinelDbContext _context;  
     private readonly JwtSettings _jwtSettings;
 
     public AuthService(
         UserManager<User> userManager,
-        RoleManager<ApplicationRole> roleManager,  // ← ADD THIS
+        RoleManager<ApplicationRole> roleManager,  
         IRoleRepository roleRepository,
         IJudgeRepository judgeRepository,
         IPoliceofficerRepository policeofficerRepository,
         IUserRepository userRepository,
-        NoiseSentinelDbContext context,  // ← ADD THIS
+        NoiseSentinelDbContext context,  
         IOptions<JwtSettings> jwtSettings)
     {
         _userManager = userManager;
-        _roleManager = roleManager;  // ← ADD THIS
+        _roleManager = roleManager;  
         _roleRepository = roleRepository;
         _judgeRepository = judgeRepository;
         _policeofficerRepository = policeofficerRepository;
         _userRepository = userRepository;
-        _context = context;  // ← ADD THIS
+        _context = context;  
         _jwtSettings = jwtSettings.Value;
     }
 
@@ -77,7 +77,7 @@ public class AuthService : IAuthService
             await _roleRepository.CreateAsync(role);
         }
 
-        // ✅ Ensure role exists in AspNetRoles
+        //role exists in AspNetRoles
         await EnsureIdentityRoleExistsAsync(dto.Role);
 
         var user = new User

@@ -40,7 +40,6 @@ public partial class NoiseSentinelDbContext : IdentityDbContext<User, Applicatio
             // Primary key
             entity.Property(e => e.Id).HasColumnName("UserID");
 
-            // Map ONLY normalized properties (since Email and UserName are ignored in User.cs)
             entity.Property(e => e.NormalizedEmail).HasColumnName("Email").HasMaxLength(255);
             entity.Property(e => e.NormalizedUserName).HasColumnName("Username").HasMaxLength(255);
             entity.Property(e => e.PasswordHash).HasColumnName("PasswordHash").HasMaxLength(255);
@@ -55,8 +54,8 @@ public partial class NoiseSentinelDbContext : IdentityDbContext<User, Applicatio
             entity.HasIndex(e => e.NormalizedEmail).IsUnique();
 
             // Ignore non-normalized and unused Identity properties
-            entity.Ignore(u => u.Email);  // ← Add this
-            entity.Ignore(u => u.UserName);  // ← Add this
+            entity.Ignore(u => u.Email);  
+            entity.Ignore(u => u.UserName);  
             entity.Ignore(u => u.PhoneNumber);
             entity.Ignore(u => u.PhoneNumberConfirmed);
             entity.Ignore(u => u.TwoFactorEnabled);
@@ -76,7 +75,6 @@ public partial class NoiseSentinelDbContext : IdentityDbContext<User, Applicatio
         modelBuilder.Entity<IdentityUserToken<int>>().ToTable("AspNetUserTokens");
         modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("AspNetRoleClaims");
 
-        // Other Entities - Remove .HasName() for Code First
         modelBuilder.Entity<Accused>(entity =>
         {
             entity.HasKey(e => e.AccusedId);
