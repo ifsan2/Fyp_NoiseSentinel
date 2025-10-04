@@ -12,8 +12,8 @@ using NoiseSentinel.DAL.Contexts;
 namespace NoiseSentinel.DAL.Migrations
 {
     [DbContext(typeof(NoiseSentinelDbContext))]
-    [Migration("20251003124706_UpdatedApplicationRole")]
-    partial class UpdatedApplicationRole
+    [Migration("20251004123717_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
