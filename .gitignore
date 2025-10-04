@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /src/NoiseSentinel.WebApi/appsettings.json
 /src/NoiseSentinel.WebApi/appsettings.Development.json
+/src/NoiseSentinel.WebPortal/.env
