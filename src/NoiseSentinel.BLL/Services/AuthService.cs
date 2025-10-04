@@ -30,6 +30,8 @@ public class AuthService : IAuthService
     private readonly NoiseSentinelDbContext _context;
     private readonly JwtSettings _jwtSettings;
 
+    private readonly ICourtService _courtService;
+
     public AuthService(
         UserManager<User> userManager,
         RoleManager<ApplicationRole> roleManager,
@@ -38,7 +40,8 @@ public class AuthService : IAuthService
         IPoliceofficerRepository policeofficerRepository,
         IUserRepository userRepository,
         NoiseSentinelDbContext context,
-        IOptions<JwtSettings> jwtSettings)
+        IOptions<JwtSettings> jwtSettings,
+        ICourtService courtService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -48,6 +51,7 @@ public class AuthService : IAuthService
         _userRepository = userRepository;
         _context = context;
         _jwtSettings = jwtSettings.Value;
+        _courtService = courtService;
     }
 
     // ========================================================================
@@ -659,6 +663,8 @@ public class AuthService : IAuthService
             // Create in AspNetRoles table
             await EnsureIdentityRoleExistsAsync(roleName);
         }
+
+        await _courtService.InitializeCourtTypesAsync();
     }
 
     // ========================================================================
