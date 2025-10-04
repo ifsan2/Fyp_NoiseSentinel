@@ -6,7 +6,7 @@ using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.Configuration;
 using NoiseSentinel.BLL.DTOs.Auth;
 using NoiseSentinel.BLL.Services.Interfaces;
-using NoiseSentinel.DAL.Contexts; 
+using NoiseSentinel.DAL.Contexts;
 using NoiseSentinel.DAL.Models;
 using NoiseSentinel.DAL.Repositories.Interfaces;
 using System;
@@ -22,64 +22,87 @@ namespace NoiseSentinel.BLL.Services;
 public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
-    private readonly RoleManager<ApplicationRole> _roleManager;  
+    private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IRoleRepository _roleRepository;
     private readonly IJudgeRepository _judgeRepository;
     private readonly IPoliceofficerRepository _policeofficerRepository;
     private readonly IUserRepository _userRepository;
-    private readonly NoiseSentinelDbContext _context;  
+    private readonly NoiseSentinelDbContext _context;
     private readonly JwtSettings _jwtSettings;
 
     public AuthService(
         UserManager<User> userManager,
-        RoleManager<ApplicationRole> roleManager,  
+        RoleManager<ApplicationRole> roleManager,
         IRoleRepository roleRepository,
         IJudgeRepository judgeRepository,
         IPoliceofficerRepository policeofficerRepository,
         IUserRepository userRepository,
-        NoiseSentinelDbContext context,  
+        NoiseSentinelDbContext context,
         IOptions<JwtSettings> jwtSettings)
     {
         _userManager = userManager;
-        _roleManager = roleManager;  
+        _roleManager = roleManager;
         _roleRepository = roleRepository;
         _judgeRepository = judgeRepository;
         _policeofficerRepository = policeofficerRepository;
         _userRepository = userRepository;
-        _context = context;  
+        _context = context;
         _jwtSettings = jwtSettings.Value;
     }
 
-    public async Task<ServiceResult<AuthResponseDto>> RegisterAuthorityAsync(RegisterAuthorityDto dto)
+    // ========================================================================
+    // ADMIN MANAGEMENT
+    // ========================================================================
+
+    /// <summary>
+    /// Register first admin (public endpoint - only works if no admin exists).
+    /// </summary>
+    public async Task<ServiceResult<AuthResponseDto>> RegisterAdminAsync(RegisterAdminDto dto)
     {
-        if (dto.Role != "Court Authority" && dto.Role != "Station Authority")
+        // ✅ Check if any admin exists
+        var adminRole = await _context.BusinessRoles
+            .FirstOrDefaultAsync(r => r.RoleName == "Admin");
+
+        if (adminRole != null)
         {
-            return ServiceResult<AuthResponseDto>.FailureResult(
-                "Invalid role. Only Court Authority and Station Authority can self-register.");
+            var adminExists = await _context.Users
+                .AnyAsync(u => u.RoleId == adminRole.RoleId);
+
+            if (adminExists)
+            {
+                return ServiceResult<AuthResponseDto>.FailureResult(
+                    "Admin already exists in the system. Please contact an existing administrator to create additional admin accounts.");
+            }
         }
 
-        var existingUser = await _userManager.FindByNameAsync(dto.Username);
+        // Check if username already exists
+        var existingUser = await _userManager.FindByNameAsync(dto.Username.ToUpperInvariant());
         if (existingUser != null)
         {
-            return ServiceResult<AuthResponseDto>.FailureResult("Username already exists.");
+            return ServiceResult<AuthResponseDto>.FailureResult(
+                $"Username '{dto.Username}' is already taken.");
         }
 
-        var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+        // Check if email already exists
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
         if (existingEmail != null)
         {
-            return ServiceResult<AuthResponseDto>.FailureResult("Email already exists.");
+            return ServiceResult<AuthResponseDto>.FailureResult(
+                $"Email '{dto.Email}' is already registered.");
         }
 
-        var role = await _roleRepository.GetByNameAsync(dto.Role);
+        // Get or create Admin role in ROLE table
+        var role = await _roleRepository.GetByNameAsync("Admin");
         if (role == null)
         {
-            role = new Role { RoleName = dto.Role };
+            role = new Role { RoleName = "Admin" };
             await _roleRepository.CreateAsync(role);
         }
 
-        //role exists in AspNetRoles
-        await EnsureIdentityRoleExistsAsync(dto.Role);
+        // Ensure Admin role exists in AspNetRoles
+        await EnsureIdentityRoleExistsAsync("Admin");
 
+        // Create user
         var user = new User
         {
             UserName = dto.Username,
@@ -95,13 +118,15 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
         {
             return ServiceResult<AuthResponseDto>.FailureResult(
-                "User creation failed.",
+                "Admin registration failed.",
                 result.Errors.Select(e => e.Description).ToList());
         }
 
-        await _userManager.AddToRoleAsync(user, dto.Role);
+        // Add to Identity role
+        await _userManager.AddToRoleAsync(user, "Admin");
 
-        var token = GenerateJwtToken(user, dto.Role);
+        // Generate JWT token
+        var token = GenerateJwtToken(user, "Admin");
 
         var response = new AuthResponseDto
         {
@@ -109,13 +134,258 @@ public class AuthService : IAuthService
             Username = user.NormalizedUserName!,
             Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
-            Role = dto.Role,
+            Role = "Admin",
             Token = token,
             ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes)
         };
 
-        return ServiceResult<AuthResponseDto>.SuccessResult(response, "Authority registered successfully.");
+        return ServiceResult<AuthResponseDto>.SuccessResult(
+            response,
+            "Admin registered successfully. You now have full system access.");
     }
+
+    /// <summary>
+    /// Create additional admin account (only by existing admin).
+    /// </summary>
+    public async Task<ServiceResult<UserCreatedResponseDto>> CreateAdminAsync(CreateAdminDto dto, int creatorUserId)
+    {
+        // ✅ Verify creator is Admin
+        var creator = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == creatorUserId);
+
+        if (creator?.Role?.RoleName != "Admin")
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                "Only Admin users can create additional admin accounts.");
+        }
+
+        // Check username availability
+        var existingUser = await _userManager.FindByNameAsync(dto.Username.ToUpperInvariant());
+        if (existingUser != null)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Username '{dto.Username}' is already taken.");
+        }
+
+        // Check email availability
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
+        if (existingEmail != null)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Email '{dto.Email}' is already registered.");
+        }
+
+        // Get Admin role
+        var role = await _roleRepository.GetByNameAsync("Admin");
+        if (role == null)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                "Admin role does not exist in the system.");
+        }
+
+        // Ensure Admin role exists in AspNetRoles
+        await EnsureIdentityRoleExistsAsync("Admin");
+
+        // Create user
+        var user = new User
+        {
+            UserName = dto.Username,
+            Email = dto.Email,
+            FullName = dto.FullName,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            RoleId = role.RoleId
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+
+        if (!result.Succeeded)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                "Admin creation failed.",
+                result.Errors.Select(e => e.Description).ToList());
+        }
+
+        // Add to Identity role
+        await _userManager.AddToRoleAsync(user, "Admin");
+
+        var response = new UserCreatedResponseDto
+        {
+            UserId = user.Id,
+            Username = user.NormalizedUserName!,
+            Email = user.NormalizedEmail!,
+            FullName = user.FullName ?? string.Empty,
+            Role = "Admin",
+            Message = $"Admin account '{dto.Username}' created successfully by {creator.NormalizedUserName}."
+        };
+
+        return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
+    }
+
+    /// <summary>
+    /// Admin creates a Court Authority account.
+    /// </summary>
+    public async Task<ServiceResult<UserCreatedResponseDto>> CreateCourtAuthorityAsync(
+        CreateCourtAuthorityDto dto, int creatorUserId)
+    {
+        // ✅ Verify creator is Admin
+        var creator = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == creatorUserId);
+
+        if (creator?.Role?.RoleName != "Admin")
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                "Only Admin users can create Court Authority accounts.");
+        }
+
+        // Check username availability
+        var existingUser = await _userManager.FindByNameAsync(dto.Username.ToUpperInvariant());
+        if (existingUser != null)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Username '{dto.Username}' is already taken.");
+        }
+
+        // Check email availability
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
+        if (existingEmail != null)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Email '{dto.Email}' is already registered.");
+        }
+
+        // Get Court Authority role
+        var role = await _roleRepository.GetByNameAsync("Court Authority");
+        if (role == null)
+        {
+            role = new Role { RoleName = "Court Authority" };
+            await _roleRepository.CreateAsync(role);
+        }
+
+        // Ensure Court Authority role exists in AspNetRoles
+        await EnsureIdentityRoleExistsAsync("Court Authority");
+
+        // Create user
+        var user = new User
+        {
+            UserName = dto.Username,
+            Email = dto.Email,
+            FullName = dto.FullName,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            RoleId = role.RoleId
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+
+        if (!result.Succeeded)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                "Court Authority creation failed.",
+                result.Errors.Select(e => e.Description).ToList());
+        }
+
+        // Add to Identity role
+        await _userManager.AddToRoleAsync(user, "Court Authority");
+
+        var response = new UserCreatedResponseDto
+        {
+            UserId = user.Id,
+            Username = user.NormalizedUserName!,
+            Email = user.NormalizedEmail!,
+            FullName = user.FullName ?? string.Empty,
+            Role = "Court Authority",
+            Message = $"Court Authority account '{dto.Username}' created successfully."
+        };
+
+        return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
+    }
+
+    /// <summary>
+    /// Admin creates a Station Authority account.
+    /// </summary>
+    public async Task<ServiceResult<UserCreatedResponseDto>> CreateStationAuthorityAsync(
+        CreateStationAuthorityDto dto, int creatorUserId)
+    {
+        // ✅ Verify creator is Admin
+        var creator = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == creatorUserId);
+
+        if (creator?.Role?.RoleName != "Admin")
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                "Only Admin users can create Station Authority accounts.");
+        }
+
+        // Check username availability
+        var existingUser = await _userManager.FindByNameAsync(dto.Username.ToUpperInvariant());
+        if (existingUser != null)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Username '{dto.Username}' is already taken.");
+        }
+
+        // Check email availability
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
+        if (existingEmail != null)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                $"Email '{dto.Email}' is already registered.");
+        }
+
+        // Get Station Authority role
+        var role = await _roleRepository.GetByNameAsync("Station Authority");
+        if (role == null)
+        {
+            role = new Role { RoleName = "Station Authority" };
+            await _roleRepository.CreateAsync(role);
+        }
+
+        // Ensure Station Authority role exists in AspNetRoles
+        await EnsureIdentityRoleExistsAsync("Station Authority");
+
+        // Create user
+        var user = new User
+        {
+            UserName = dto.Username,
+            Email = dto.Email,
+            FullName = dto.FullName,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            RoleId = role.RoleId
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+
+        if (!result.Succeeded)
+        {
+            return ServiceResult<UserCreatedResponseDto>.FailureResult(
+                "Station Authority creation failed.",
+                result.Errors.Select(e => e.Description).ToList());
+        }
+
+        // Add to Identity role
+        await _userManager.AddToRoleAsync(user, "Station Authority");
+
+        var response = new UserCreatedResponseDto
+        {
+            UserId = user.Id,
+            Username = user.NormalizedUserName!,
+            Email = user.NormalizedEmail!,
+            FullName = user.FullName ?? string.Empty,
+            Role = "Station Authority",
+            Message = $"Station Authority account '{dto.Username}' created successfully."
+        };
+
+        return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
+    }
+
+    // ========================================================================
+    // AUTHORITY USER CREATION (Keep existing methods)
+    // ========================================================================
 
     public async Task<ServiceResult<UserCreatedResponseDto>> CreateJudgeAsync(CreateJudgeDto dto, int creatorUserId)
     {
@@ -130,13 +400,13 @@ public class AuthService : IAuthService
                 "Only Court Authority can create Judge accounts.");
         }
 
-        var existingUser = await _userManager.FindByNameAsync(dto.Username);
+        var existingUser = await _userManager.FindByNameAsync(dto.Username.ToUpperInvariant());
         if (existingUser != null)
         {
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Username already exists.");
         }
 
-        var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
         if (existingEmail != null)
         {
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Email already exists.");
@@ -220,13 +490,13 @@ public class AuthService : IAuthService
                 "Only Station Authority can create Police Officer accounts.");
         }
 
-        var existingUser = await _userManager.FindByNameAsync(dto.Username);
+        var existingUser = await _userManager.FindByNameAsync(dto.Username.ToUpperInvariant());
         if (existingUser != null)
         {
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Username already exists.");
         }
 
-        var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
         if (existingEmail != null)
         {
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Email already exists.");
@@ -298,6 +568,10 @@ public class AuthService : IAuthService
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
     }
 
+    // ========================================================================
+    // AUTHENTICATION
+    // ========================================================================
+
     public async Task<ServiceResult<AuthResponseDto>> LoginAsync(LoginDto dto)
     {
         var normalizedUsername = dto.Username.ToUpperInvariant();
@@ -362,9 +636,14 @@ public class AuthService : IAuthService
         return ServiceResult<string>.SuccessResult("Password changed successfully.");
     }
 
+    // ========================================================================
+    // SYSTEM INITIALIZATION
+    // ========================================================================
+
     public async Task InitializeRolesAsync()
     {
-        var roleNames = new[] { "Court Authority", "Station Authority", "Judge", "Police Officer" };
+        // ✅ Updated to include Admin role
+        var roleNames = new[] { "Admin", "Court Authority", "Station Authority", "Judge", "Police Officer" };
 
         foreach (var roleName in roleNames)
         {
@@ -374,6 +653,7 @@ public class AuthService : IAuthService
             {
                 var role = new Role { RoleName = roleName };
                 await _roleRepository.CreateAsync(role);
+                Console.WriteLine($"✓ Business role '{roleName}' created in ROLE table.");
             }
 
             // Create in AspNetRoles table
@@ -381,7 +661,10 @@ public class AuthService : IAuthService
         }
     }
 
-    // ✅ ADD THIS HELPER METHOD
+    // ========================================================================
+    // HELPER METHODS
+    // ========================================================================
+
     private async Task EnsureIdentityRoleExistsAsync(string roleName)
     {
         var roleExists = await _roleManager.RoleExistsAsync(roleName);
@@ -393,6 +676,7 @@ public class AuthService : IAuthService
                 NormalizedName = roleName.ToUpperInvariant()
             };
             await _roleManager.CreateAsync(identityRole);
+            Console.WriteLine($"✓ Identity role '{roleName}' created in AspNetRoles table.");
         }
     }
 

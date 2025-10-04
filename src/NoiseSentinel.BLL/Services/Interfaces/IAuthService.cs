@@ -9,10 +9,33 @@ namespace NoiseSentinel.BLL.Services.Interfaces;
 /// </summary>
 public interface IAuthService
 {
+    // ========================================================================
+    // ADMIN MANAGEMENT
+    // ========================================================================
+
     /// <summary>
-    /// Register a new Court Authority or Station Authority user.
+    /// Register first admin (public endpoint - only works if no admin exists).
     /// </summary>
-    Task<ServiceResult<AuthResponseDto>> RegisterAuthorityAsync(RegisterAuthorityDto dto);
+    Task<ServiceResult<AuthResponseDto>> RegisterAdminAsync(RegisterAdminDto dto);
+
+    /// <summary>
+    /// Create additional admin account (only by existing admin).
+    /// </summary>
+    Task<ServiceResult<UserCreatedResponseDto>> CreateAdminAsync(CreateAdminDto dto, int creatorUserId);
+
+    /// <summary>
+    /// Admin creates a Court Authority account.
+    /// </summary>
+    Task<ServiceResult<UserCreatedResponseDto>> CreateCourtAuthorityAsync(CreateCourtAuthorityDto dto, int creatorUserId);
+
+    /// <summary>
+    /// Admin creates a Station Authority account.
+    /// </summary>
+    Task<ServiceResult<UserCreatedResponseDto>> CreateStationAuthorityAsync(CreateStationAuthorityDto dto, int creatorUserId);
+
+    // ========================================================================
+    // AUTHORITY USER CREATION
+    // ========================================================================
 
     /// <summary>
     /// Create a Judge account (only by Court Authority).
@@ -24,6 +47,10 @@ public interface IAuthService
     /// </summary>
     Task<ServiceResult<UserCreatedResponseDto>> CreatePoliceOfficerAsync(CreatePoliceOfficerDto dto, int creatorUserId);
 
+    // ========================================================================
+    // AUTHENTICATION
+    // ========================================================================
+
     /// <summary>
     /// Authenticate user and return JWT token.
     /// </summary>
@@ -33,6 +60,10 @@ public interface IAuthService
     /// Change user password.
     /// </summary>
     Task<ServiceResult<string>> ChangePasswordAsync(ChangePasswordDto dto, int userId);
+
+    // ========================================================================
+    // SYSTEM INITIALIZATION
+    // ========================================================================
 
     /// <summary>
     /// Initialize system roles.
