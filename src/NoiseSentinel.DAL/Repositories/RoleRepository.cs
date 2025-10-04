@@ -26,7 +26,7 @@ public class RoleRepository : IRoleRepository
     /// <returns>The role if found, null otherwise</returns>
     public async Task<Role?> GetByIdAsync(int roleId)
     {
-        return await _context.BusinessRoles.FindAsync(roleId);  // ✅ Changed from Roles
+        return await _context.BusinessRoles.FindAsync(roleId);  
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class RoleRepository : IRoleRepository
     /// <returns>The ID of the newly created role</returns>
     public async Task<int> CreateAsync(Role role)
     {
-        _context.BusinessRoles.Add(role);  // ✅ Changed from Roles
+        _context.BusinessRoles.Add(role); 
         await _context.SaveChangesAsync();
         return role.RoleId;
     }
