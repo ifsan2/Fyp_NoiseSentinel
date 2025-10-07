@@ -194,6 +194,7 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAccusedRepository, AccusedRepository>();
 builder.Services.AddScoped<IChallanRepository, ChallanRepository>();
 builder.Services.AddScoped<IFirRepository, FirRepository>();
+builder.Services.AddScoped<ICaseRepository, CaseRepository>();
 
 // ============================================================================
 // DEPENDENCY INJECTION - SERVICES
@@ -209,6 +210,7 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAccusedService, AccusedService>();
 builder.Services.AddScoped<IChallanService, ChallanService>();
 builder.Services.AddScoped<IFirService, FirService>();
+builder.Services.AddScoped<ICaseService, CaseService>();
 
 // ============================================================================
 // CONTROLLERS CONFIGURATION
