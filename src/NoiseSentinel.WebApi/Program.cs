@@ -186,6 +186,7 @@ builder.Services.AddScoped<IPolicestationRepository, PolicestationRepository>();
 builder.Services.AddScoped<IViolationRepository, ViolationRepository>();
 builder.Services.AddScoped<IIotdeviceRepository, IotdeviceRepository>();
 builder.Services.AddScoped<IEmissionreportRepository, EmissionreportRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 
 // ============================================================================
 // DEPENDENCY INJECTION - SERVICES
@@ -197,6 +198,7 @@ builder.Services.AddScoped<IPolicestationService, PolicestationService>();
 builder.Services.AddScoped<IViolationService, ViolationService>();
 builder.Services.AddScoped<IIotdeviceService, IotdeviceService>();
 builder.Services.AddScoped<IEmissionreportService, EmissionreportService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
 
 // ============================================================================
 // CONTROLLERS CONFIGURATION
