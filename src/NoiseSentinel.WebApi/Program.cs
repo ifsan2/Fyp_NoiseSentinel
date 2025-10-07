@@ -188,6 +188,7 @@ builder.Services.AddScoped<IIotdeviceRepository, IotdeviceRepository>();
 builder.Services.AddScoped<IEmissionreportRepository, EmissionreportRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAccusedRepository, AccusedRepository>();
+builder.Services.AddScoped<IChallanRepository, ChallanRepository>();
 
 // ============================================================================
 // DEPENDENCY INJECTION - SERVICES
@@ -201,6 +202,7 @@ builder.Services.AddScoped<IIotdeviceService, IotdeviceService>();
 builder.Services.AddScoped<IEmissionreportService, EmissionreportService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAccusedService, AccusedService>();
+builder.Services.AddScoped<IChallanService, ChallanService>();
 
 // ============================================================================
 // CONTROLLERS CONFIGURATION
