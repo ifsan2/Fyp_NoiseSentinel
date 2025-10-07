@@ -158,6 +158,10 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("PoliceOfficerOnly", policy =>
         policy.RequireRole("Police Officer"));
 
+
+    options.AddPolicy("StationAuthorityOrCourtAuthority", policy =>
+        policy.RequireRole("Station Authority", "Court Authority"));
+
     // Combined policies
     options.AddPolicy("AuthorityRoles", policy =>
         policy.RequireRole("Admin", "Court Authority", "Station Authority"));
@@ -189,6 +193,7 @@ builder.Services.AddScoped<IEmissionreportRepository, EmissionreportRepository>(
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAccusedRepository, AccusedRepository>();
 builder.Services.AddScoped<IChallanRepository, ChallanRepository>();
+builder.Services.AddScoped<IFirRepository, FirRepository>();
 
 // ============================================================================
 // DEPENDENCY INJECTION - SERVICES
@@ -203,6 +208,7 @@ builder.Services.AddScoped<IEmissionreportService, EmissionreportService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAccusedService, AccusedService>();
 builder.Services.AddScoped<IChallanService, ChallanService>();
+builder.Services.AddScoped<IFirService, FirService>();
 
 // ============================================================================
 // CONTROLLERS CONFIGURATION
