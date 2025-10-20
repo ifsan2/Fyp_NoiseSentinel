@@ -10,6 +10,7 @@ using NoiseSentinel.DAL.Contexts;
 using NoiseSentinel.DAL.Models;
 using NoiseSentinel.DAL.Repositories;
 using NoiseSentinel.DAL.Repositories.Interfaces;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -96,7 +97,9 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtConfig.Issuer,
         ValidAudience = jwtConfig.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
-        ClockSkew = TimeSpan.Zero // No delay when token expires
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.Name
     };
 
     // Event handlers for debugging (optional)
@@ -106,7 +109,6 @@ builder.Services.AddAuthentication(options =>
         {
             if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
             {
-                // ✅ FIXED: Use indexer instead of Add
                 context.Response.Headers["Token-Expired"] = "true";
             }
             return Task.CompletedTask;
@@ -162,7 +164,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("StationAuthorityOrCourtAuthority", policy =>
         policy.RequireRole("Station Authority", "Court Authority"));
 
-    // Combined policies
     options.AddPolicy("AuthorityRoles", policy =>
         policy.RequireRole("Admin", "Court Authority", "Station Authority"));
 
@@ -174,6 +175,12 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("AllRoles", policy =>
         policy.RequireRole("Admin", "Court Authority", "Station Authority", "Judge", "Police Officer"));
+
+    options.AddPolicy("AdminOrStationAuthority", policy =>
+        policy.RequireRole("Admin", "Station Authority"));
+
+    options.AddPolicy("AdminOrCourtAuthority", policy =>
+        policy.RequireRole("Admin", "Court Authority"));
 });
 
 // ============================================================================
@@ -213,6 +220,7 @@ builder.Services.AddScoped<IChallanService, ChallanService>();
 builder.Services.AddScoped<IFirService, FirService>();
 builder.Services.AddScoped<ICaseService, CaseService>();
 builder.Services.AddScoped<ICasestatementService, CasestatementService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // ============================================================================
 // CONTROLLERS CONFIGURATION
@@ -447,3 +455,4 @@ Console.WriteLine($"🌍 Environment: {app.Environment.EnvironmentName}");
 Console.WriteLine($"📍 Swagger UI: {(app.Environment.IsDevelopment() ? "http://localhost:5000" : "Disabled in production")}");
 
 app.Run();
+
