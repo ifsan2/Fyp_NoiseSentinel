@@ -1,73 +1,64 @@
-# React + TypeScript + Vite
+# 🔊 NoiseSentinel - Admin Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite web application for system administrators to manage the NoiseSentinel traffic noise violation system.
 
-Currently, two official plugins are available:
+## 📱 Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The Admin Portal is the central management interface for NoiseSentinel, allowing administrators to:
 
-## React Compiler
+- ✅ Create Court Authority accounts
+- ✅ Create Station Authority accounts
+- ✅ Create additional Admin accounts
+- ✅ Manage user roles and permissions
+- ✅ Monitor system health
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Features
 
-## Expanding the ESLint configuration
+### ✅ Authentication
+- Secure JWT-based login
+- First admin registration (one-time bootstrap)
+- Password change functionality
+- Auto-logout on token expiry
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### ✅ User Management
+- Create Court Authorities (who can create Judges)
+- Create Station Authorities (who can create Police Officers)
+- Create additional system Admins
+- Role-based access control
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### ✅ Dashboard
+- Welcome screen with user info
+- Quick action cards
+- System statistics (coming soon)
+- Easy navigation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### ✅ Profile & Settings
+- View account information
+- Session details
+- Change password
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🛠️ Technology Stack
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool (fast!)
+- **Material-UI v5** - UI components
+- **React Router v6** - Routing
+- **Axios** - HTTP client
+- **React Hook Form** - Form validation
+- **Notistack** - Toast notifications
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📦 Installation
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
+- Backend API running on `https://localhost:7022`
+
+### Setup
+
+1. **Install dependencies**
+```bash
+npm install
+# or
+yarn install
