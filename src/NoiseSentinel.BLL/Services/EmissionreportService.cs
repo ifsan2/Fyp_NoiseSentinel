@@ -56,15 +56,15 @@ public class EmissionreportService : IEmissionreportService
                 $"IoT Device with ID {dto.DeviceId} not found.");
         }
 
-        // Validate device is registered
-        if (device.IsRegistered != true)
+        // Validate device is active
+        if (device.IsActive != true)
         {
             return ServiceResult<EmissionReportResponseDto>.FailureResult(
-                $"Device '{device.DeviceName}' is not registered. Cannot create emission report.");
+                $"Device '{device.DeviceName}' is not active. Cannot create emission report.");
         }
 
         // Validate device is calibrated
-        if (device.IsCalibrated != true)
+        if (device.CalibrationStatus != true)
         {
             return ServiceResult<EmissionReportResponseDto>.FailureResult(
                 $"Device '{device.DeviceName}' is not calibrated. Readings may be inaccurate.");

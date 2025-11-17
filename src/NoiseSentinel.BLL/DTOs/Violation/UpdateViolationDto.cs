@@ -25,6 +25,6 @@ public class UpdateViolationDto
     [StringLength(255, ErrorMessage = "Section of law cannot exceed 255 characters")]
     public string? SectionOfLaw { get; set; }
 
-    [Required(ErrorMessage = "Cognizable status is required")]
+    // IsCognizable: true = FIR can be filed, false = Challan only
     public bool IsCognizable { get; set; }
 }

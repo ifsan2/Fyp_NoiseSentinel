@@ -140,7 +140,6 @@ public class UserService : IUserService
                     .ThenInclude(u => u!.Role)
                 .Include(j => j.Court)
                     .ThenInclude(c => c!.CourtType)
-                .Where(j => j.User!.IsActive == true)
                 .OrderBy(j => j.User!.FullName)
                 .Select(j => new JudgeDetailsDto
                 {
@@ -182,7 +181,6 @@ public class UserService : IUserService
                 .Include(o => o.User)
                     .ThenInclude(u => u!.Role)
                 .Include(o => o.Station)
-                .Where(o => o.User!.IsActive == true)
                 .OrderBy(o => o.User!.FullName)
                 .Select(o => new PoliceOfficerDetailsDto
                 {

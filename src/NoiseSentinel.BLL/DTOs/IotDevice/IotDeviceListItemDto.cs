@@ -10,10 +10,13 @@ public class IotDeviceListItemDto
     public int DeviceId { get; set; }
     public string DeviceName { get; set; } = string.Empty;
     public string? FirmwareVersion { get; set; }
-    public bool IsCalibrated { get; set; }
-    public bool IsRegistered { get; set; }
+    public DateTime? CalibrationDate { get; set; }
+    public bool CalibrationStatus { get; set; }
+    public string? CalibrationCertificateNo { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsPaired { get; set; }
+    public int? PairedOfficerId { get; set; }
+    public string? PairedOfficerName { get; set; }
     public DateTime? PairingDateTime { get; set; }
     public int TotalEmissionReports { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public bool IsAvailable { get; set; }
 }

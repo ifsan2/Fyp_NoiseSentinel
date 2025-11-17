@@ -55,9 +55,12 @@ public class IotdeviceService : IIotdeviceService
         {
             DeviceName = dto.DeviceName,
             FirmwareVersion = dto.FirmwareVersion,
-            IsCalibrated = dto.IsCalibrated,
-            IsRegistered = true,  // Always true on registration
-            PairingDateTime = null  // Not paired yet
+            CalibrationDate = dto.CalibrationDate,
+            CalibrationStatus = dto.CalibrationStatus,
+            CalibrationCertificateNo = dto.CalibrationCertificateNo,
+            IsActive = true,  // Active by default
+            PairingDateTime = null,  // Not paired yet
+            PairedOfficerId = null
         };
 
         var deviceId = await _iotdeviceRepository.CreateAsync(device);
@@ -70,9 +73,14 @@ public class IotdeviceService : IIotdeviceService
             DeviceId = createdDevice!.DeviceId,
             DeviceName = createdDevice.DeviceName ?? string.Empty,
             FirmwareVersion = createdDevice.FirmwareVersion,
-            IsCalibrated = createdDevice.IsCalibrated ?? false,
-            IsRegistered = createdDevice.IsRegistered ?? false,
-            PairingDateTime = createdDevice.PairingDateTime,
+            CalibrationDate = createdDevice.CalibrationDate,
+            CalibrationStatus = createdDevice.CalibrationStatus ?? false,
+            CalibrationCertificateNo = createdDevice.CalibrationCertificateNo,
+            IsActive = createdDevice.IsActive ?? true,
+            IsPaired = false,
+            PairedOfficerId = null,
+            PairedOfficerName = null,
+            PairingDateTime = null,
             TotalEmissionReports = createdDevice.Emissionreports?.Count ?? 0
         };
 
@@ -83,7 +91,10 @@ public class IotdeviceService : IIotdeviceService
 
     public async Task<ServiceResult<IotDeviceResponseDto>> GetDeviceByIdAsync(int deviceId)
     {
-        var device = await _iotdeviceRepository.GetByIdAsync(deviceId);
+        var device = await _context.Iotdevices
+            .Include(d => d.PairedOfficer)
+                .ThenInclude(o => o!.User)
+            .FirstOrDefaultAsync(d => d.DeviceId == deviceId);
 
         if (device == null)
         {
@@ -96,8 +107,13 @@ public class IotdeviceService : IIotdeviceService
             DeviceId = device.DeviceId,
             DeviceName = device.DeviceName ?? string.Empty,
             FirmwareVersion = device.FirmwareVersion,
-            IsCalibrated = device.IsCalibrated ?? false,
-            IsRegistered = device.IsRegistered ?? false,
+            CalibrationDate = device.CalibrationDate,
+            CalibrationStatus = device.CalibrationStatus ?? false,
+            CalibrationCertificateNo = device.CalibrationCertificateNo,
+            IsActive = device.IsActive ?? true,
+            IsPaired = device.PairedOfficerId.HasValue,
+            PairedOfficerId = device.PairedOfficerId,
+            PairedOfficerName = device.PairedOfficer?.User?.FullName,
             PairingDateTime = device.PairingDateTime,
             TotalEmissionReports = device.Emissionreports?.Count ?? 0
         };
@@ -107,7 +123,10 @@ public class IotdeviceService : IIotdeviceService
 
     public async Task<ServiceResult<IotDeviceResponseDto>> GetDeviceByNameAsync(string deviceName)
     {
-        var device = await _iotdeviceRepository.GetByNameAsync(deviceName);
+        var device = await _context.Iotdevices
+            .Include(d => d.PairedOfficer)
+                .ThenInclude(o => o!.User)
+            .FirstOrDefaultAsync(d => d.DeviceName == deviceName);
 
         if (device == null)
         {
@@ -120,8 +139,13 @@ public class IotdeviceService : IIotdeviceService
             DeviceId = device.DeviceId,
             DeviceName = device.DeviceName ?? string.Empty,
             FirmwareVersion = device.FirmwareVersion,
-            IsCalibrated = device.IsCalibrated ?? false,
-            IsRegistered = device.IsRegistered ?? false,
+            CalibrationDate = device.CalibrationDate,
+            CalibrationStatus = device.CalibrationStatus ?? false,
+            CalibrationCertificateNo = device.CalibrationCertificateNo,
+            IsActive = device.IsActive ?? true,
+            IsPaired = device.PairedOfficerId.HasValue,
+            PairedOfficerId = device.PairedOfficerId,
+            PairedOfficerName = device.PairedOfficer?.User?.FullName,
             PairingDateTime = device.PairingDateTime,
             TotalEmissionReports = device.Emissionreports?.Count ?? 0
         };
@@ -131,19 +155,25 @@ public class IotdeviceService : IIotdeviceService
 
     public async Task<ServiceResult<IEnumerable<IotDeviceListItemDto>>> GetAllDevicesAsync()
     {
-        var devices = await _iotdeviceRepository.GetAllAsync();
+        var devices = await _context.Iotdevices
+            .Include(d => d.PairedOfficer)
+                .ThenInclude(o => o!.User)
+            .ToListAsync();
 
         var response = devices.Select(d => new IotDeviceListItemDto
         {
             DeviceId = d.DeviceId,
             DeviceName = d.DeviceName ?? string.Empty,
             FirmwareVersion = d.FirmwareVersion,
-            IsCalibrated = d.IsCalibrated ?? false,
-            IsRegistered = d.IsRegistered ?? false,
+            CalibrationDate = d.CalibrationDate,
+            CalibrationStatus = d.CalibrationStatus ?? false,
+            CalibrationCertificateNo = d.CalibrationCertificateNo,
+            IsActive = d.IsActive ?? true,
+            IsPaired = d.PairedOfficerId.HasValue,
+            PairedOfficerId = d.PairedOfficerId,
+            PairedOfficerName = d.PairedOfficer?.User?.FullName,
             PairingDateTime = d.PairingDateTime,
-            TotalEmissionReports = d.Emissionreports?.Count ?? 0,
-            Status = GetDeviceStatus(d.IsRegistered, d.IsCalibrated),
-            IsAvailable = (d.IsRegistered ?? false) && (d.IsCalibrated ?? false)
+            TotalEmissionReports = d.Emissionreports?.Count ?? 0
         }).ToList();
 
         return ServiceResult<IEnumerable<IotDeviceListItemDto>>.SuccessResult(response);
@@ -151,19 +181,26 @@ public class IotdeviceService : IIotdeviceService
 
     public async Task<ServiceResult<IEnumerable<IotDeviceListItemDto>>> GetAvailableDevicesAsync()
     {
-        var devices = await _iotdeviceRepository.GetAvailableDevicesAsync();
+        var devices = await _context.Iotdevices
+            .Where(d => d.IsActive == true && 
+                       d.CalibrationStatus == true && 
+                       d.PairedOfficerId == null)
+            .ToListAsync();
 
         var response = devices.Select(d => new IotDeviceListItemDto
         {
             DeviceId = d.DeviceId,
             DeviceName = d.DeviceName ?? string.Empty,
             FirmwareVersion = d.FirmwareVersion,
-            IsCalibrated = d.IsCalibrated ?? false,
-            IsRegistered = d.IsRegistered ?? false,
-            PairingDateTime = d.PairingDateTime,
-            TotalEmissionReports = d.Emissionreports?.Count ?? 0,
-            Status = "Active",
-            IsAvailable = true
+            CalibrationDate = d.CalibrationDate,
+            CalibrationStatus = d.CalibrationStatus ?? false,
+            CalibrationCertificateNo = d.CalibrationCertificateNo,
+            IsActive = d.IsActive ?? true,
+            IsPaired = false,
+            PairedOfficerId = null,
+            PairedOfficerName = null,
+            PairingDateTime = null,
+            TotalEmissionReports = d.Emissionreports?.Count ?? 0
         }).ToList();
 
         return ServiceResult<IEnumerable<IotDeviceListItemDto>>.SuccessResult(response);
@@ -204,21 +241,30 @@ public class IotdeviceService : IIotdeviceService
         // Update device
         existingDevice.DeviceName = dto.DeviceName;
         existingDevice.FirmwareVersion = dto.FirmwareVersion;
-        existingDevice.IsCalibrated = dto.IsCalibrated;
-        existingDevice.IsRegistered = dto.IsRegistered;
+        existingDevice.CalibrationDate = dto.CalibrationDate;
+        existingDevice.CalibrationStatus = dto.CalibrationStatus;
+        existingDevice.CalibrationCertificateNo = dto.CalibrationCertificateNo;
 
         await _iotdeviceRepository.UpdateAsync(existingDevice);
 
         // Retrieve updated device
-        var updatedDevice = await _iotdeviceRepository.GetByIdAsync(dto.DeviceId);
+        var updatedDevice = await _context.Iotdevices
+            .Include(d => d.PairedOfficer)
+                .ThenInclude(o => o!.User)
+            .FirstOrDefaultAsync(d => d.DeviceId == dto.DeviceId);
 
         var response = new IotDeviceResponseDto
         {
             DeviceId = updatedDevice!.DeviceId,
             DeviceName = updatedDevice.DeviceName ?? string.Empty,
             FirmwareVersion = updatedDevice.FirmwareVersion,
-            IsCalibrated = updatedDevice.IsCalibrated ?? false,
-            IsRegistered = updatedDevice.IsRegistered ?? false,
+            CalibrationDate = updatedDevice.CalibrationDate,
+            CalibrationStatus = updatedDevice.CalibrationStatus ?? false,
+            CalibrationCertificateNo = updatedDevice.CalibrationCertificateNo,
+            IsActive = updatedDevice.IsActive ?? true,
+            IsPaired = updatedDevice.PairedOfficerId.HasValue,
+            PairedOfficerId = updatedDevice.PairedOfficerId,
+            PairedOfficerName = updatedDevice.PairedOfficer?.User?.FullName,
             PairingDateTime = updatedDevice.PairingDateTime,
             TotalEmissionReports = updatedDevice.Emissionreports?.Count ?? 0
         };
@@ -233,12 +279,19 @@ public class IotdeviceService : IIotdeviceService
         // Verify user is Police Officer
         var officer = await _context.Users
             .Include(u => u.Role)
+            .Include(u => u.Policeofficers)
             .FirstOrDefaultAsync(u => u.Id == officerUserId);
 
         if (officer?.Role?.RoleName != "Police Officer")
         {
             return ServiceResult<string>.FailureResult(
                 "Only Police Officers can pair with IoT devices.");
+        }
+
+        var policeofficer = officer.Policeofficers.FirstOrDefault();
+        if (policeofficer == null)
+        {
+            return ServiceResult<string>.FailureResult("Police Officer profile not found.");
         }
 
         // Check if device exists
@@ -250,33 +303,30 @@ public class IotdeviceService : IIotdeviceService
         }
 
         // Validate device is available for use
-        if (device.IsRegistered != true)
+        if (device.IsActive != true)
         {
             return ServiceResult<string>.FailureResult(
-                $"Device '{device.DeviceName}' is not registered. Cannot pair.");
+                $"Device '{device.DeviceName}' is not active. Cannot pair.");
         }
 
-        if (device.IsCalibrated != true)
+        if (device.CalibrationStatus != true)
         {
             return ServiceResult<string>.FailureResult(
                 $"Device '{device.DeviceName}' is not calibrated. Cannot use for readings.");
         }
 
-        // Update pairing timestamp
-        var pairingTime = DateTime.UtcNow;
-        await _iotdeviceRepository.UpdatePairingDateTimeAsync(dto.DeviceId, pairingTime);
+        if (device.PairedOfficerId.HasValue)
+        {
+            return ServiceResult<string>.FailureResult(
+                $"Device '{device.DeviceName}' is already paired with another officer.");
+        }
+
+        // Pair device with officer
+        device.PairedOfficerId = policeofficer.OfficerId;
+        device.PairingDateTime = DateTime.UtcNow;
+        await _iotdeviceRepository.UpdateAsync(device);
 
         return ServiceResult<string>.SuccessResult(
-            $"Successfully paired with device '{device.DeviceName}' at {pairingTime:yyyy-MM-dd HH:mm:ss} UTC. " +
-            $"Device is ready for emission readings.");
-    }
-
-    private string GetDeviceStatus(bool? isRegistered, bool? isCalibrated)
-    {
-        if (isRegistered != true)
-            return "Not Registered";
-        if (isCalibrated != true)
-            return "Not Calibrated";
-        return "Active";
+            $"Successfully paired with device '{device.DeviceName}'. Device is ready for emission readings.");
     }
 }

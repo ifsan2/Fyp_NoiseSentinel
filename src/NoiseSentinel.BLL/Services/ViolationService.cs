@@ -116,6 +116,7 @@ public class ViolationService : IViolationService
             ViolationType = v.ViolationType ?? string.Empty,
             Description = v.Description ?? string.Empty,
             PenaltyAmount = v.PenaltyAmount ?? 0,
+            SectionOfLaw = v.SectionOfLaw,
             IsCognizable = v.IsCognizable ?? false,
             TotalChallans = v.Challans?.Count ?? 0
         }).ToList();
@@ -133,6 +134,7 @@ public class ViolationService : IViolationService
             ViolationType = v.ViolationType ?? string.Empty,
             Description = v.Description ?? string.Empty,
             PenaltyAmount = v.PenaltyAmount ?? 0,
+            SectionOfLaw = v.SectionOfLaw,
             IsCognizable = v.IsCognizable ?? false,
             TotalChallans = v.Challans?.Count ?? 0
         }).ToList();
@@ -151,6 +153,7 @@ public class ViolationService : IViolationService
             ViolationType = v.ViolationType ?? string.Empty,
             Description = v.Description ?? string.Empty,
             PenaltyAmount = v.PenaltyAmount ?? 0,
+            SectionOfLaw = v.SectionOfLaw,
             IsCognizable = v.IsCognizable ?? false,
             TotalChallans = v.Challans?.Count ?? 0
         }).ToList();
