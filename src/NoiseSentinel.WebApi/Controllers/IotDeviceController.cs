@@ -350,4 +350,46 @@ public class IotDeviceController : ControllerBase
             nextStep = "Device is ready for emission readings. You can now start detection."
         });
     }
+
+    /// <summary>
+    /// Get the device currently paired with the authenticated officer.
+    /// </summary>
+    [HttpGet("my-paired-device")]
+    [Authorize(Policy = "PoliceOfficerOnly")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyPairedDevice()
+    {
+        var officerUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _iotdeviceService.GetPairedDeviceForOfficerAsync(officerUserId);
+
+        return Ok(new
+        {
+            message = result.Success ? "Paired device retrieved" : "No device paired",
+            data = result.Data
+        });
+    }
+
+    /// <summary>
+    /// Unpair the currently paired device from the authenticated officer.
+    /// </summary>
+    [HttpPost("unpair")]
+    [Authorize(Policy = "PoliceOfficerOnly")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UnpairDevice()
+    {
+        var officerUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        _logger.LogInformation("Unpair attempt by Officer {OfficerId}", officerUserId);
+
+        var result = await _iotdeviceService.UnpairDeviceAsync(officerUserId);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Unpair failed: {Message}", result.Message);
+            return BadRequest(new { message = result.Message });
+        }
+
+        _logger.LogInformation("Officer {OfficerId} unpaired successfully", officerUserId);
+        return Ok(new { message = result.Data, status = "Unpaired" });
+    }
 }
