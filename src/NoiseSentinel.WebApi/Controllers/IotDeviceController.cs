@@ -44,7 +44,9 @@ public class IotDeviceController : ControllerBase
     ///     {
     ///         "deviceName": "IOT-LHR-001",
     ///         "firmwareVersion": "v1.2.3",
-    ///         "isCalibrated": true
+    ///         "calibrationDate": "2025-01-15",
+    ///         "calibrationStatus": true,
+    ///         "calibrationCertificateNo": "CAL-2025-001"
     ///     }
     /// 
     /// </remarks>
@@ -193,7 +195,7 @@ public class IotDeviceController : ControllerBase
     /// <remarks>
     /// **Authorization Required:** Police Officer
     /// 
-    /// Returns only calibrated and registered devices ready for use.
+    /// Returns only calibrated and active devices that are not currently paired.
     /// Officers use this to see which devices they can pair with via Bluetooth.
     /// </remarks>
     /// <returns>List of available devices</returns>
@@ -230,8 +232,9 @@ public class IotDeviceController : ControllerBase
     ///         "deviceId": 1,
     ///         "deviceName": "IOT-LHR-001-UPDATED",
     ///         "firmwareVersion": "v1.3.0",
-    ///         "isCalibrated": true,
-    ///         "isRegistered": true
+    ///         "calibrationDate": "2025-01-20",
+    ///         "calibrationStatus": true,
+    ///         "calibrationCertificateNo": "CAL-2025-002"
     ///     }
     /// 
     /// </remarks>
@@ -290,8 +293,8 @@ public class IotDeviceController : ControllerBase
     /// <remarks>
     /// **Authorization Required:** Police Officer
     /// 
-    /// Logs when an officer pairs with a device via Bluetooth.
-    /// Updates the device's last pairing timestamp.
+    /// Pairs an officer with a device via Bluetooth.
+    /// Updates the device with pairing timestamp and officer ID.
     /// 
     /// Sample request:
     /// 
@@ -305,7 +308,7 @@ public class IotDeviceController : ControllerBase
     /// <param name="dto">Pairing details</param>
     /// <returns>Pairing confirmation</returns>
     /// <response code="200">Pairing successful</response>
-    /// <response code="400">Device not calibrated or not registered</response>
+    /// <response code="400">Device not calibrated or not active</response>
     /// <response code="401">Unauthorized</response>
     /// <response code="403">Forbidden - Only Police Officers can pair</response>
     /// <response code="404">Device not found</response>
