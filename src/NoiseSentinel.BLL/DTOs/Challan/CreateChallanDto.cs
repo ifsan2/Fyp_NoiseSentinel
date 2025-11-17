@@ -13,8 +13,10 @@ public class CreateChallanDto
     [Required(ErrorMessage = "Violation ID is required")]
     public int ViolationId { get; set; }
 
-    [Required(ErrorMessage = "Emission Report ID is required")]
-    public int EmissionReportId { get; set; }
+    /// <summary>
+    /// Emission Report ID (optional - some violations like bike violations don't require emission reports).
+    /// </summary>
+    public int? EmissionReportId { get; set; }
 
     // ========================================================================
     // VEHICLE: Either provide ID OR full details for auto-creation
@@ -50,7 +52,11 @@ public class CreateChallanDto
     // CHALLAN SPECIFIC FIELDS
     // ========================================================================
 
-    [StringLength(255, ErrorMessage = "Evidence path cannot exceed 255 characters")]
+    /// <summary>
+    /// Base64-encoded compressed image evidence.
+    /// Upload image(s) as base64 string - will be stored compressed in database.
+    /// Multiple images can be separated by a delimiter (e.g., "|||").
+    /// </summary>
     public string? EvidencePath { get; set; }
 
     [StringLength(255, ErrorMessage = "Bank details cannot exceed 255 characters")]

@@ -33,14 +33,17 @@ public class ChallanResponseDto
     public decimal PenaltyAmount { get; set; }
     public bool IsCognizable { get; set; }
 
-    // Emission Report Details (Evidence)
-    public int EmissionReportId { get; set; }
-    public string DeviceName { get; set; } = string.Empty;
-    public decimal SoundLevelDBa { get; set; }
+    // Emission Report Details (Evidence) - Optional for some violations
+    public int? EmissionReportId { get; set; }
+    public string? DeviceName { get; set; }
+    public decimal? SoundLevelDBa { get; set; }
     public string? MlClassification { get; set; }
-    public DateTime EmissionTestDateTime { get; set; }
+    public DateTime? EmissionTestDateTime { get; set; }
 
     // Challan Specific
+    /// <summary>
+    /// Base64-encoded compressed image evidence stored in database.
+    /// </summary>
     public string? EvidencePath { get; set; }
     public DateTime IssueDateTime { get; set; }
     public DateTime DueDateTime { get; set; }
