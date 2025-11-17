@@ -575,6 +575,118 @@ public class UserService : IUserService
         }
     }
 
+    public async Task<ServiceResult<string>> ActivateJudgeAsync(int judgeId)
+    {
+        try
+        {
+            var judge = await _context.Judges
+                .Include(j => j.User)
+                .FirstOrDefaultAsync(j => j.JudgeId == judgeId);
+
+            if (judge == null)
+            {
+                return ServiceResult<string>.FailureResult($"Judge with ID {judgeId} not found.");
+            }
+
+            // Activate user account
+            judge.User!.IsActive = true;
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<string>.SuccessResult(
+                $"Judge '{judge.User.NormalizedUserName}' activated successfully.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult(
+                "Failed to activate judge.",
+                new List<string> { ex.Message });
+        }
+    }
+
+    public async Task<ServiceResult<string>> DeactivateJudgeAsync(int judgeId)
+    {
+        try
+        {
+            var judge = await _context.Judges
+                .Include(j => j.User)
+                .FirstOrDefaultAsync(j => j.JudgeId == judgeId);
+
+            if (judge == null)
+            {
+                return ServiceResult<string>.FailureResult($"Judge with ID {judgeId} not found.");
+            }
+
+            // Deactivate user account
+            judge.User!.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<string>.SuccessResult(
+                $"Judge '{judge.User.NormalizedUserName}' deactivated successfully.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult(
+                "Failed to deactivate judge.",
+                new List<string> { ex.Message });
+        }
+    }
+
+    public async Task<ServiceResult<string>> ActivatePoliceOfficerAsync(int officerId)
+    {
+        try
+        {
+            var officer = await _context.Policeofficers
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.OfficerId == officerId);
+
+            if (officer == null)
+            {
+                return ServiceResult<string>.FailureResult($"Police Officer with ID {officerId} not found.");
+            }
+
+            // Activate user account
+            officer.User!.IsActive = true;
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<string>.SuccessResult(
+                $"Police Officer '{officer.User.NormalizedUserName}' activated successfully.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult(
+                "Failed to activate police officer.",
+                new List<string> { ex.Message });
+        }
+    }
+
+    public async Task<ServiceResult<string>> DeactivatePoliceOfficerAsync(int officerId)
+    {
+        try
+        {
+            var officer = await _context.Policeofficers
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.OfficerId == officerId);
+
+            if (officer == null)
+            {
+                return ServiceResult<string>.FailureResult($"Police Officer with ID {officerId} not found.");
+            }
+
+            // Deactivate user account
+            officer.User!.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<string>.SuccessResult(
+                $"Police Officer '{officer.User.NormalizedUserName}' deactivated successfully.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult(
+                "Failed to deactivate police officer.",
+                new List<string> { ex.Message });
+        }
+    }
+
     // ========================================================================
     // USER DELETION
     // ========================================================================

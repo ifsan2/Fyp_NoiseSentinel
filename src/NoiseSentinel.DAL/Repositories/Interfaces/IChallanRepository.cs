@@ -68,4 +68,9 @@ public interface IChallanRepository
     /// Check if emission report already has a challan.
     /// </summary>
     Task<bool> EmissionReportHasChallanAsync(int emissionReportId);
+
+    /// <summary>
+    /// Get challans by vehicle plate number and accused CNIC (public search).
+    /// </summary>
+    Task<IEnumerable<Challan>> GetByVehiclePlateAndCnicAsync(string plateNumber, string cnic);
 }

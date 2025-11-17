@@ -1,4 +1,4 @@
-import apiClient from './axios.config';
+import apiClient from "./axios.config";
 import {
   UserListItemDto,
   UserDetailsDto,
@@ -9,8 +9,8 @@ import {
   UpdateJudgeDto,
   UpdatePoliceOfficerDto,
   UserSearchFilterDto,
-} from '@/models/User';
-import { ApiResponse } from '@/models/ApiResponse';
+} from "@/models/User";
+import { ApiResponse } from "@/models/ApiResponse";
 
 class UserApi {
   /**
@@ -18,7 +18,7 @@ class UserApi {
    */
   async getAllAdmins(): Promise<UserListItemDto[]> {
     const response = await apiClient.get<ApiResponse<UserListItemDto[]>>(
-      '/User/admins'
+      "/User/admins"
     );
     return response.data.data || [];
   }
@@ -28,7 +28,7 @@ class UserApi {
    */
   async getAllCourtAuthorities(): Promise<UserListItemDto[]> {
     const response = await apiClient.get<ApiResponse<UserListItemDto[]>>(
-      '/User/court-authorities'
+      "/User/court-authorities"
     );
     return response.data.data || [];
   }
@@ -38,7 +38,7 @@ class UserApi {
    */
   async getAllStationAuthorities(): Promise<UserListItemDto[]> {
     const response = await apiClient.get<ApiResponse<UserListItemDto[]>>(
-      '/User/station-authorities'
+      "/User/station-authorities"
     );
     return response.data.data || [];
   }
@@ -48,7 +48,7 @@ class UserApi {
    */
   async getAllJudges(): Promise<JudgeDetailsDto[]> {
     const response = await apiClient.get<ApiResponse<JudgeDetailsDto[]>>(
-      '/User/judges'
+      "/User/judges"
     );
     return response.data.data || [];
   }
@@ -57,9 +57,9 @@ class UserApi {
    * Get all police officers
    */
   async getAllPoliceOfficers(): Promise<PoliceOfficerDetailsDto[]> {
-    const response = await apiClient.get<ApiResponse<PoliceOfficerDetailsDto[]>>(
-      '/User/police-officers'
-    );
+    const response = await apiClient.get<
+      ApiResponse<PoliceOfficerDetailsDto[]>
+    >("/User/police-officers");
     return response.data.data || [];
   }
 
@@ -78,7 +78,7 @@ class UserApi {
    */
   async getUserCounts(): Promise<UserCountsDto> {
     const response = await apiClient.get<ApiResponse<UserCountsDto>>(
-      '/User/counts'
+      "/User/counts"
     );
     return response.data.data!;
   }
@@ -88,10 +88,10 @@ class UserApi {
    */
   async searchUsers(filter: UserSearchFilterDto): Promise<UserListItemDto[]> {
     const params = new URLSearchParams();
-    if (filter.searchQuery) params.append('searchQuery', filter.searchQuery);
-    if (filter.role) params.append('role', filter.role);
+    if (filter.searchQuery) params.append("searchQuery", filter.searchQuery);
+    if (filter.role) params.append("role", filter.role);
     if (filter.isActive !== undefined)
-      params.append('isActive', filter.isActive.toString());
+      params.append("isActive", filter.isActive.toString());
 
     const response = await apiClient.get<ApiResponse<UserListItemDto[]>>(
       `/User/search?${params.toString()}`
@@ -135,6 +135,34 @@ class UserApi {
    */
   async deactivateUser(userId: number): Promise<void> {
     await apiClient.put(`/User/${userId}/deactivate`);
+  }
+
+  /**
+   * Activate judge
+   */
+  async activateJudge(judgeId: number): Promise<void> {
+    await apiClient.put(`/User/judges/${judgeId}/activate`);
+  }
+
+  /**
+   * Deactivate judge
+   */
+  async deactivateJudge(judgeId: number): Promise<void> {
+    await apiClient.put(`/User/judges/${judgeId}/deactivate`);
+  }
+
+  /**
+   * Activate police officer
+   */
+  async activatePoliceOfficer(officerId: number): Promise<void> {
+    await apiClient.put(`/User/officers/${officerId}/activate`);
+  }
+
+  /**
+   * Deactivate police officer
+   */
+  async deactivatePoliceOfficer(officerId: number): Promise<void> {
+    await apiClient.put(`/User/officers/${officerId}/deactivate`);
   }
 
   /**

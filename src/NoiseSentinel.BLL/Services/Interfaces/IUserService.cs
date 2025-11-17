@@ -89,6 +89,26 @@ public interface IUserService
     /// </summary>
     Task<ServiceResult<string>> DeactivateUserAsync(int userId);
     
+    /// <summary>
+    /// Activate judge account.
+    /// </summary>
+    Task<ServiceResult<string>> ActivateJudgeAsync(int judgeId);
+    
+    /// <summary>
+    /// Deactivate judge account.
+    /// </summary>
+    Task<ServiceResult<string>> DeactivateJudgeAsync(int judgeId);
+    
+    /// <summary>
+    /// Activate police officer account.
+    /// </summary>
+    Task<ServiceResult<string>> ActivatePoliceOfficerAsync(int officerId);
+    
+    /// <summary>
+    /// Deactivate police officer account.
+    /// </summary>
+    Task<ServiceResult<string>> DeactivatePoliceOfficerAsync(int officerId);
+    
     // ========================================================================
     // USER DELETION
     // ========================================================================

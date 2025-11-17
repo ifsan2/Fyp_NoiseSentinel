@@ -208,6 +208,66 @@ public class UserController : ControllerBase
         return Ok(new { message = result.Message });
     }
 
+    /// <summary>
+    /// Activate a judge - Admin OR Court Authority can access
+    /// </summary>
+    [HttpPut("judges/{judgeId}/activate")]
+    [Authorize(Policy = "AdminOrCourtAuthority")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ActivateJudge(int judgeId)
+    {
+        _logger.LogInformation("User {UserId} activating judge {JudgeId}", User.FindFirstValue(ClaimTypes.NameIdentifier), judgeId);
+        var result = await _userService.ActivateJudgeAsync(judgeId);
+        if (!result.Success) return NotFound(new { message = result.Message, errors = result.Errors });
+        return Ok(new { message = result.Message });
+    }
+
+    /// <summary>
+    /// Deactivate a judge - Admin OR Court Authority can access
+    /// </summary>
+    [HttpPut("judges/{judgeId}/deactivate")]
+    [Authorize(Policy = "AdminOrCourtAuthority")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeactivateJudge(int judgeId)
+    {
+        _logger.LogInformation("User {UserId} deactivating judge {JudgeId}", User.FindFirstValue(ClaimTypes.NameIdentifier), judgeId);
+        var result = await _userService.DeactivateJudgeAsync(judgeId);
+        if (!result.Success) return NotFound(new { message = result.Message, errors = result.Errors });
+        return Ok(new { message = result.Message });
+    }
+
+    /// <summary>
+    /// Activate police officer - Admin OR Station Authority can access
+    /// </summary>
+    [HttpPut("officers/{officerId}/activate")]
+    [Authorize(Policy = "AdminOrStationAuthority")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ActivatePoliceOfficer(int officerId)
+    {
+        _logger.LogInformation("User {UserId} activating police officer {OfficerId}", User.FindFirstValue(ClaimTypes.NameIdentifier), officerId);
+        var result = await _userService.ActivatePoliceOfficerAsync(officerId);
+        if (!result.Success) return NotFound(new { message = result.Message, errors = result.Errors });
+        return Ok(new { message = result.Message });
+    }
+
+    /// <summary>
+    /// Deactivate police officer - Admin OR Station Authority can access
+    /// </summary>
+    [HttpPut("officers/{officerId}/deactivate")]
+    [Authorize(Policy = "AdminOrStationAuthority")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeactivatePoliceOfficer(int officerId)
+    {
+        _logger.LogInformation("User {UserId} deactivating police officer {OfficerId}", User.FindFirstValue(ClaimTypes.NameIdentifier), officerId);
+        var result = await _userService.DeactivatePoliceOfficerAsync(officerId);
+        if (!result.Success) return NotFound(new { message = result.Message, errors = result.Errors });
+        return Ok(new { message = result.Message });
+    }
+
     [HttpDelete("{userId}")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status200OK)]

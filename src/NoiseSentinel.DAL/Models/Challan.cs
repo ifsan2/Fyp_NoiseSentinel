@@ -28,7 +28,11 @@ public partial class Challan
     [Column("EmissionReportID")]
     public int? EmissionReportId { get; set; }
 
-    [StringLength(255)]
+    /// <summary>
+    /// Base64-encoded compressed image(s) stored directly in database.
+    /// Multiple images can be concatenated with delimiter.
+    /// </summary>
+    [StringLength(int.MaxValue)]
     public string? EvidencePath { get; set; }
 
     [Column(TypeName = "datetime")]

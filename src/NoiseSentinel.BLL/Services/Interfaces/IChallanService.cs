@@ -61,4 +61,9 @@ public interface IChallanService
     /// Get overdue challans (past due date and unpaid).
     /// </summary>
     Task<ServiceResult<IEnumerable<ChallanListItemDto>>> GetOverdueChallansAsync();
+
+    /// <summary>
+    /// Public search: Get challans by vehicle plate number and accused CNIC.
+    /// </summary>
+    Task<ServiceResult<IEnumerable<ChallanListItemDto>>> SearchChallansByPlateAndCnicAsync(string plateNumber, string cnic);
 }

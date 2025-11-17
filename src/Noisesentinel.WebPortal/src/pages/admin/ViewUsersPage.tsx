@@ -217,6 +217,55 @@ export const ViewUsersPage: React.FC = () => {
     }
   };
 
+  const handleToggleJudgeStatus = async (
+    judgeId: number,
+    currentStatus: boolean
+  ) => {
+    try {
+      if (currentStatus) {
+        await userApi.deactivateJudge(judgeId);
+        enqueueSnackbar("Judge deactivated successfully", {
+          variant: "success",
+        });
+      } else {
+        await userApi.activateJudge(judgeId);
+        enqueueSnackbar("Judge activated successfully", { variant: "success" });
+      }
+      loadAllData();
+    } catch (error: any) {
+      enqueueSnackbar(
+        error.response?.data?.message || "Failed to update judge status",
+        { variant: "error" }
+      );
+    }
+  };
+
+  const handleToggleOfficerStatus = async (
+    officerId: number,
+    currentStatus: boolean
+  ) => {
+    try {
+      if (currentStatus) {
+        await userApi.deactivatePoliceOfficer(officerId);
+        enqueueSnackbar("Police officer deactivated successfully", {
+          variant: "success",
+        });
+      } else {
+        await userApi.activatePoliceOfficer(officerId);
+        enqueueSnackbar("Police officer activated successfully", {
+          variant: "success",
+        });
+      }
+      loadAllData();
+    } catch (error: any) {
+      enqueueSnackbar(
+        error.response?.data?.message ||
+          "Failed to update police officer status",
+        { variant: "error" }
+      );
+    }
+  };
+
   const handleDeleteClick = (
     type: "user" | "judge" | "officer",
     id: number,
@@ -511,6 +560,7 @@ export const ViewUsersPage: React.FC = () => {
           judges={filterJudges(judges)}
           onView={handleView}
           onEdit={(judgeId) => handleEdit(judgeId, "judge")}
+          onToggleStatus={handleToggleJudgeStatus}
           onDelete={(judgeId) => {
             const judge = judges.find((j) => j.judgeId === judgeId);
             if (judge) handleDeleteClick("judge", judgeId, judge.fullName);
@@ -530,6 +580,7 @@ export const ViewUsersPage: React.FC = () => {
           officers={filterOfficers(officers)}
           onView={handleView}
           onEdit={(officerId) => handleEdit(officerId, "officer")}
+          onToggleStatus={handleToggleOfficerStatus}
           onDelete={(officerId) => {
             const officer = officers.find((o) => o.officerId === officerId);
             if (officer)

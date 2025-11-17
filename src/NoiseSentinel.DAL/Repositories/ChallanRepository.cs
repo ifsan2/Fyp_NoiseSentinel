@@ -168,4 +168,18 @@ public class ChallanRepository : IChallanRepository
     {
         return await _context.Challans.AnyAsync(c => c.EmissionReportId == emissionReportId);
     }
+
+    public async Task<IEnumerable<Challan>> GetByVehiclePlateAndCnicAsync(string plateNumber, string cnic)
+    {
+        return await _context.Challans
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.User)
+            .Include(c => c.Accused)
+            .Include(c => c.Vehicle)
+            .Include(c => c.Violation)
+            .Include(c => c.EmissionReport)
+            .Where(c => c.Vehicle!.PlateNumber == plateNumber && c.Accused!.Cnic == cnic)
+            .OrderByDescending(c => c.IssueDateTime)
+            .ToListAsync();
+    }
 }

@@ -45,12 +45,20 @@ public class ChallanController : ControllerBase
     /// 
     /// **IMPORTANT:** Challans are IMMUTABLE once created (cannot be modified/deleted).
     /// 
+    /// **Evidence Image Upload:**
+    /// - Upload images as base64 encoded strings
+    /// - Images are automatically compressed and stored in database
+    /// - Supports formats: JPEG, PNG, WebP
+    /// - Recommended: Pre-compress images on client side before upload for faster processing
+    /// - Multiple images can be sent (separated by delimiter in implementation)
+    /// 
     /// **Auto-Creation Logic:**
     /// - If VehicleId is null, provide VehicleInput → System creates vehicle
     /// - If AccusedId is null, provide AccusedInput → System creates accused
     /// - Vehicle automatically linked to Accused as owner
+    /// - EmissionReportId is OPTIONAL (some violations like bike violations don't require emission reports)
     /// 
-    /// **Sample Request (New Vehicle + New Accused):**
+    /// **Sample Request (With Emission Report - New Vehicle + New Accused):**
     /// 
     ///     POST /api/challan/create
     ///     Authorization: Bearer {police-officer-token}
@@ -75,19 +83,19 @@ public class ChallanController : ControllerBase
     ///             "address": "123 Main St, Model Town",
     ///             "contact": "+92-300-1234567"
     ///         },
-    ///         "evidencePath": "/uploads/evidence/IMG001.jpg,IMG002.jpg",
+    ///         "evidencePath": "data:image/jpeg;base64,/9j/4AAQSkZJRg...(base64 compressed image)",
     ///         "bankDetails": "Account: 1234567890, Bank: HBL"
     ///     }
     /// 
-    /// **Sample Request (Existing Vehicle + Existing Accused):**
+    /// **Sample Request (Without Emission Report - Bike Violation):**
     /// 
     ///     POST /api/challan/create
     ///     {
-    ///         "violationId": 1,
-    ///         "emissionReportId": 2,
-    ///         "vehicleId": 5,
-    ///         "accusedId": 3,
-    ///         "evidencePath": "/uploads/evidence/IMG003.jpg",
+    ///         "violationId": 5,
+    ///         "emissionReportId": null,
+    ///         "vehicleId": 10,
+    ///         "accusedId": 8,
+    ///         "evidencePath": "data:image/jpeg;base64,/9j/4AAQSkZJRg...(base64 compressed image)",
     ///         "bankDetails": "Account: 9876543210, Bank: UBL"
     ///     }
     /// 
@@ -421,6 +429,60 @@ public class ChallanController : ControllerBase
             count = result.Data?.Count() ?? 0,
             data = result.Data,
             warning = "These challans are past due date and unpaid"
+        });
+    }
+
+    // ========================================================================
+    // PUBLIC ENDPOINTS (NO AUTHORIZATION REQUIRED)
+    // ========================================================================
+
+    /// <summary>
+    /// Public search: Get challans by vehicle plate number and CNIC.
+    /// </summary>
+    /// <remarks>
+    /// **Public Endpoint - No Authorization Required**
+    /// 
+    /// Allows anyone to search for their own challans using vehicle plate number and CNIC.
+    /// Both parameters must match for security purposes.
+    /// 
+    /// **Sample Request:**
+    /// 
+    ///     POST /api/challan/public/search
+    ///     {
+    ///         "plateNumber": "PK-ABC-123",
+    ///         "cnic": "35202-1234567-8"
+    ///     }
+    /// 
+    /// **Response:** Returns list of all challans matching the criteria.
+    /// </remarks>
+    /// <param name="searchDto">Search criteria with plate number and CNIC</param>
+    /// <returns>List of matching challans</returns>
+    /// <response code="200">Returns challans or empty list if none found</response>
+    /// <response code="400">Validation failed</response>
+    [HttpPost("public/search")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ChallanListItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> PublicSearchChallans([FromBody] PublicChallanSearchDto searchDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        _logger.LogInformation("Public challan search: PlateNumber={PlateNumber}, CNIC={Cnic}",
+            searchDto.PlateNumber, searchDto.Cnic);
+
+        var result = await _challanService.SearchChallansByPlateAndCnicAsync(
+            searchDto.PlateNumber, 
+            searchDto.Cnic);
+
+        // Return success even if no challans found (empty list)
+        return Ok(new
+        {
+            message = result.Message ?? "Search completed successfully",
+            count = result.Data?.Count() ?? 0,
+            data = result.Data ?? new List<ChallanListItemDto>()
         });
     }
 }

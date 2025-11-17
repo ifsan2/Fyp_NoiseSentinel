@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.DTOs.Challan;
+using NoiseSentinel.BLL.Helpers;
 using NoiseSentinel.BLL.Services.Interfaces;
 using NoiseSentinel.DAL.Contexts;
 using NoiseSentinel.DAL.Models;
@@ -84,23 +85,31 @@ public class ChallanService : IChallanService
         }
 
         // ========================================================================
-        // STEP 3: VALIDATE EMISSION REPORT
+        // STEP 3: VALIDATE EMISSION REPORT (OPTIONAL)
         // ========================================================================
 
-        var emissionReport = await _emissionreportRepository.GetByIdAsync(dto.EmissionReportId);
-        if (emissionReport == null)
-        {
-            return ServiceResult<ChallanResponseDto>.FailureResult(
-                $"Emission Report with ID {dto.EmissionReportId} not found.");
-        }
+        int? emissionReportId = dto.EmissionReportId;
+        string? digitalSignatureValue = null;
 
-        // Check if emission report already has a challan
-        var reportHasChallan = await _challanRepository.EmissionReportHasChallanAsync(dto.EmissionReportId);
-        if (reportHasChallan)
+        if (dto.EmissionReportId.HasValue)
         {
-            return ServiceResult<ChallanResponseDto>.FailureResult(
-                $"Emission Report #{dto.EmissionReportId} already has a challan. " +
-                "Each emission report can only have one challan.");
+            var emissionReport = await _emissionreportRepository.GetByIdAsync(dto.EmissionReportId.Value);
+            if (emissionReport == null)
+            {
+                return ServiceResult<ChallanResponseDto>.FailureResult(
+                    $"Emission Report with ID {dto.EmissionReportId.Value} not found.");
+            }
+
+            // Check if emission report already has a challan
+            var reportHasChallan = await _challanRepository.EmissionReportHasChallanAsync(dto.EmissionReportId.Value);
+            if (reportHasChallan)
+            {
+                return ServiceResult<ChallanResponseDto>.FailureResult(
+                    $"Emission Report #{dto.EmissionReportId.Value} already has a challan. " +
+                    "Each emission report can only have one challan.");
+            }
+
+            digitalSignatureValue = emissionReport.DigitalSignatureValue;
         }
 
         // ========================================================================
@@ -185,7 +194,26 @@ public class ChallanService : IChallanService
         }
 
         // ========================================================================
-        // STEP 7: CREATE CHALLAN
+        // STEP 7: COMPRESS EVIDENCE IMAGE (IF PROVIDED)
+        // ========================================================================
+
+        string? compressedEvidencePath = null;
+        if (!string.IsNullOrEmpty(dto.EvidencePath))
+        {
+            try
+            {
+                // Compress the base64 image data
+                compressedEvidencePath = ImageCompressionHelper.CompressImage(dto.EvidencePath);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<ChallanResponseDto>.FailureResult(
+                    $"Failed to compress evidence image: {ex.Message}");
+            }
+        }
+
+        // ========================================================================
+        // STEP 8: CREATE CHALLAN
         // ========================================================================
 
         var issueDateTime = DateTime.UtcNow;
@@ -197,19 +225,19 @@ public class ChallanService : IChallanService
             AccusedId = accusedId,
             VehicleId = vehicleId,
             ViolationId = dto.ViolationId,
-            EmissionReportId = dto.EmissionReportId,
-            EvidencePath = dto.EvidencePath,
+            EmissionReportId = emissionReportId,
+            EvidencePath = compressedEvidencePath,
             IssueDateTime = issueDateTime,
             DueDateTime = dueDateTime,
             Status = "Unpaid",
             BankDetails = dto.BankDetails ?? "Account: XXXXXXXXXX, Bank: HBL",
-            DigitalSignatureValue = emissionReport.DigitalSignatureValue
+            DigitalSignatureValue = digitalSignatureValue
         };
 
         var challanId = await _challanRepository.CreateAsync(challan);
 
         // ========================================================================
-        // STEP 8: RETRIEVE AND MAP RESPONSE
+        // STEP 9: RETRIEVE AND MAP RESPONSE
         // ========================================================================
 
         var createdChallan = await _challanRepository.GetByIdAsync(challanId);
@@ -312,6 +340,24 @@ public class ChallanService : IChallanService
         return ServiceResult<IEnumerable<ChallanListItemDto>>.SuccessResult(response);
     }
 
+    public async Task<ServiceResult<IEnumerable<ChallanListItemDto>>> SearchChallansByPlateAndCnicAsync(
+        string plateNumber, string cnic)
+    {
+        var challans = await _challanRepository.GetByVehiclePlateAndCnicAsync(plateNumber, cnic);
+
+        if (!challans.Any())
+        {
+            return ServiceResult<IEnumerable<ChallanListItemDto>>.FailureResult(
+                $"No challans found for vehicle plate number '{plateNumber}' and CNIC '{cnic}'.");
+        }
+
+        var response = challans.Select(MapToChallanListItemDto).ToList();
+
+        return ServiceResult<IEnumerable<ChallanListItemDto>>.SuccessResult(
+            response,
+            $"Found {response.Count} challan(s) for vehicle '{plateNumber}' and CNIC '{cnic}'.");
+    }
+
     // ========================================================================
     // PRIVATE HELPER METHODS
     // ========================================================================
@@ -346,15 +392,15 @@ public class ChallanService : IChallanService
             PenaltyAmount = challan.Violation?.PenaltyAmount ?? 0,
             IsCognizable = challan.Violation?.IsCognizable ?? false,
 
-            // Emission Report
-            EmissionReportId = challan.EmissionReportId ?? 0,
-            DeviceName = challan.EmissionReport?.Device?.DeviceName ?? string.Empty,
-            SoundLevelDBa = challan.EmissionReport?.SoundLevelDBa ?? 0,
+            // Emission Report (optional)
+            EmissionReportId = challan.EmissionReportId,
+            DeviceName = challan.EmissionReport?.Device?.DeviceName,
+            SoundLevelDBa = challan.EmissionReport?.SoundLevelDBa,
             MlClassification = challan.EmissionReport?.MlClassification,
-            EmissionTestDateTime = challan.EmissionReport?.TestDateTime ?? DateTime.MinValue,
+            EmissionTestDateTime = challan.EmissionReport?.TestDateTime,
 
-            // Challan
-            EvidencePath = challan.EvidencePath,
+            // Challan - Decompress evidence image for response
+            EvidencePath = DecompressEvidenceImage(challan.EvidencePath),
             IssueDateTime = challan.IssueDateTime ?? DateTime.MinValue,
             DueDateTime = challan.DueDateTime ?? DateTime.MinValue,
             Status = challan.Status ?? string.Empty,
@@ -386,5 +432,25 @@ public class ChallanService : IChallanService
             IsOverdue = isOverdue,
             HasFir = challan.Firs?.Any() ?? false
         };
+    }
+
+    /// <summary>
+    /// Helper method to safely decompress evidence image.
+    /// Returns decompressed base64 image or null if compression fails.
+    /// </summary>
+    private string? DecompressEvidenceImage(string? compressedEvidencePath)
+    {
+        if (string.IsNullOrEmpty(compressedEvidencePath))
+            return null;
+
+        try
+        {
+            return ImageCompressionHelper.DecompressImage(compressedEvidencePath);
+        }
+        catch
+        {
+            // If decompression fails, return the original value (might be uncompressed legacy data)
+            return compressedEvidencePath;
+        }
     }
 }

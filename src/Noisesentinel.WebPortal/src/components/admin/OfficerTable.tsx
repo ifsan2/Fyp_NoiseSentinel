@@ -13,17 +13,19 @@ import {
   Typography,
   Chip,
   TablePagination,
+  Switch,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import { Visibility, LocalPolice } from "@mui/icons-material";
 import { PoliceOfficerDetailsDto } from "@/models/User";
-import { useAuth } from "@/contexts/AuthContext"; // ✅ ADD
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OfficerTableProps {
   officers: PoliceOfficerDetailsDto[];
   onView: (userId: number) => void;
   onEdit: (officerId: number) => void;
   onDelete: (officerId: number) => void;
+  onToggleStatus: (officerId: number, currentStatus: boolean) => void;
 }
 
 export const OfficerTable: React.FC<OfficerTableProps> = ({
@@ -31,8 +33,9 @@ export const OfficerTable: React.FC<OfficerTableProps> = ({
   onView,
   onEdit,
   onDelete,
+  onToggleStatus,
 }) => {
-  const { isAdmin } = useAuth(); // ✅ ADD
+  const { isAdmin } = useAuth();
 
   return (
     <TableContainer component={Paper}>
@@ -140,6 +143,23 @@ export const OfficerTable: React.FC<OfficerTableProps> = ({
                     size="small"
                     color={officer.isActive ? "success" : "default"}
                   />
+                  <br />
+                  <Tooltip
+                    title={
+                      officer.isActive
+                        ? "Deactivate Officer"
+                        : "Activate Officer"
+                    }
+                  >
+                    <Switch
+                      checked={officer.isActive}
+                      onChange={() =>
+                        onToggleStatus(officer.officerId, officer.isActive)
+                      }
+                      size="small"
+                      color="success"
+                    />
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Tooltip title="View Details">

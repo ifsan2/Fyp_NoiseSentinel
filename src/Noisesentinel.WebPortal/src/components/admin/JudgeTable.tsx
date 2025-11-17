@@ -13,17 +13,19 @@ import {
   Typography,
   Chip,
   TablePagination,
+  Switch,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import { Visibility, Gavel } from "@mui/icons-material";
 import { JudgeDetailsDto } from "@/models/User";
-import { useAuth } from "@/contexts/AuthContext"; // ✅ ADD
+import { useAuth } from "@/contexts/AuthContext";
 
 interface JudgeTableProps {
   judges: JudgeDetailsDto[];
   onView: (userId: number) => void;
   onEdit: (judgeId: number) => void;
   onDelete: (judgeId: number) => void;
+  onToggleStatus: (judgeId: number, currentStatus: boolean) => void;
 }
 
 export const JudgeTable: React.FC<JudgeTableProps> = ({
@@ -31,8 +33,9 @@ export const JudgeTable: React.FC<JudgeTableProps> = ({
   onView,
   onEdit,
   onDelete,
+  onToggleStatus,
 }) => {
-  const { isAdmin } = useAuth(); // ✅ ADD
+  const { isAdmin } = useAuth();
 
   return (
     <TableContainer component={Paper}>
@@ -122,6 +125,21 @@ export const JudgeTable: React.FC<JudgeTableProps> = ({
                     size="small"
                     color={judge.isActive ? "success" : "default"}
                   />
+                  <br />
+                  <Tooltip
+                    title={
+                      judge.isActive ? "Deactivate Judge" : "Activate Judge"
+                    }
+                  >
+                    <Switch
+                      checked={judge.isActive}
+                      onChange={() =>
+                        onToggleStatus(judge.judgeId, judge.isActive)
+                      }
+                      size="small"
+                      color="success"
+                    />
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Tooltip title="View Details">
