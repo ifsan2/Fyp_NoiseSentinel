@@ -54,7 +54,7 @@ public class IotdeviceRepository : IIotdeviceRepository
     public async Task<IEnumerable<Iotdevice>> GetAvailableDevicesAsync()
     {
         return await _context.Iotdevices
-            .Where(d => d.IsRegistered == true && d.IsCalibrated == true)
+            .Where(d => d.IsActive == true && d.CalibrationStatus == true && d.PairedOfficerId == null)
             .OrderBy(d => d.DeviceName)
             .ToListAsync();
     }

@@ -43,6 +43,9 @@ public partial class Policeofficer
     [InverseProperty("Informant")]
     public virtual ICollection<Fir> Firs { get; set; } = new List<Fir>();
 
+    [InverseProperty("PairedOfficer")]
+    public virtual ICollection<Iotdevice> Iotdevices { get; set; } = new List<Iotdevice>();
+
     [ForeignKey("StationId")]
     [InverseProperty("Policeofficers")]
     public virtual Policestation? Station { get; set; }

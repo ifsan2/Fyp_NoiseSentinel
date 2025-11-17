@@ -19,12 +19,25 @@ public partial class Iotdevice
     [StringLength(100)]
     public string? FirmwareVersion { get; set; }
 
-    public bool? IsCalibrated { get; set; }
+    [Column(TypeName = "datetime")]
+    public DateTime? CalibrationDate { get; set; }
+
+    public bool? CalibrationStatus { get; set; }
+
+    [StringLength(255)]
+    public string? CalibrationCertificateNo { get; set; }
+
+    public bool? IsActive { get; set; }
 
     [Column(TypeName = "datetime")]
     public DateTime? PairingDateTime { get; set; }
 
-    public bool? IsRegistered { get; set; }
+    [Column("PairedOfficerID")]
+    public int? PairedOfficerId { get; set; }
+
+    [ForeignKey("PairedOfficerId")]
+    [InverseProperty("Iotdevices")]
+    public virtual Policeofficer? PairedOfficer { get; set; }
 
     [InverseProperty("Device")]
     public virtual ICollection<Emissionreport> Emissionreports { get; set; } = new List<Emissionreport>();
