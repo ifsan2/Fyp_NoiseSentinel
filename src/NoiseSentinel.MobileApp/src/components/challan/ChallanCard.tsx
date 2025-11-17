@@ -1,21 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ChallanListItemDto } from '../../models/Challan';
-import { colors } from '../../styles/colors';
-import { spacing, borderRadius } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
-import { formatters } from '../../utils/formatters';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { ChallanListItemDto } from "../../models/Challan";
+import { colors } from "../../styles/colors";
+import { spacing, borderRadius } from "../../styles/spacing";
+import { typography } from "../../styles/typography";
+import { formatters } from "../../utils/formatters";
 
 interface ChallanCardProps {
   challan: ChallanListItemDto;
   onPress: (challanId: number) => void;
 }
 
-export const ChallanCard: React.FC<ChallanCardProps> = ({ challan, onPress }) => {
+export const ChallanCard: React.FC<ChallanCardProps> = ({
+  challan,
+  onPress,
+}) => {
   const getStatusColor = () => {
     if (challan.isOverdue) return colors.error;
-    if (challan.status === 'Paid') return colors.success;
-    if (challan.status === 'Disputed') return colors.warning;
+    if (challan.status === "Paid") return colors.success;
+    if (challan.status === "Disputed") return colors.warning;
     return colors.info;
   };
 
@@ -26,12 +29,24 @@ export const ChallanCard: React.FC<ChallanCardProps> = ({ challan, onPress }) =>
       activeOpacity={0.7}
     >
       <View style={styles.header}>
-        <Text style={styles.plateNumber}>🚗 {challan.vehiclePlateNumber}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() + '20' }]}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.challanIdLabel}>Challan ID</Text>
+          <Text style={styles.challanId}>#{challan.challanId}</Text>
+        </View>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: getStatusColor() + "20" },
+          ]}
+        >
           <Text style={[styles.statusText, { color: getStatusColor() }]}>
             {challan.status}
           </Text>
         </View>
+      </View>
+
+      <View style={styles.header}>
+        <Text style={styles.plateNumber}>🚗 {challan.vehiclePlateNumber}</Text>
       </View>
 
       <View style={styles.divider} />
@@ -101,10 +116,24 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: spacing.sm,
+  },
+  headerLeft: {
+    flexDirection: "column",
+  },
+  challanIdLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontSize: 10,
+    textTransform: "uppercase",
+  },
+  challanId: {
+    ...typography.h3,
+    color: colors.primary,
+    fontWeight: "700",
   },
   plateNumber: {
     ...typography.h4,
@@ -118,7 +147,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...typography.caption,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   divider: {
     height: 1,
@@ -129,9 +158,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   label: {
     ...typography.bodySmall,
@@ -140,9 +169,9 @@ const styles = StyleSheet.create({
   value: {
     ...typography.bodySmall,
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'right',
+    textAlign: "right",
   },
   penalty: {
     color: colors.error,
@@ -153,26 +182,26 @@ const styles = StyleSheet.create({
   },
   firBadge: {
     marginTop: spacing.sm,
-    backgroundColor: colors.warning + '20',
+    backgroundColor: colors.warning + "20",
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   firText: {
     ...typography.caption,
     color: colors.warning,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   overdueWarning: {
     marginTop: spacing.sm,
-    backgroundColor: colors.error + '20',
+    backgroundColor: colors.error + "20",
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   overdueText: {
     ...typography.caption,
     color: colors.error,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
