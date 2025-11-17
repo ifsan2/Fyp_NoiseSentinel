@@ -329,4 +329,75 @@ public class IotdeviceService : IIotdeviceService
         return ServiceResult<string>.SuccessResult(
             $"Successfully paired with device '{device.DeviceName}'. Device is ready for emission readings.");
     }
+
+    public async Task<ServiceResult<IotDeviceResponseDto>> GetPairedDeviceForOfficerAsync(int officerUserId)
+    {
+        // Get officer by userId
+        var officer = await _context.Policeofficers
+            .Include(o => o.User)
+            .FirstOrDefaultAsync(o => o.UserId == officerUserId);
+
+        if (officer == null)
+        {
+            return ServiceResult<IotDeviceResponseDto>.FailureResult("Officer not found.");
+        }
+
+        // Get the device paired with this officer
+        var device = await _context.Iotdevices
+            .Include(d => d.PairedOfficer)
+                .ThenInclude(o => o!.User)
+            .FirstOrDefaultAsync(d => d.PairedOfficerId == officer.OfficerId);
+
+        if (device == null)
+        {
+            return ServiceResult<IotDeviceResponseDto>.FailureResult("No device currently paired.");
+        }
+
+        var response = new IotDeviceResponseDto
+        {
+            DeviceId = device.DeviceId,
+            DeviceName = device.DeviceName ?? string.Empty,
+            FirmwareVersion = device.FirmwareVersion ?? string.Empty,
+            CalibrationDate = device.CalibrationDate,
+            CalibrationStatus = device.CalibrationStatus ?? false,
+            CalibrationCertificateNo = device.CalibrationCertificateNo,
+            IsActive = device.IsActive ?? false,
+            IsPaired = true,
+            PairedOfficerId = device.PairedOfficerId,
+            PairedOfficerName = device.PairedOfficer?.User?.FullName,
+            PairingDateTime = device.PairingDateTime
+        };
+
+        return ServiceResult<IotDeviceResponseDto>.SuccessResult(response);
+    }
+
+    public async Task<ServiceResult<string>> UnpairDeviceAsync(int officerUserId)
+    {
+        // Get officer by userId
+        var officer = await _context.Policeofficers
+            .FirstOrDefaultAsync(o => o.UserId == officerUserId);
+
+        if (officer == null)
+        {
+            return ServiceResult<string>.FailureResult("Officer not found.");
+        }
+
+        // Find the device paired with this officer
+        var device = await _context.Iotdevices
+            .FirstOrDefaultAsync(d => d.PairedOfficerId == officer.OfficerId);
+
+        if (device == null)
+        {
+            return ServiceResult<string>.FailureResult("No device currently paired.");
+        }
+
+        // Unpair the device
+        device.PairedOfficerId = null;
+        device.PairingDateTime = null;
+
+        await _context.SaveChangesAsync();
+
+        return ServiceResult<string>.SuccessResult(
+            $"Successfully unpaired from device '{device.DeviceName}'.");
+    }
 }

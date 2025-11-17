@@ -46,10 +46,10 @@ public static class ImageCompressionHelper
     }
 
     /// <summary>
-    /// Decompress compressed base64 image string.
+    /// Decompress compressed base64 image string and return as data URI.
     /// </summary>
     /// <param name="compressedBase64">Compressed base64 string</param>
-    /// <returns>Original base64 image string</returns>
+    /// <returns>Data URI format: data:image/jpeg;base64,{base64Data}</returns>
     public static string DecompressImage(string compressedBase64)
     {
         if (string.IsNullOrEmpty(compressedBase64))
@@ -64,7 +64,10 @@ public static class ImageCompressionHelper
             using var outputStream = new MemoryStream();
             
             gzipStream.CopyTo(outputStream);
-            return Convert.ToBase64String(outputStream.ToArray());
+            var base64Data = Convert.ToBase64String(outputStream.ToArray());
+            
+            // Return as data URI for easy display in web/mobile
+            return $"data:image/jpeg;base64,{base64Data}";
         }
         catch (Exception ex)
         {

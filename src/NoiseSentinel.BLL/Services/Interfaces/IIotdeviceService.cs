@@ -44,4 +44,14 @@ public interface IIotdeviceService
     /// Log device pairing (Police Officer connects via Bluetooth).
     /// </summary>
     Task<ServiceResult<string>> PairDeviceAsync(PairIotDeviceDto dto, int officerUserId);
+
+    /// <summary>
+    /// Get the device currently paired with an officer.
+    /// </summary>
+    Task<ServiceResult<IotDeviceResponseDto>> GetPairedDeviceForOfficerAsync(int officerUserId);
+
+    /// <summary>
+    /// Unpair officer from their current device.
+    /// </summary>
+    Task<ServiceResult<string>> UnpairDeviceAsync(int officerUserId);
 }
