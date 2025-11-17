@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -24,29 +24,29 @@ import {
   DialogContent,
   DialogActions,
   Divider,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Search,
   Refresh,
   DirectionsCar,
   Visibility,
   Assignment,
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { STATION_ROUTES } from '@/utils/stationConstants';
-import vehicleApi, { VehicleDto } from '@/api/vehicleApi';
-import challanApi from '@/api/challanApi';
-import { ChallanDto } from '@/models/Challan';
-import { dateHelpers } from '@/utils/stationFilters';
+} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { STATION_ROUTES } from "@/utils/stationConstants";
+import vehicleApi, { VehicleDto } from "@/api/vehicleApi";
+import challanApi from "@/api/challanApi";
+import { ChallanDto } from "@/models/Challan";
+import { dateHelpers } from "@/utils/stationFilters";
 
 export const ViewVehiclesPage: React.FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
   const [vehicles, setVehicles] = useState<VehicleDto[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // View Dialog
   const [viewDialog, setViewDialog] = useState<{
@@ -67,8 +67,8 @@ export const ViewVehiclesPage: React.FC = () => {
       setVehicles(data);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load vehicles',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load vehicles",
+        { variant: "error" }
       );
     } finally {
       setLoading(false);
@@ -85,7 +85,7 @@ export const ViewVehiclesPage: React.FC = () => {
       const challans = await challanApi.getChallansByVehicle(vehicleId);
       setViewDialog((prev) => ({ ...prev, challans, loadingChallans: false }));
     } catch (error: any) {
-      enqueueSnackbar('Failed to load vehicle challans', { variant: 'error' });
+      enqueueSnackbar("Failed to load vehicle challans", { variant: "error" });
       setViewDialog((prev) => ({ ...prev, loadingChallans: false }));
     }
   };
@@ -101,7 +101,7 @@ export const ViewVehiclesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -113,11 +113,15 @@ export const ViewVehiclesPage: React.FC = () => {
         title="Vehicle Records"
         subtitle="Search and view vehicle violation history"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'Vehicles' },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "Vehicles" },
         ]}
         actions={
-          <Button variant="outlined" startIcon={<Refresh />} onClick={loadVehicles}>
+          <Button
+            variant="outlined"
+            startIcon={<Refresh />}
+            onClick={loadVehicles}
+          >
             Refresh
           </Button>
         }
@@ -148,36 +152,57 @@ export const ViewVehiclesPage: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'primary.main' }}>
+            <Box sx={{ p: 2, bgcolor: "primary.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "primary.main",
+                }}
+              >
                 {filteredVehicles.length}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Vehicles Found
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'warning.main' }}>
-                {filteredVehicles.reduce((sum, v) => sum + (v.totalChallans || 0), 0)}
+            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "warning.main",
+                }}
+              >
+                {filteredVehicles.reduce(
+                  (sum, v) => sum + (v.totalChallans || 0),
+                  0
+                )}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Total Challans
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: 'error.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '1.5rem', fontWeight: 700, color: 'error.main' }}>
-                PKR{' '}
+            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                  color: "error.main",
+                }}
+              >
+                PKR{" "}
                 {filteredVehicles
                   .reduce((sum, v) => sum + (v.totalPenalties || 0), 0)
                   .toLocaleString()}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Total Penalties
               </Box>
             </Box>
@@ -189,12 +214,22 @@ export const ViewVehiclesPage: React.FC = () => {
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow sx={{ bgcolor: 'primary.main' }}>
-              <TableCell sx={{ color: 'white', fontWeight: 600 }}>Vehicle Info</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 600 }}>Owner Info</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 600 }}>Challans</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 600 }}>Total Penalties</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
+            <TableRow sx={{ bgcolor: "primary.main" }}>
+              <TableCell sx={{ color: "white", fontWeight: 600 }}>
+                Vehicle Info
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: 600 }}>
+                Owner Info
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: 600 }}>
+                Challans
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: 600 }}>
+                Total Penalties
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: 600 }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -208,7 +243,7 @@ export const ViewVehiclesPage: React.FC = () => {
               filteredVehicles.map((vehicle) => (
                 <TableRow key={vehicle.vehicleId} hover>
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <DirectionsCar color="primary" />
                       <Box>
                         <Typography variant="body1" fontWeight={600}>
@@ -222,10 +257,10 @@ export const ViewVehiclesPage: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={600}>
-                      {vehicle.ownerName || 'N/A'}
+                      {vehicle.ownerName || "N/A"}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      CNIC: {vehicle.ownerCnic || 'N/A'}
+                      CNIC: {vehicle.ownerCnic || "N/A"}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -234,15 +269,19 @@ export const ViewVehiclesPage: React.FC = () => {
                       size="small"
                       color={
                         (vehicle.totalChallans || 0) > 3
-                          ? 'error'
+                          ? "error"
                           : (vehicle.totalChallans || 0) > 0
-                          ? 'warning'
-                          : 'default'
+                          ? "warning"
+                          : "default"
                       }
                     />
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body1" fontWeight={600} color="error.main">
+                    <Typography
+                      variant="body1"
+                      fontWeight={600}
+                      color="error.main"
+                    >
                       PKR {(vehicle.totalPenalties || 0).toLocaleString()}
                     </Typography>
                   </TableCell>
@@ -268,13 +307,18 @@ export const ViewVehiclesPage: React.FC = () => {
       <Dialog
         open={viewDialog.open}
         onClose={() =>
-          setViewDialog({ open: false, vehicle: null, challans: [], loadingChallans: false })
+          setViewDialog({
+            open: false,
+            vehicle: null,
+            challans: [],
+            loadingChallans: false,
+          })
         }
         maxWidth="lg"
         fullWidth
       >
         <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <DirectionsCar />
             Vehicle History - {viewDialog.vehicle?.plateNumber}
           </Box>
@@ -323,7 +367,7 @@ export const ViewVehiclesPage: React.FC = () => {
                     Registration Year
                   </Typography>
                   <Typography variant="body1" fontWeight={600}>
-                    {viewDialog.vehicle.registrationYear || 'N/A'}
+                    {viewDialog.vehicle.registrationYear || "N/A"}
                   </Typography>
                 </Grid>
 
@@ -332,7 +376,7 @@ export const ViewVehiclesPage: React.FC = () => {
                     Owner Name
                   </Typography>
                   <Typography variant="body1" fontWeight={600}>
-                    {viewDialog.vehicle.ownerName || 'N/A'}
+                    {viewDialog.vehicle.ownerName || "N/A"}
                   </Typography>
                 </Grid>
 
@@ -341,7 +385,7 @@ export const ViewVehiclesPage: React.FC = () => {
                     Owner CNIC
                   </Typography>
                   <Typography variant="body1" fontWeight={600}>
-                    {viewDialog.vehicle.ownerCnic || 'N/A'}
+                    {viewDialog.vehicle.ownerCnic || "N/A"}
                   </Typography>
                 </Grid>
 
@@ -350,7 +394,7 @@ export const ViewVehiclesPage: React.FC = () => {
                     Owner Contact
                   </Typography>
                   <Typography variant="body1" fontWeight={600}>
-                    {viewDialog.vehicle.ownerContact || 'N/A'}
+                    {viewDialog.vehicle.ownerContact || "N/A"}
                   </Typography>
                 </Grid>
               </Grid>
@@ -362,11 +406,16 @@ export const ViewVehiclesPage: React.FC = () => {
               <Divider sx={{ mb: 2 }} />
 
               {viewDialog.loadingChallans ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
                   <CircularProgress />
                 </Box>
               ) : viewDialog.challans.length === 0 ? (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ p: 3 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  align="center"
+                  sx={{ p: 3 }}
+                >
                   No challans found for this vehicle
                 </Typography>
               ) : (
@@ -385,10 +434,16 @@ export const ViewVehiclesPage: React.FC = () => {
                       {viewDialog.challans.map((challan) => (
                         <TableRow key={challan.challanId}>
                           <TableCell>#{challan.challanId}</TableCell>
-                          <TableCell>{dateHelpers.formatDate(challan.issueDateTime)}</TableCell>
-                          <TableCell>{challan.violationName}</TableCell>
                           <TableCell>
-                            <Typography variant="body2" fontWeight={600} color="error.main">
+                            {dateHelpers.formatDate(challan.issueDateTime)}
+                          </TableCell>
+                          <TableCell>{challan.violationType}</TableCell>
+                          <TableCell>
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                              color="error.main"
+                            >
                               PKR {challan.penaltyAmount?.toLocaleString()}
                             </Typography>
                           </TableCell>
@@ -407,7 +462,12 @@ export const ViewVehiclesPage: React.FC = () => {
         <DialogActions>
           <Button
             onClick={() =>
-              setViewDialog({ open: false, vehicle: null, challans: [], loadingChallans: false })
+              setViewDialog({
+                open: false,
+                vehicle: null,
+                challans: [],
+                loadingChallans: false,
+              })
             }
           >
             Close

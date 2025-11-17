@@ -4,15 +4,14 @@ export interface DeviceDto {
   deviceId: number;
   deviceName: string;
   firmwareVersion: string;
-  calibrationDate: string;
+  calibrationDate: string | null;
   calibrationStatus: boolean;
   calibrationCertificateNo?: string;
   isActive: boolean;
   isPaired: boolean;
   pairedOfficerId?: number;
   pairedOfficerName?: string;
-  stationId?: number;
-  stationName?: string;
+  pairingDateTime?: string;
 }
 
 export interface CreateDeviceDto {
@@ -21,7 +20,6 @@ export interface CreateDeviceDto {
   calibrationDate: string;
   calibrationStatus: boolean;
   calibrationCertificateNo?: string;
-  stationId?: number;
 }
 
 export interface UpdateDeviceDto {

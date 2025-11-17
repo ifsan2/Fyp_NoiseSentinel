@@ -19,7 +19,7 @@ import { ViolationDto } from "@/models/Violation";
 interface ViolationTableProps {
   violations: ViolationDto[];
   onEdit: (violationId: number) => void;
-  onDelete: (violationId: number, violationName?: string) => void;
+  onDelete: (violationId: number, violationType?: string) => void;
 }
 
 export const ViolationTable: React.FC<ViolationTableProps> = ({
@@ -65,7 +65,7 @@ export const ViolationTable: React.FC<ViolationTableProps> = ({
                     <Gavel color="warning" />
                     <Box>
                       <Typography variant="body1" fontWeight={600}>
-                        {violation.violationName}
+                        {violation.violationType}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         ID: {violation.violationId}
@@ -88,9 +88,13 @@ export const ViolationTable: React.FC<ViolationTableProps> = ({
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  {violation.sectionOfLaw || (
+                  {violation.sectionOfLaw ? (
+                    <Typography variant="body2">
+                      {violation.sectionOfLaw}
+                    </Typography>
+                  ) : (
                     <Typography variant="body2" color="text.secondary">
-                      N/A
+                      —
                     </Typography>
                   )}
                 </TableCell>

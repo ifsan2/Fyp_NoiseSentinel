@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Table,
   TableBody,
@@ -12,9 +12,9 @@ import {
   Chip,
   Box,
   Typography,
-} from '@mui/material';
-import { Visibility, Assignment, Warning } from '@mui/icons-material';
-import { ChallanDto } from '@/models/Challan';
+} from "@mui/material";
+import { Visibility, Assignment, Warning } from "@mui/icons-material";
+import { ChallanDto } from "@/models/Challan";
 
 interface ChallanTableProps {
   challans: ChallanDto[];
@@ -26,25 +26,25 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
   onView,
 }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'paid':
-        return 'success';
-      case 'unpaid':
-        return 'warning';
-      case 'overdue':
-        return 'error';
-      case 'disputed':
-        return 'info';
+      case "paid":
+        return "success";
+      case "unpaid":
+        return "warning";
+      case "overdue":
+        return "error";
+      case "disputed":
+        return "info";
       default:
-        return 'default';
+        return "default";
     }
   };
 
@@ -52,15 +52,31 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
-          <TableRow sx={{ bgcolor: 'primary.main' }}>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Challan #</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Accused/Vehicle</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Violation</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Officer/Station</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Penalty</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Dates</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Status</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
+          <TableRow sx={{ bgcolor: "primary.main" }}>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Challan #
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Accused/Vehicle
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Violation
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Officer/Station
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Penalty
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Dates
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Status
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Actions
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -74,7 +90,7 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
             challans.map((challan) => (
               <TableRow key={challan.challanId} hover>
                 <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Assignment color="primary" fontSize="small" />
                     <Typography variant="body2" fontWeight={600}>
                       #{challan.challanId}
@@ -100,7 +116,7 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
                 <TableCell>
                   <Box>
                     <Typography variant="body2" fontWeight={600}>
-                      {challan.violationName}
+                      {challan.violationType}
                     </Typography>
                     {challan.isCognizable && (
                       <Chip
@@ -114,7 +130,9 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
                 </TableCell>
                 <TableCell>
                   <Box>
-                    <Typography variant="body2">{challan.officerName}</Typography>
+                    <Typography variant="body2">
+                      {challan.officerName}
+                    </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {challan.badgeNumber}
                     </Typography>
@@ -125,7 +143,11 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
                   </Box>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body1" fontWeight={600} color="error.main">
+                  <Typography
+                    variant="body1"
+                    fontWeight={600}
+                    color="error.main"
+                  >
                     PKR {challan.penaltyAmount?.toLocaleString()}
                   </Typography>
                 </TableCell>
@@ -160,7 +182,7 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
                         label="Has FIR"
                         size="small"
                         color="warning"
-                        sx={{ mt: 0.5, display: 'block', width: 'fit-content' }}
+                        sx={{ mt: 0.5, display: "block", width: "fit-content" }}
                       />
                     )}
                   </Box>

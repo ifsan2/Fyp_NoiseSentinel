@@ -39,8 +39,8 @@ export const ViewViolationsPage: React.FC = () => {
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     violationId: number | null;
-    violationName: string;
-  }>({ open: false, violationId: null, violationName: "" });
+    violationType: string;
+  }>({ open: false, violationId: null, violationType: "" });
 
   useEffect(() => {
     loadViolations();
@@ -65,11 +65,11 @@ export const ViewViolationsPage: React.FC = () => {
     navigate(`${STATION_ROUTES.EDIT_VIOLATION}/${violationId}`);
   };
 
-  const handleDeleteClick = (violationId: number, violationName?: string) => {
+  const handleDeleteClick = (violationId: number, violationType?: string) => {
     setDeleteDialog({
       open: true,
       violationId,
-      violationName: violationName || "",
+      violationType: violationType || "",
     });
   };
 
@@ -79,7 +79,7 @@ export const ViewViolationsPage: React.FC = () => {
     try {
       await violationApi.deleteViolation(deleteDialog.violationId);
       enqueueSnackbar("Violation deleted successfully", { variant: "success" });
-      setDeleteDialog({ open: false, violationId: null, violationName: "" });
+      setDeleteDialog({ open: false, violationId: null, violationType: "" });
       loadViolations();
     } catch (error: any) {
       enqueueSnackbar(
@@ -263,7 +263,7 @@ export const ViewViolationsPage: React.FC = () => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           Are you sure you want to delete violation{" "}
-          <strong>{deleteDialog.violationName}</strong>?
+          <strong>{deleteDialog.violationType}</strong>?
           <br />
           This cannot be undone if the violation is not in use.
         </DialogContent>

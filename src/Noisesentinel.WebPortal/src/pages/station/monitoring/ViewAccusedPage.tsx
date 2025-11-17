@@ -634,7 +634,7 @@ export const ViewAccusedPage: React.FC = () => {
                           <TableCell>
                             <Chip label={challan.plateNumber} size="small" />
                           </TableCell>
-                          <TableCell>{challan.violationName}</TableCell>
+                          <TableCell>{challan.violationType}</TableCell>
                           <TableCell>
                             <Typography
                               variant="body2"

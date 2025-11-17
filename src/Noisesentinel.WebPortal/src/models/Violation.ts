@@ -2,15 +2,16 @@
 
 export interface ViolationDto {
   violationId: number;
-  violationName: string;
+  violationType: string;
   description?: string;
   penaltyAmount: number;
   sectionOfLaw?: string;
   isCognizable: boolean;
+  totalChallans?: number;
 }
 
 export interface CreateViolationDto {
-  violationName: string;
+  violationType: string;
   description?: string;
   penaltyAmount: number;
   sectionOfLaw?: string;
@@ -19,7 +20,7 @@ export interface CreateViolationDto {
 
 export interface UpdateViolationDto {
   violationId: number;
-  violationName: string;
+  violationType: string;
   description?: string;
   penaltyAmount: number;
   sectionOfLaw?: string;

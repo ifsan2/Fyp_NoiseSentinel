@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Table,
   TableBody,
@@ -12,9 +12,15 @@ import {
   Chip,
   Box,
   Typography,
-} from '@mui/material';
-import { Edit, Visibility, Devices, CheckCircle, Cancel } from '@mui/icons-material';
-import { DeviceDto } from '@/models/Device';
+} from "@mui/material";
+import {
+  Edit,
+  Visibility,
+  Devices,
+  CheckCircle,
+  Cancel,
+} from "@mui/icons-material";
+import { DeviceDto } from "@/models/Device";
 
 interface DeviceTableProps {
   devices: DeviceDto[];
@@ -27,11 +33,24 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
   onView,
   onEdit,
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatDateTime = (dateString: string | null | undefined) => {
+    if (!dateString) return "Not paired yet";
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -39,20 +58,31 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
-          <TableRow sx={{ bgcolor: 'secondary.main' }}>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Device Info</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Station</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Firmware</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Calibration</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Paired With</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Status</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
+          <TableRow sx={{ bgcolor: "secondary.main" }}>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Device Info
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Firmware
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Calibration
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Paired With
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Status
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Actions
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {devices.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center">
+              <TableCell colSpan={6} align="center">
                 No devices found
               </TableCell>
             </TableRow>
@@ -60,7 +90,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
             devices.map((device) => (
               <TableRow key={device.deviceId} hover>
                 <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Devices color="secondary" />
                     <Box>
                       <Typography variant="body1" fontWeight={600}>
@@ -73,28 +103,38 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                   </Box>
                 </TableCell>
                 <TableCell>
-                  {device.stationName || (
-                    <Typography variant="body2" color="text.secondary">
-                      Not Assigned
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
                   <Chip label={device.firmwareVersion} size="small" />
                 </TableCell>
                 <TableCell>
                   <Box>
                     <Chip
-                      label={device.calibrationStatus ? 'Calibrated' : 'Not Calibrated'}
+                      label={
+                        device.calibrationStatus
+                          ? "Calibrated"
+                          : "Not Calibrated"
+                      }
                       size="small"
-                      color={device.calibrationStatus ? 'success' : 'error'}
-                      icon={device.calibrationStatus ? <CheckCircle /> : <Cancel />}
+                      color={device.calibrationStatus ? "success" : "error"}
+                      icon={
+                        device.calibrationStatus ? <CheckCircle /> : <Cancel />
+                      }
                     />
-                    <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                      {formatDate(device.calibrationDate)}
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      sx={{ mt: 0.5 }}
+                      color="text.secondary"
+                    >
+                      {device.calibrationStatus
+                        ? formatDate(device.calibrationDate)
+                        : "Invalid Date"}
                     </Typography>
                     {device.calibrationCertificateNo && (
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                      >
                         Cert: {device.calibrationCertificateNo}
                       </Typography>
                     )}
@@ -106,7 +146,19 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                       <Typography variant="body2" fontWeight={600}>
                         {device.pairedOfficerName}
                       </Typography>
-                      <Chip label="In Use" size="small" color="warning" sx={{ mt: 0.5 }} />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                      >
+                        {formatDateTime(device.pairingDateTime)}
+                      </Typography>
+                      <Chip
+                        label="In Use"
+                        size="small"
+                        color="warning"
+                        sx={{ mt: 0.5 }}
+                      />
                     </Box>
                   ) : (
                     <Chip label="Available" size="small" color="success" />
@@ -114,9 +166,9 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={device.isActive ? 'Active' : 'Inactive'}
+                    label={device.isActive ? "Active" : "Inactive"}
                     size="small"
-                    color={device.isActive ? 'success' : 'default'}
+                    color={device.isActive ? "success" : "default"}
                   />
                 </TableCell>
                 <TableCell>

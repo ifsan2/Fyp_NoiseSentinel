@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -18,28 +18,28 @@ import {
   DialogActions,
   Typography,
   Divider,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Search,
   Refresh,
   FileDownload,
   Warning,
   Assignment,
-} from '@mui/icons-material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { ChallanTable } from '@/components/station/tables/ChallanTable';
-import { STATION_ROUTES, CHALLAN_STATUSES } from '@/utils/stationConstants';
-import stationApi from '@/api/stationApi';
-import challanApi from '@/api/challanApi';
-import violationApi from '@/api/violationApi';
-import { ChallanDto } from '@/models/Challan';
-import { PoliceStationDto } from '@/models/Station';
-import { ViolationDto } from '@/models/Violation';
-import { stationFilters } from '@/utils/stationFilters';
-import { stationExport } from '@/utils/stationExport';
-import { dateHelpers } from '@/utils/stationFilters';
+} from "@mui/icons-material";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { ChallanTable } from "@/components/station/tables/ChallanTable";
+import { STATION_ROUTES, CHALLAN_STATUSES } from "@/utils/stationConstants";
+import stationApi from "@/api/stationApi";
+import challanApi from "@/api/challanApi";
+import violationApi from "@/api/violationApi";
+import { ChallanDto } from "@/models/Challan";
+import { PoliceStationDto } from "@/models/Station";
+import { ViolationDto } from "@/models/Violation";
+import { stationFilters } from "@/utils/stationFilters";
+import { stationExport } from "@/utils/stationExport";
+import { dateHelpers } from "@/utils/stationFilters";
 
 export const ViewChallansPage: React.FC = () => {
   const navigate = useNavigate();
@@ -51,14 +51,14 @@ export const ViewChallansPage: React.FC = () => {
   const [violations, setViolations] = useState<ViolationDto[]>([]);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedStations, setSelectedStations] = useState<number[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedViolations, setSelectedViolations] = useState<number[]>([]);
-  const [overdueFilter, setOverdueFilter] = useState<string>('all');
-  const [firFilter, setFirFilter] = useState<string>('all');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [overdueFilter, setOverdueFilter] = useState<string>("all");
+  const [firFilter, setFirFilter] = useState<string>("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // View Dialog
   const [viewDialog, setViewDialog] = useState<{
@@ -70,8 +70,8 @@ export const ViewChallansPage: React.FC = () => {
     loadData();
 
     // Check URL params
-    const stationIdParam = searchParams.get('stationId');
-    const officerIdParam = searchParams.get('officerId');
+    const stationIdParam = searchParams.get("stationId");
+    const officerIdParam = searchParams.get("officerId");
     if (stationIdParam) {
       setSelectedStations([parseInt(stationIdParam)]);
     }
@@ -90,7 +90,7 @@ export const ViewChallansPage: React.FC = () => {
       const challansWithOverdue = challansData.map((challan) => ({
         ...challan,
         daysOverdue:
-          challan.status === 'Unpaid'
+          challan.status === "Unpaid"
             ? dateHelpers.getDaysOverdue(challan.dueDateTime)
             : 0,
       }));
@@ -100,8 +100,8 @@ export const ViewChallansPage: React.FC = () => {
       setViolations(violationsData);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load challans',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load challans",
+        { variant: "error" }
       );
     } finally {
       setLoading(false);
@@ -118,13 +118,17 @@ export const ViewChallansPage: React.FC = () => {
   const handleExport = () => {
     const filteredData = getFilteredChallans();
     stationExport.exportChallans(filteredData);
-    enqueueSnackbar('Challans exported successfully', { variant: 'success' });
+    enqueueSnackbar("Challans exported successfully", { variant: "success" });
   };
 
   const getFilteredChallans = () => {
-    const isOverdue = overdueFilter === 'overdue' ? true : undefined;
+    const isOverdue = overdueFilter === "overdue" ? true : undefined;
     const hasFir =
-      firFilter === 'with-fir' ? true : firFilter === 'without-fir' ? false : undefined;
+      firFilter === "with-fir"
+        ? true
+        : firFilter === "without-fir"
+        ? false
+        : undefined;
 
     const dateRange =
       startDate && endDate ? { start: startDate, end: endDate } : undefined;
@@ -147,13 +151,17 @@ export const ViewChallansPage: React.FC = () => {
     (sum, c) => sum + (c.penaltyAmount || 0),
     0
   );
-  const unpaidCount = filteredChallans.filter((c) => c.status === 'Unpaid').length;
-  const overdueCount = filteredChallans.filter((c) => (c.daysOverdue || 0) > 0).length;
+  const unpaidCount = filteredChallans.filter(
+    (c) => c.status === "Unpaid"
+  ).length;
+  const overdueCount = filteredChallans.filter(
+    (c) => (c.daysOverdue || 0) > 0
+  ).length;
   const withFirCount = filteredChallans.filter((c) => c.hasFir).length;
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -165,8 +173,8 @@ export const ViewChallansPage: React.FC = () => {
         title="Challans Monitoring"
         subtitle="Monitor and track challans across all stations"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'Challans' },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "Challans" },
         ]}
         actions={
           <>
@@ -218,13 +226,15 @@ export const ViewChallansPage: React.FC = () => {
                 value={selectedStations}
                 onChange={(e: SelectChangeEvent<number[]>) => {
                   const value = e.target.value;
-                  setSelectedStations(typeof value === 'string' ? [] : value);
+                  setSelectedStations(typeof value === "string" ? [] : value);
                 }}
                 label="Station"
                 renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((value) => {
-                      const station = stations.find((s) => s.stationId === value);
+                      const station = stations.find(
+                        (s) => s.stationId === value
+                      );
                       return (
                         <Chip
                           key={value}
@@ -254,11 +264,11 @@ export const ViewChallansPage: React.FC = () => {
                 value={selectedStatuses}
                 onChange={(e: SelectChangeEvent<string[]>) => {
                   const value = e.target.value;
-                  setSelectedStatuses(typeof value === 'string' ? [] : value);
+                  setSelectedStatuses(typeof value === "string" ? [] : value);
                 }}
                 label="Status"
                 renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((value) => (
                       <Chip key={value} label={value} size="small" />
                     ))}
@@ -334,8 +344,8 @@ export const ViewChallansPage: React.FC = () => {
         {(searchQuery ||
           selectedStations.length > 0 ||
           selectedStatuses.length > 0 ||
-          overdueFilter !== 'all' ||
-          firFilter !== 'all' ||
+          overdueFilter !== "all" ||
+          firFilter !== "all" ||
           startDate ||
           endDate) && (
           <Box sx={{ mt: 2 }}>
@@ -343,13 +353,13 @@ export const ViewChallansPage: React.FC = () => {
               variant="outlined"
               size="small"
               onClick={() => {
-                setSearchQuery('');
+                setSearchQuery("");
                 setSelectedStations([]);
                 setSelectedStatuses([]);
-                setOverdueFilter('all');
-                setFirFilter('all');
-                setStartDate('');
-                setEndDate('');
+                setOverdueFilter("all");
+                setFirFilter("all");
+                setStartDate("");
+                setEndDate("");
               }}
             >
               Clear All Filters
@@ -362,53 +372,71 @@ export const ViewChallansPage: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'primary.main' }}>
+            <Box sx={{ p: 2, bgcolor: "primary.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "primary.main",
+                }}
+              >
                 {filteredChallans.length}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Total Challans
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'warning.main' }}>
+            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "warning.main",
+                }}
+              >
                 {unpaidCount}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Unpaid Challans
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'error.light', borderRadius: 2 }}>
+            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
               <Box
                 sx={{
-                  fontSize: '2rem',
+                  fontSize: "2rem",
                   fontWeight: 700,
-                  color: 'error.main',
-                  display: 'flex',
-                  alignItems: 'center',
+                  color: "error.main",
+                  display: "flex",
+                  alignItems: "center",
                   gap: 1,
                 }}
               >
                 <Warning /> {overdueCount}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Overdue Challans
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '1.5rem', fontWeight: 700, color: 'success.main' }}>
+            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                  color: "success.main",
+                }}
+              >
                 PKR {totalPenalties.toLocaleString()}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Total Penalties
               </Box>
             </Box>
@@ -427,7 +455,7 @@ export const ViewChallansPage: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Assignment />
             Challan Details
           </Box>
@@ -474,7 +502,7 @@ export const ViewChallansPage: React.FC = () => {
                   Violation
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewDialog.challan.violationName}
+                  {viewDialog.challan.violationType}
                 </Typography>
               </Grid>
 
@@ -518,14 +546,18 @@ export const ViewChallansPage: React.FC = () => {
                 <Typography variant="caption" color="text.secondary">
                   Officer Name
                 </Typography>
-                <Typography variant="body1">{viewDialog.challan.officerName}</Typography>
+                <Typography variant="body1">
+                  {viewDialog.challan.officerName}
+                </Typography>
               </Grid>
 
               <Grid item xs={6}>
                 <Typography variant="caption" color="text.secondary">
                   Station
                 </Typography>
-                <Typography variant="body1">{viewDialog.challan.stationName}</Typography>
+                <Typography variant="body1">
+                  {viewDialog.challan.stationName}
+                </Typography>
               </Grid>
 
               {viewDialog.challan.hasFir && (

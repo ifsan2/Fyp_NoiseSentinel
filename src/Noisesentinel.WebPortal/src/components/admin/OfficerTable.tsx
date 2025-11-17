@@ -14,8 +14,9 @@ import {
   Chip,
   TablePagination,
   Switch,
+  Button,
 } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, CheckCircle } from "@mui/icons-material";
 import { Visibility, LocalPolice } from "@mui/icons-material";
 import { PoliceOfficerDetailsDto } from "@/models/User";
 import { useAuth } from "@/contexts/AuthContext";
@@ -143,23 +144,6 @@ export const OfficerTable: React.FC<OfficerTableProps> = ({
                     size="small"
                     color={officer.isActive ? "success" : "default"}
                   />
-                  <br />
-                  <Tooltip
-                    title={
-                      officer.isActive
-                        ? "Deactivate Officer"
-                        : "Activate Officer"
-                    }
-                  >
-                    <Switch
-                      checked={officer.isActive}
-                      onChange={() =>
-                        onToggleStatus(officer.officerId, officer.isActive)
-                      }
-                      size="small"
-                      color="success"
-                    />
-                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Tooltip title="View Details">
@@ -172,9 +156,10 @@ export const OfficerTable: React.FC<OfficerTableProps> = ({
                     </IconButton>
                   </Tooltip>
 
-                  {/* ✅ HIDE Edit/Delete for Admin */}
+                  {/* Show different actions based on user role and officer status */}
                   {!isAdmin && (
                     <>
+                      {/* Edit button - always available for non-admins */}
                       <Tooltip title="Edit">
                         <IconButton
                           size="small"
@@ -185,15 +170,36 @@ export const OfficerTable: React.FC<OfficerTableProps> = ({
                         </IconButton>
                       </Tooltip>
 
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => onDelete(officer.officerId)}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      {/* Show Activate button for inactive officers */}
+                      {!officer.isActive && (
+                        <Tooltip title="Activate Officer">
+                          <IconButton
+                            size="small"
+                            color="success"
+                            onClick={() =>
+                              onToggleStatus(
+                                officer.officerId,
+                                officer.isActive
+                              )
+                            }
+                          >
+                            <CheckCircle fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+
+                      {/* Show Delete button only for active officers */}
+                      {officer.isActive && (
+                        <Tooltip title="Deactivate Officer">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => onDelete(officer.officerId)}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </>
                   )}
                 </TableCell>

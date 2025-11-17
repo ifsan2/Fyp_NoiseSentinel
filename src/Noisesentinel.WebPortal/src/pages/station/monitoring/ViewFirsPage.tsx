@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -18,25 +18,20 @@ import {
   DialogActions,
   Typography,
   Divider,
-} from '@mui/material';
-import {
-  Search,
-  Refresh,
-  FileDownload,
-  Report,
-} from '@mui/icons-material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { FirTable } from '@/components/station/tables/FirTable';
-import { STATION_ROUTES, FIR_STATUSES } from '@/utils/stationConstants';
-import stationApi from '@/api/stationApi';
-import firApi from '@/api/firApi';
-import { FirDto } from '@/models/Fir';
-import { PoliceStationDto } from '@/models/Station';
-import { stationFilters } from '@/utils/stationFilters';
-import { stationExport } from '@/utils/stationExport';
-import { dateHelpers } from '@/utils/stationFilters';
+} from "@mui/material";
+import { Search, Refresh, FileDownload, Report } from "@mui/icons-material";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { FirTable } from "@/components/station/tables/FirTable";
+import { STATION_ROUTES, FIR_STATUSES } from "@/utils/stationConstants";
+import stationApi from "@/api/stationApi";
+import firApi from "@/api/firApi";
+import { FirDto } from "@/models/Fir";
+import { PoliceStationDto } from "@/models/Station";
+import { stationFilters } from "@/utils/stationFilters";
+import { stationExport } from "@/utils/stationExport";
+import { dateHelpers } from "@/utils/stationFilters";
 
 export const ViewFirsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -47,12 +42,12 @@ export const ViewFirsPage: React.FC = () => {
   const [stations, setStations] = useState<PoliceStationDto[]>([]);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedStations, setSelectedStations] = useState<number[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [caseFilter, setCaseFilter] = useState<string>('all');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [caseFilter, setCaseFilter] = useState<string>("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // View Dialog
   const [viewDialog, setViewDialog] = useState<{
@@ -64,8 +59,8 @@ export const ViewFirsPage: React.FC = () => {
     loadData();
 
     // Check URL params
-    const stationIdParam = searchParams.get('stationId');
-    const officerIdParam = searchParams.get('officerId');
+    const stationIdParam = searchParams.get("stationId");
+    const officerIdParam = searchParams.get("officerId");
     if (stationIdParam) {
       setSelectedStations([parseInt(stationIdParam)]);
     }
@@ -82,10 +77,9 @@ export const ViewFirsPage: React.FC = () => {
       setFirs(firsData);
       setStations(stationsData);
     } catch (error: any) {
-      enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load FIRs',
-        { variant: 'error' }
-      );
+      enqueueSnackbar(error.response?.data?.message || "Failed to load FIRs", {
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -101,14 +95,14 @@ export const ViewFirsPage: React.FC = () => {
   const handleExport = () => {
     const filteredData = getFilteredFirs();
     stationExport.exportFirs(filteredData);
-    enqueueSnackbar('FIRs exported successfully', { variant: 'success' });
+    enqueueSnackbar("FIRs exported successfully", { variant: "success" });
   };
 
   const getFilteredFirs = () => {
     const hasCase =
-      caseFilter === 'with-case'
+      caseFilter === "with-case"
         ? true
-        : caseFilter === 'without-case'
+        : caseFilter === "without-case"
         ? false
         : undefined;
 
@@ -129,17 +123,17 @@ export const ViewFirsPage: React.FC = () => {
 
   // Calculate statistics
   const underInvestigation = filteredFirs.filter(
-    (f) => f.status === 'Under Investigation'
+    (f) => f.status === "Under Investigation"
   ).length;
   const forwardedToCourt = filteredFirs.filter(
-    (f) => f.status === 'Forwarded to Court'
+    (f) => f.status === "Forwarded to Court"
   ).length;
   const withCase = filteredFirs.filter((f) => f.hasCase).length;
   const withoutCase = filteredFirs.filter((f) => !f.hasCase).length;
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -151,8 +145,8 @@ export const ViewFirsPage: React.FC = () => {
         title="FIRs Monitoring"
         subtitle="Monitor and track First Information Reports across all stations"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'FIRs' },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "FIRs" },
         ]}
         actions={
           <>
@@ -204,13 +198,15 @@ export const ViewFirsPage: React.FC = () => {
                 value={selectedStations}
                 onChange={(e: SelectChangeEvent<number[]>) => {
                   const value = e.target.value;
-                  setSelectedStations(typeof value === 'string' ? [] : value);
+                  setSelectedStations(typeof value === "string" ? [] : value);
                 }}
                 label="Station"
                 renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((value) => {
-                      const station = stations.find((s) => s.stationId === value);
+                      const station = stations.find(
+                        (s) => s.stationId === value
+                      );
                       return (
                         <Chip
                           key={value}
@@ -240,11 +236,11 @@ export const ViewFirsPage: React.FC = () => {
                 value={selectedStatuses}
                 onChange={(e: SelectChangeEvent<string[]>) => {
                   const value = e.target.value;
-                  setSelectedStatuses(typeof value === 'string' ? [] : value);
+                  setSelectedStatuses(typeof value === "string" ? [] : value);
                 }}
                 label="Status"
                 renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((value) => (
                       <Chip key={value} label={value} size="small" />
                     ))}
@@ -304,7 +300,7 @@ export const ViewFirsPage: React.FC = () => {
         {(searchQuery ||
           selectedStations.length > 0 ||
           selectedStatuses.length > 0 ||
-          caseFilter !== 'all' ||
+          caseFilter !== "all" ||
           startDate ||
           endDate) && (
           <Box sx={{ mt: 2 }}>
@@ -312,12 +308,12 @@ export const ViewFirsPage: React.FC = () => {
               variant="outlined"
               size="small"
               onClick={() => {
-                setSearchQuery('');
+                setSearchQuery("");
                 setSelectedStations([]);
                 setSelectedStatuses([]);
-                setCaseFilter('all');
-                setStartDate('');
-                setEndDate('');
+                setCaseFilter("all");
+                setStartDate("");
+                setEndDate("");
               }}
             >
               Clear All Filters
@@ -330,44 +326,60 @@ export const ViewFirsPage: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'error.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'error.main' }}>
+            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
+              <Box
+                sx={{ fontSize: "2rem", fontWeight: 700, color: "error.main" }}
+              >
                 {filteredFirs.length}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Total FIRs
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'warning.main' }}>
+            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "warning.main",
+                }}
+              >
                 {underInvestigation}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Under Investigation
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'success.main' }}>
+            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "success.main",
+                }}
+              >
                 {forwardedToCourt}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Forwarded to Court
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'info.main' }}>
+            <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2 }}>
+              <Box
+                sx={{ fontSize: "2rem", fontWeight: 700, color: "info.main" }}
+              >
                 {withCase} / {withoutCase}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 With Case / Without Case
               </Box>
             </Box>
@@ -386,7 +398,7 @@ export const ViewFirsPage: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Report />
             FIR Details
           </Box>
@@ -433,7 +445,7 @@ export const ViewFirsPage: React.FC = () => {
                   Violation
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewDialog.fir.violationName}
+                  {viewDialog.fir.violationType}
                 </Typography>
               </Grid>
 
@@ -478,7 +490,9 @@ export const ViewFirsPage: React.FC = () => {
                   <Typography variant="caption" color="text.secondary">
                     Description
                   </Typography>
-                  <Typography variant="body2">{viewDialog.fir.description}</Typography>
+                  <Typography variant="body2">
+                    {viewDialog.fir.description}
+                  </Typography>
                 </Grid>
               )}
 
@@ -493,7 +507,10 @@ export const ViewFirsPage: React.FC = () => {
                       color="primary"
                       sx={{ mr: 1 }}
                     />
-                    <Chip label={viewDialog.fir.caseStatus || 'N/A'} color="info" />
+                    <Chip
+                      label={viewDialog.fir.caseStatus || "N/A"}
+                      color="info"
+                    />
                   </Box>
                 </Grid>
               )}

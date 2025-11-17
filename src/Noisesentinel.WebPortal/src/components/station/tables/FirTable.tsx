@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Table,
   TableBody,
@@ -12,9 +12,9 @@ import {
   Chip,
   Box,
   Typography,
-} from '@mui/material';
-import { Visibility, Report } from '@mui/icons-material';
-import { FirDto } from '@/models/Fir';
+} from "@mui/material";
+import { Visibility, Report } from "@mui/icons-material";
+import { FirDto } from "@/models/Fir";
 
 interface FirTableProps {
   firs: FirDto[];
@@ -23,25 +23,25 @@ interface FirTableProps {
 
 export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'filed':
-        return 'info';
-      case 'under investigation':
-        return 'warning';
-      case 'forwarded to court':
-        return 'success';
-      case 'closed':
-        return 'default';
+      case "filed":
+        return "info";
+      case "under investigation":
+        return "warning";
+      case "forwarded to court":
+        return "success";
+      case "closed":
+        return "default";
       default:
-        return 'default';
+        return "default";
     }
   };
 
@@ -49,15 +49,29 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
-          <TableRow sx={{ bgcolor: 'error.main' }}>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>FIR Number</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Accused/Vehicle</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Violation</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Station/Officer</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Filed Date</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Status</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Case</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
+          <TableRow sx={{ bgcolor: "error.main" }}>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              FIR Number
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Accused/Vehicle
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Violation
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Station/Officer
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Filed Date
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Status
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>Case</TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Actions
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -71,7 +85,7 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
             firs.map((fir) => (
               <TableRow key={fir.firid} hover>
                 <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Report color="error" fontSize="small" />
                     <Typography variant="body2" fontWeight={600}>
                       {fir.firNumber}
@@ -87,12 +101,16 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
                       CNIC: {fir.accusedCnic}
                     </Typography>
                     <br />
-                    <Chip label={fir.vehiclePlate} size="small" sx={{ mt: 0.5 }} />
+                    <Chip
+                      label={fir.vehiclePlate}
+                      size="small"
+                      sx={{ mt: 0.5 }}
+                    />
                   </Box>
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2" fontWeight={600}>
-                    {fir.violationName}
+                    {fir.violationType}
                   </Typography>
                 </TableCell>
                 <TableCell>
@@ -110,7 +128,9 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
                   </Box>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{formatDate(fir.filedDate)}</Typography>
+                  <Typography variant="body2">
+                    {formatDate(fir.filedDate)}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Chip

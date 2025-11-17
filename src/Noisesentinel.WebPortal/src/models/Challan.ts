@@ -2,28 +2,28 @@
 
 export interface ChallanDto {
   challanId: number;
-  
+
   // Officer Info
   officerId: number;
   officerName?: string;
   badgeNumber?: string;
-  
+
   // Accused Info
   accusedId: number;
   accusedName?: string;
   accusedCnic?: string;
-  
+
   // Vehicle Info
   vehicleId: number;
   plateNumber?: string;
   vehicleMake?: string;
-  
+
   // Violation Info
   violationId: number;
-  violationName?: string;
+  violationType?: string;
   penaltyAmount?: number;
   isCognizable?: boolean;
-  
+
   // Challan Details
   emissionReportId?: number;
   evidencePath?: string;
@@ -32,15 +32,15 @@ export interface ChallanDto {
   status: string;
   bankDetails?: string;
   digitalSignatureValue?: string;
-  
+
   // Station Info
   stationId?: number;
   stationName?: string;
-  
+
   // FIR Info
   hasFir: boolean;
   firId?: number;
-  
+
   // Days Overdue
   daysOverdue?: number;
 }

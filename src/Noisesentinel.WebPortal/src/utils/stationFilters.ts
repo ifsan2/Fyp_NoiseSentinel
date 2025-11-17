@@ -1,9 +1,9 @@
-import { PoliceStationDto } from '@/models/Station';
-import { PoliceOfficerDetailsDto } from '@/models/User';
-import { ChallanDto } from '@/models/Challan';
-import { FirDto } from '@/models/Fir';
-import { DeviceDto } from '@/models/Device';
-import { ViolationDto } from '@/models/Violation';
+import { PoliceStationDto } from "@/models/Station";
+import { PoliceOfficerDetailsDto } from "@/models/User";
+import { ChallanDto } from "@/models/Challan";
+import { FirDto } from "@/models/Fir";
+import { DeviceDto } from "@/models/Device";
+import { ViolationDto } from "@/models/Violation";
 
 /**
  * Filter Helper Functions for Station Authority
@@ -23,7 +23,8 @@ export const stationFilters = {
         !searchQuery ||
         station.stationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         station.stationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (station.location?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+        (station.location?.toLowerCase().includes(searchQuery.toLowerCase()) ??
+          false);
 
       const matchesDistrict =
         !district || station.district?.toLowerCase() === district.toLowerCase();
@@ -55,17 +56,27 @@ export const stationFilters = {
         officer.cnic.includes(searchQuery);
 
       const matchesStation =
-        !stationIds || stationIds.length === 0 || stationIds.includes(officer.stationId);
+        !stationIds ||
+        stationIds.length === 0 ||
+        stationIds.includes(officer.stationId);
 
-      const matchesRank = !ranks || ranks.length === 0 || ranks.includes(officer.rank);
+      const matchesRank =
+        !ranks || ranks.length === 0 || ranks.includes(officer.rank);
 
       const matchesIO =
         isInvestigationOfficer === undefined ||
         officer.isInvestigationOfficer === isInvestigationOfficer;
 
-      const matchesStatus = isActive === undefined || officer.isActive === isActive;
+      const matchesStatus =
+        isActive === undefined || officer.isActive === isActive;
 
-      return matchesSearch && matchesStation && matchesRank && matchesIO && matchesStatus;
+      return (
+        matchesSearch &&
+        matchesStation &&
+        matchesRank &&
+        matchesIO &&
+        matchesStatus
+      );
     });
   },
 
@@ -84,17 +95,25 @@ export const stationFilters = {
     return challans.filter((challan) => {
       const matchesSearch =
         !searchQuery ||
-        challan.accusedName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        challan.plateNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        challan.accusedName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        challan.plateNumber
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
         challan.challanId.toString().includes(searchQuery);
 
       const matchesStation =
-        !stationIds || stationIds.length === 0 || stationIds.includes(challan.stationId || 0);
+        !stationIds ||
+        stationIds.length === 0 ||
+        stationIds.includes(challan.stationId || 0);
 
       const matchesStatus =
         !statuses || statuses.length === 0 || statuses.includes(challan.status);
 
-      const matchesOverdue = isOverdue === undefined || (isOverdue && (challan.daysOverdue || 0) > 0);
+      const matchesOverdue =
+        isOverdue === undefined ||
+        (isOverdue && (challan.daysOverdue || 0) > 0);
 
       const matchesFir = hasFir === undefined || challan.hasFir === hasFir;
 
@@ -133,9 +152,12 @@ export const stationFilters = {
         fir.vehiclePlate?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStation =
-        !stationIds || stationIds.length === 0 || stationIds.includes(fir.stationId);
+        !stationIds ||
+        stationIds.length === 0 ||
+        stationIds.includes(fir.stationId);
 
-      const matchesStatus = !statuses || statuses.length === 0 || statuses.includes(fir.status);
+      const matchesStatus =
+        !statuses || statuses.length === 0 || statuses.includes(fir.status);
 
       const matchesCase = hasCase === undefined || fir.hasCase === hasCase;
 
@@ -144,7 +166,13 @@ export const stationFilters = {
         (new Date(fir.filedDate) >= new Date(dateRange.start) &&
           new Date(fir.filedDate) <= new Date(dateRange.end));
 
-      return matchesSearch && matchesStation && matchesStatus && matchesCase && matchesDate;
+      return (
+        matchesSearch &&
+        matchesStation &&
+        matchesStatus &&
+        matchesCase &&
+        matchesDate
+      );
     });
   },
 
@@ -167,11 +195,15 @@ export const stationFilters = {
       const matchesStation = !stationId || device.stationId === stationId;
 
       const matchesCalibration =
-        calibrationStatus === undefined || device.calibrationStatus === calibrationStatus;
+        calibrationStatus === undefined ||
+        device.calibrationStatus === calibrationStatus;
 
-      const matchesPaired = isPaired === undefined || device.isPaired === isPaired;
+      const matchesPaired =
+        isPaired === undefined || device.isPaired === isPaired;
 
-      return matchesSearch && matchesStation && matchesCalibration && matchesPaired;
+      return (
+        matchesSearch && matchesStation && matchesCalibration && matchesPaired
+      );
     });
   },
 
@@ -188,18 +220,31 @@ export const stationFilters = {
     return violations.filter((violation) => {
       const matchesSearch =
         !searchQuery ||
-        violation.violationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        violation.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        violation.sectionOfLaw?.toLowerCase().includes(searchQuery.toLowerCase());
+        violation.violationType
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        violation.description
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        violation.sectionOfLaw
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
       const matchesCognizable =
         isCognizable === undefined || violation.isCognizable === isCognizable;
 
-      const matchesMinPenalty = !minPenalty || violation.penaltyAmount >= minPenalty;
+      const matchesMinPenalty =
+        !minPenalty || violation.penaltyAmount >= minPenalty;
 
-      const matchesMaxPenalty = !maxPenalty || violation.penaltyAmount <= maxPenalty;
+      const matchesMaxPenalty =
+        !maxPenalty || violation.penaltyAmount <= maxPenalty;
 
-      return matchesSearch && matchesCognizable && matchesMinPenalty && matchesMaxPenalty;
+      return (
+        matchesSearch &&
+        matchesCognizable &&
+        matchesMinPenalty &&
+        matchesMaxPenalty
+      );
     });
   },
 };
@@ -216,20 +261,20 @@ export const dateHelpers = {
   },
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   },
 
   formatDateTime(date: string): string {
-    return new Date(date).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(date).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   },
 

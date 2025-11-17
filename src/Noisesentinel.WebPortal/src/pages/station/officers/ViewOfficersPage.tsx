@@ -25,6 +25,7 @@ import { OfficerTable } from "@/components/station/tables/OfficerTable";
 import { STATION_ROUTES, OFFICER_RANKS } from "@/utils/stationConstants";
 import stationApi from "@/api/stationApi";
 import stationOfficerApi from "@/api/stationOfficerApi";
+import userApi from "@/api/userApi";
 import { PoliceOfficerDetailsDto } from "@/models/User";
 import { PoliceStationDto } from "@/models/Station";
 import { stationFilters } from "@/utils/stationFilters";
@@ -109,6 +110,32 @@ export const ViewOfficersPage: React.FC = () => {
     } catch (error: any) {
       enqueueSnackbar(
         error.response?.data?.message || "Failed to delete officer",
+        { variant: "error" }
+      );
+    }
+  };
+
+  const handleToggleOfficerStatus = async (
+    officerId: number,
+    currentStatus: boolean
+  ) => {
+    try {
+      if (currentStatus) {
+        await userApi.deactivatePoliceOfficer(officerId);
+        enqueueSnackbar("Officer deactivated successfully", {
+          variant: "success",
+        });
+      } else {
+        await userApi.activatePoliceOfficer(officerId);
+        enqueueSnackbar("Officer activated successfully", {
+          variant: "success",
+        });
+      }
+      loadData();
+    } catch (error: any) {
+      enqueueSnackbar(
+        error.response?.data?.message ||
+          `Failed to ${currentStatus ? "deactivate" : "activate"} officer`,
         { variant: "error" }
       );
     }
@@ -418,6 +445,7 @@ export const ViewOfficersPage: React.FC = () => {
           const officer = officers.find((o) => o.officerId === officerId);
           if (officer) handleDeleteClick(officerId, officer.fullName);
         }}
+        onToggleStatus={handleToggleOfficerStatus}
       />
 
       {/* Delete Confirmation Dialog */}

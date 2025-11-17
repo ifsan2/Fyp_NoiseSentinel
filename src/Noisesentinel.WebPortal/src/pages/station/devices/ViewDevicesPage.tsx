@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -10,19 +10,17 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-} from '@mui/material';
-import { Search, Add, Refresh, FileDownload } from '@mui/icons-material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { DeviceTable } from '@/components/station/tables/DeviceTable';
-import { STATION_ROUTES } from '@/utils/stationConstants';
-import stationApi from '@/api/stationApi';
-import deviceApi from '@/api/deviceApi';
-import { DeviceDto } from '@/models/Device';
-import { PoliceStationDto } from '@/models/Station';
-import { stationFilters } from '@/utils/stationFilters';
-import { stationExport } from '@/utils/stationExport';
+} from "@mui/material";
+import { Search, Add, Refresh, FileDownload } from "@mui/icons-material";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { DeviceTable } from "@/components/station/tables/DeviceTable";
+import { STATION_ROUTES } from "@/utils/stationConstants";
+import deviceApi from "@/api/deviceApi";
+import { DeviceDto } from "@/models/Device";
+import { stationFilters } from "@/utils/stationFilters";
+import { stationExport } from "@/utils/stationExport";
 
 export const ViewDevicesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,38 +28,25 @@ export const ViewDevicesPage: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState<DeviceDto[]>([]);
-  const [stations, setStations] = useState<PoliceStationDto[]>([]);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [stationFilter, setStationFilter] = useState<number | string>('');
-  const [calibrationFilter, setCalibrationFilter] = useState<string>('all');
-  const [pairedFilter, setPairedFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [calibrationFilter, setCalibrationFilter] = useState<string>("all");
+  const [pairedFilter, setPairedFilter] = useState<string>("all");
 
   useEffect(() => {
     loadData();
-
-    // Check if stationId is in URL params
-    const stationIdParam = searchParams.get('stationId');
-    if (stationIdParam) {
-      setStationFilter(parseInt(stationIdParam));
-    }
-  }, [searchParams]);
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [devicesData, stationsData] = await Promise.all([
-        deviceApi.getAllDevices(),
-        stationApi.getAllStations(),
-      ]);
-
+      const devicesData = await deviceApi.getAllDevices();
       setDevices(devicesData);
-      setStations(stationsData);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load devices',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load devices",
+        { variant: "error" }
       );
     } finally {
       setLoading(false);
@@ -79,24 +64,28 @@ export const ViewDevicesPage: React.FC = () => {
   const handleExport = () => {
     const filteredData = getFilteredDevices();
     stationExport.exportDevices(filteredData);
-    enqueueSnackbar('Devices exported successfully', { variant: 'success' });
+    enqueueSnackbar("Devices exported successfully", { variant: "success" });
   };
 
   const getFilteredDevices = () => {
     const calibrationStatus =
-      calibrationFilter === 'calibrated'
+      calibrationFilter === "calibrated"
         ? true
-        : calibrationFilter === 'not-calibrated'
+        : calibrationFilter === "not-calibrated"
         ? false
         : undefined;
 
     const isPaired =
-      pairedFilter === 'paired' ? true : pairedFilter === 'available' ? false : undefined;
+      pairedFilter === "paired"
+        ? true
+        : pairedFilter === "available"
+        ? false
+        : undefined;
 
     return stationFilters.filterDevices(
       devices,
       searchQuery,
-      stationFilter ? (stationFilter as number) : undefined,
+      undefined,
       calibrationStatus,
       isPaired
     );
@@ -106,7 +95,7 @@ export const ViewDevicesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -118,8 +107,8 @@ export const ViewDevicesPage: React.FC = () => {
         title="IoT Devices"
         subtitle="Manage noise detection IoT devices"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'IoT Devices' },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "IoT Devices" },
         ]}
         actions={
           <>
@@ -154,7 +143,7 @@ export const ViewDevicesPage: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           {/* Search */}
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={4}>
             <TextField
               placeholder="Search devices..."
               value={searchQuery}
@@ -170,27 +159,8 @@ export const ViewDevicesPage: React.FC = () => {
             />
           </Grid>
 
-          {/* Station Filter */}
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
-              <InputLabel>Station</InputLabel>
-              <Select
-                value={stationFilter}
-                label="Station"
-                onChange={(e) => setStationFilter(e.target.value)}
-              >
-                <MenuItem value="">All Stations</MenuItem>
-                {stations.map((station) => (
-                  <MenuItem key={station.stationId} value={station.stationId}>
-                    {station.stationName} ({station.stationCode})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
           {/* Calibration Filter */}
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Calibration Status</InputLabel>
               <Select
@@ -206,7 +176,7 @@ export const ViewDevicesPage: React.FC = () => {
           </Grid>
 
           {/* Paired Filter */}
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Pairing Status</InputLabel>
               <Select
@@ -224,18 +194,16 @@ export const ViewDevicesPage: React.FC = () => {
 
         {/* Clear Filters */}
         {(searchQuery ||
-          stationFilter ||
-          calibrationFilter !== 'all' ||
-          pairedFilter !== 'all') && (
+          calibrationFilter !== "all" ||
+          pairedFilter !== "all") && (
           <Box sx={{ mt: 2 }}>
             <Button
               variant="outlined"
               size="small"
               onClick={() => {
-                setSearchQuery('');
-                setStationFilter('');
-                setCalibrationFilter('all');
-                setPairedFilter('all');
+                setSearchQuery("");
+                setCalibrationFilter("all");
+                setPairedFilter("all");
               }}
             >
               Clear All Filters
@@ -248,44 +216,64 @@ export const ViewDevicesPage: React.FC = () => {
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: 'secondary.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'secondary.main' }}>
+            <Box sx={{ p: 2, bgcolor: "secondary.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "secondary.main",
+                }}
+              >
                 {filteredDevices.length}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Devices Found
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'success.main' }}>
+            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "success.main",
+                }}
+              >
                 {filteredDevices.filter((d) => d.calibrationStatus).length}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Calibrated
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'warning.main' }}>
+            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
+              <Box
+                sx={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "warning.main",
+                }}
+              >
                 {filteredDevices.filter((d) => d.isPaired).length}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 In Use (Paired)
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 2 }}>
-              <Box sx={{ fontSize: '2rem', fontWeight: 700, color: 'info.main' }}>
+            <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2 }}>
+              <Box
+                sx={{ fontSize: "2rem", fontWeight: 700, color: "info.main" }}
+              >
                 {filteredDevices.filter((d) => !d.isPaired).length}
               </Box>
-              <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
                 Available
               </Box>
             </Box>
@@ -294,7 +282,11 @@ export const ViewDevicesPage: React.FC = () => {
       </Box>
 
       {/* Devices Table */}
-      <DeviceTable devices={filteredDevices} onView={handleView} onEdit={handleEdit} />
+      <DeviceTable
+        devices={filteredDevices}
+        onView={handleView}
+        onEdit={handleEdit}
+      />
     </Box>
   );
 };

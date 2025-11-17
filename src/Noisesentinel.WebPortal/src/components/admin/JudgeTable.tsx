@@ -14,8 +14,9 @@ import {
   Chip,
   TablePagination,
   Switch,
+  Button,
 } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, CheckCircle } from "@mui/icons-material";
 import { Visibility, Gavel } from "@mui/icons-material";
 import { JudgeDetailsDto } from "@/models/User";
 import { useAuth } from "@/contexts/AuthContext";
@@ -125,21 +126,6 @@ export const JudgeTable: React.FC<JudgeTableProps> = ({
                     size="small"
                     color={judge.isActive ? "success" : "default"}
                   />
-                  <br />
-                  <Tooltip
-                    title={
-                      judge.isActive ? "Deactivate Judge" : "Activate Judge"
-                    }
-                  >
-                    <Switch
-                      checked={judge.isActive}
-                      onChange={() =>
-                        onToggleStatus(judge.judgeId, judge.isActive)
-                      }
-                      size="small"
-                      color="success"
-                    />
-                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Tooltip title="View Details">
@@ -152,9 +138,10 @@ export const JudgeTable: React.FC<JudgeTableProps> = ({
                     </IconButton>
                   </Tooltip>
 
-                  {/* ✅ HIDE Edit/Delete for Admin */}
+                  {/* Show different actions based on user role and judge status */}
                   {!isAdmin && (
                     <>
+                      {/* Edit button - always available for non-admins */}
                       <Tooltip title="Edit">
                         <IconButton
                           size="small"
@@ -165,15 +152,33 @@ export const JudgeTable: React.FC<JudgeTableProps> = ({
                         </IconButton>
                       </Tooltip>
 
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => onDelete(judge.judgeId)}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      {/* Show Activate button for inactive judges */}
+                      {!judge.isActive && (
+                        <Tooltip title="Activate Judge">
+                          <IconButton
+                            size="small"
+                            color="success"
+                            onClick={() =>
+                              onToggleStatus(judge.judgeId, judge.isActive)
+                            }
+                          >
+                            <CheckCircle fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+
+                      {/* Show Delete button only for active judges */}
+                      {judge.isActive && (
+                        <Tooltip title="Deactivate Judge">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => onDelete(judge.judgeId)}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </>
                   )}
                 </TableCell>

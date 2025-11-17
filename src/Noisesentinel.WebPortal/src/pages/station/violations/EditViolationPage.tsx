@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,16 +8,16 @@ import {
   Checkbox,
   InputAdornment,
   CircularProgress,
-} from '@mui/material';
-import { Save, Cancel } from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { FormCard } from '@/components/common/FormCard';
-import { STATION_ROUTES } from '@/utils/stationConstants';
-import violationApi from '@/api/violationApi';
-import { UpdateViolationDto } from '@/models/Violation';
+} from "@mui/material";
+import { Save, Cancel } from "@mui/icons-material";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { FormCard } from "@/components/common/FormCard";
+import { STATION_ROUTES } from "@/utils/stationConstants";
+import violationApi from "@/api/violationApi";
+import { UpdateViolationDto } from "@/models/Violation";
 
 export const EditViolationPage: React.FC = () => {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ export const EditViolationPage: React.FC = () => {
       const data = await violationApi.getViolationById(parseInt(violationId!));
       reset({
         violationId: data.violationId,
-        violationName: data.violationName,
+        violationType: data.violationType,
         description: data.description,
         penaltyAmount: data.penaltyAmount,
         sectionOfLaw: data.sectionOfLaw,
@@ -53,8 +53,8 @@ export const EditViolationPage: React.FC = () => {
       });
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load violation',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load violation",
+        { variant: "error" }
       );
       navigate(STATION_ROUTES.VIOLATIONS);
     } finally {
@@ -66,12 +66,12 @@ export const EditViolationPage: React.FC = () => {
     setLoading(true);
     try {
       await violationApi.updateViolation(data);
-      enqueueSnackbar('Violation updated successfully', { variant: 'success' });
+      enqueueSnackbar("Violation updated successfully", { variant: "success" });
       navigate(STATION_ROUTES.VIOLATIONS);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to update violation',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to update violation",
+        { variant: "error" }
       );
     } finally {
       setLoading(false);
@@ -80,7 +80,7 @@ export const EditViolationPage: React.FC = () => {
 
   if (loadingData) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -92,9 +92,9 @@ export const EditViolationPage: React.FC = () => {
         title="Edit Violation Type"
         subtitle="Update violation type information"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'Violations', path: STATION_ROUTES.VIOLATIONS },
-          { label: 'Edit Violation' },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "Violations", path: STATION_ROUTES.VIOLATIONS },
+          { label: "Edit Violation" },
         ]}
       />
 
@@ -104,21 +104,21 @@ export const EditViolationPage: React.FC = () => {
             {/* Violation Name */}
             <Grid item xs={12} md={6}>
               <Controller
-                name="violationName"
+                name="violationType"
                 control={control}
                 rules={{
-                  required: 'Violation name is required',
+                  required: "Violation name is required",
                   minLength: {
                     value: 3,
-                    message: 'Violation name must be at least 3 characters',
+                    message: "Violation name must be at least 3 characters",
                   },
                 }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     label="Violation Name"
-                    error={!!errors.violationName}
-                    helperText={errors.violationName?.message}
+                    error={!!errors.violationType}
+                    helperText={errors.violationType?.message}
                     required
                     fullWidth
                   />
@@ -132,10 +132,10 @@ export const EditViolationPage: React.FC = () => {
                 name="penaltyAmount"
                 control={control}
                 rules={{
-                  required: 'Penalty amount is required',
+                  required: "Penalty amount is required",
                   min: {
                     value: 1,
-                    message: 'Penalty must be greater than 0',
+                    message: "Penalty must be greater than 0",
                   },
                 }}
                 render={({ field }) => (
@@ -165,7 +165,9 @@ export const EditViolationPage: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
+                    value={field.value || ""}
                     label="Description"
+                    placeholder="e.g., Vehicle equipped with modified/tampered exhaust silencer causing excessive noise"
                     multiline
                     rows={3}
                     fullWidth
@@ -182,7 +184,9 @@ export const EditViolationPage: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
+                    value={field.value || ""}
                     label="Section of Law"
+                    placeholder="e.g., Section 42(6) Motor Vehicle Ordinance 1965"
                     fullWidth
                   />
                 )}
@@ -197,7 +201,10 @@ export const EditViolationPage: React.FC = () => {
                 render={({ field }) => (
                   <FormControlLabel
                     control={
-                      <Checkbox checked={field.value} onChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
                     }
                     label="Cognizable Offense (FIR can be filed)"
                   />
@@ -207,7 +214,7 @@ export const EditViolationPage: React.FC = () => {
 
             {/* Action Buttons */}
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                 <Button
                   variant="outlined"
                   startIcon={<Cancel />}
@@ -222,7 +229,7 @@ export const EditViolationPage: React.FC = () => {
                   startIcon={<Save />}
                   disabled={loading}
                 >
-                  {loading ? 'Updating...' : 'Update Violation'}
+                  {loading ? "Updating..." : "Update Violation"}
                 </Button>
               </Box>
             </Grid>

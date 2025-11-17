@@ -24,6 +24,7 @@ import { OfficerDetailPage } from "@/pages/station/officers/OfficerDetailPage";
 import { ViewDevicesPage } from "@/pages/station/devices/ViewDevicesPage";
 import { RegisterDevicePage } from "@/pages/station/devices/RegisterDevicePage";
 import { EditDevicePage } from "@/pages/station/devices/EditDevicePage";
+import { DeviceDetailPage } from "@/pages/station/devices/DeviceDetailPage";
 
 // Violations
 import { ViewViolationsPage } from "@/pages/station/violations/ViewViolationsPage";
@@ -70,6 +71,7 @@ export const StationRoutes: React.FC = () => {
         <Route path="devices" element={<ViewDevicesPage />} />
         <Route path="devices/register" element={<RegisterDevicePage />} />
         <Route path="devices/edit/:deviceId" element={<EditDevicePage />} />
+        <Route path="devices/:deviceId" element={<DeviceDetailPage />} />
 
         {/* Violations */}
         <Route path="violations" element={<ViewViolationsPage />} />
