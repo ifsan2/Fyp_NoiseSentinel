@@ -1,6 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || "https://localhost:7022/api",
+  // Default to backend running on localhost:5200 if env not provided
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5200/api",
   TIMEOUT: 30000,
 };
 
@@ -93,7 +94,11 @@ export const STATION_ROUTES = {
 
   // Monitoring
   VIEW_CHALLANS: "/station/monitoring/challans",
-  VIEW_FIRS: "/station/monitoring/firs",
   VIEW_VEHICLES: "/station/monitoring/vehicles",
   VIEW_ACCUSED: "/station/monitoring/accused",
+
+  // FIR Management
+  VIEW_FIRS: "/station/fir/list",
+  COGNIZABLE_CHALLANS: "/station/fir/cognizable",
+  FILE_FIR: "/station/fir/create",
 };

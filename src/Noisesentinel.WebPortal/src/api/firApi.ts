@@ -40,9 +40,18 @@ class FirApi {
    * Get all FIRs (with optional station filter)
    */
   async getAllFirs(stationId?: number): Promise<FirListItemDto[]> {
-    const url = stationId ? `/Fir?stationId=${stationId}` : "/Fir";
+    // Backend exposes a dedicated 'list' endpoint for all FIRs and a 'station/{id}'
+    // endpoint for station-specific FIRs. Use those to avoid 404s.
+    if (stationId) {
+      const response = await apiClient.get<ApiResponse<FirListItemDto[]>>(
+        `/Fir/station/${stationId}`
+      );
+      return response.data.data || [];
+    }
 
-    const response = await apiClient.get<ApiResponse<FirListItemDto[]>>(url);
+    const response = await apiClient.get<ApiResponse<FirListItemDto[]>>(
+      "/Fir/list"
+    );
     return response.data.data || [];
   }
 

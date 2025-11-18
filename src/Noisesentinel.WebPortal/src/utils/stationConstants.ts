@@ -30,9 +30,13 @@ export const STATION_ROUTES = {
 
   // Monitoring
   CHALLANS: "/station/challans",
-  FIRS: "/station/firs",
   VEHICLES: "/station/vehicles",
   ACCUSED: "/station/accused",
+
+  // FIR Management
+  FIRS: "/station/fir/list",
+  COGNIZABLE_CHALLANS: "/station/fir/cognizable",
+  FILE_FIR: "/station/fir/create",
 
   // Settings
   PROFILE: "/station/profile",

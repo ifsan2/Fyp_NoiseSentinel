@@ -89,9 +89,14 @@ export const StationRoutes: React.FC = () => {
 
         {/* Monitoring Pages ✅ */}
         <Route path="challans" element={<ViewChallansPage />} />
-        <Route path="firs" element={<ViewFirsPage />} />
         <Route path="vehicles" element={<ViewVehiclesPage />} />
         <Route path="accused" element={<ViewAccusedPage />} />
+
+        {/* Redirect old FIR monitoring route to new FIR management */}
+        <Route
+          path="firs"
+          element={<Navigate to="/station/fir/list" replace />}
+        />
 
         {/* FIR Management */}
         <Route path="fir/cognizable" element={<CognizableChallansPage />} />

@@ -338,36 +338,10 @@ export const StationDashboardPage: React.FC = () => {
           >
             <Report sx={{ fontSize: 48, color: "error.main", mb: 1 }} />
             <Typography variant="h6" gutterBottom>
-              View All FIRs
+              FIR Management
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Track FIRs system-wide
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={4}>
-          <Paper
-            sx={{
-              p: 3,
-              textAlign: "center",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              bgcolor: "#fef2f2",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: 4,
-                bgcolor: "#fee2e2",
-              },
-            }}
-            onClick={() => navigate("/station/fir/list")}
-          >
-            <Report sx={{ fontSize: 48, color: "#DC2626", mb: 1 }} />
-            <Typography variant="h6" gutterBottom>
-              Manage FIRs
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              View and manage FIR records
+              Manage First Information Reports
             </Typography>
           </Paper>
         </Grid>
