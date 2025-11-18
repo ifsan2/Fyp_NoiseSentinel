@@ -37,6 +37,12 @@ import { ViewFirsPage } from "@/pages/station/monitoring/ViewFirsPage";
 import { ViewVehiclesPage } from "@/pages/station/monitoring/ViewVehiclesPage";
 import { ViewAccusedPage } from "@/pages/station/monitoring/ViewAccusedPage";
 
+// FIR Management Pages
+import CognizableChallansPage from "@/pages/station/fir/CognizableChallansPage";
+import CreateFirPage from "@/pages/station/fir/CreateFirPage";
+import FirListPage from "@/pages/station/fir/FirListPage";
+import FirDetailPage from "@/pages/station/fir/FirDetailPage";
+
 // Common Pages
 import { ProfilePage } from "@/pages/admin/ProfilePage";
 import { ChangePasswordPage } from "@/pages/admin/ChangePasswordPage";
@@ -86,6 +92,12 @@ export const StationRoutes: React.FC = () => {
         <Route path="firs" element={<ViewFirsPage />} />
         <Route path="vehicles" element={<ViewVehiclesPage />} />
         <Route path="accused" element={<ViewAccusedPage />} />
+
+        {/* FIR Management */}
+        <Route path="fir/cognizable" element={<CognizableChallansPage />} />
+        <Route path="fir/create/:challanId" element={<CreateFirPage />} />
+        <Route path="fir/list" element={<FirListPage />} />
+        <Route path="fir/detail/:firId" element={<FirDetailPage />} />
 
         {/* Settings */}
         <Route path="profile" element={<ProfilePage />} />
