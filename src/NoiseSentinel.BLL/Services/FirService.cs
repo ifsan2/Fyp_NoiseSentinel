@@ -352,10 +352,13 @@ public class FirService : IFirService
             FirNo = fir.Firno ?? string.Empty,
             StationName = fir.Station?.StationName ?? string.Empty,
             AccusedName = fir.Challan?.Accused?.FullName ?? string.Empty,
+            AccusedCnic = fir.Challan?.Accused?.Cnic ?? string.Empty,
             VehiclePlateNumber = fir.Challan?.Vehicle?.PlateNumber ?? string.Empty,
             ViolationType = fir.Challan?.Violation?.ViolationType ?? string.Empty,
+            SoundLevelDBa = fir.Challan?.EmissionReport?.SoundLevelDBa ?? 0,
             DateFiled = fir.DateFiled ?? DateTime.MinValue,
             FirStatus = fir.Firstatus ?? string.Empty,
+            DaysSinceFiled = fir.DateFiled.HasValue ? (DateTime.UtcNow - fir.DateFiled.Value).Days : 0,
             HasCase = fir.Cases?.Any() ?? false
         };
     }
