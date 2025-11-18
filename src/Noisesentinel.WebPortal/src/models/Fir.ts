@@ -1,62 +1,80 @@
 // FIR DTOs
 
-export interface FirDto {
-  firid: number;
-  firNumber: string;
-
-  // Challan Info
-  challanId: number;
-  challanNumber?: string;
-
-  // Station Info
-  stationId: number;
-  stationName: string;
-  stationCode?: string;
-
-  // Informant (Officer)
-  informantId: number;
-  informantName?: string;
-  informantBadge?: string;
-
-  // Details
-  description?: string;
-  filedDate: string;
-  status: string;
-
-  // Accused & Vehicle
-  accusedName?: string;
-  accusedCnic?: string;
-  vehiclePlate?: string;
-  violationType?: string;
-
-  // Case Info
-  hasCase: boolean;
-  caseId?: number;
-  caseNumber?: string;
-  caseStatus?: string;
-}
-
 export interface CreateFirDto {
   challanId: number;
+  firDescription: string;
+  investigationReport?: string;
+}
+
+export interface FirResponseDto {
+  firId: number;
+  firNo: string;
+  // Station Details
   stationId: number;
+  stationName: string;
+  stationCode: string;
+  // Challan Details (Evidence)
+  challanId: number;
+  accusedName: string;
+  accusedCnic: string;
+  vehiclePlateNumber: string;
+  violationType: string;
+  isCognizable: boolean;
+  penaltyAmount: number;
+  // Emission Report Evidence
+  emissionReportId: number;
+  soundLevelDBa: number;
+  mlClassification?: string;
+  digitalSignatureValue: string;
+  // Informant (Police Officer)
   informantId: number;
-  description?: string;
-  filedDate: string;
+  informantName: string;
+  informantBadgeNumber: string;
+  // FIR Specific
+  dateFiled: string;
+  firDescription: string;
+  firStatus: string;
+  investigationReport?: string;
+  // Computed Fields
+  dateFiledFormatted: string;
+  daysSinceFiled: number;
+  hasCase: boolean;
+  caseId?: number;
+  evidenceChain: string;
+}
+
+export interface FirListItemDto {
+  firId: number;
+  firNo: string;
+  stationName: string;
+  accusedName: string;
+  accusedCnic: string;
+  vehiclePlateNumber: string;
+  violationType: string;
+  soundLevelDBa: number;
+  dateFiled: string;
+  firStatus: string;
+  daysSinceFiled: number;
+  hasCase: boolean;
+}
+
+export interface CognizableChallanDto {
+  challanId: number;
+  officerName: string;
+  accusedName: string;
+  accusedCnic: string;
+  vehiclePlateNumber: string;
+  violationType: string;
+  penaltyAmount: number;
+  issueDateTime: string;
+  soundLevelDBa: number;
+  mlClassification?: string;
+  hasFir: boolean;
+  recommendation: string;
 }
 
 export interface UpdateFirDto {
-  firid: number;
-  status: string;
-  description?: string;
-}
-
-export interface FirSearchFilter {
-  searchQuery?: string;
-  stationIds?: number[];
-  status?: string[];
-  hasCase?: boolean;
-  dateRange?: {
-    start: string;
-    end: string;
-  };
+  firId: number;
+  firStatus: string;
+  investigationReport?: string;
 }

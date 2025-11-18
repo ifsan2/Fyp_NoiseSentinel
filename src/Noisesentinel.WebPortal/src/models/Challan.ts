@@ -7,16 +7,20 @@ export interface ChallanDto {
   officerId: number;
   officerName?: string;
   badgeNumber?: string;
+  officerBadgeNumber?: string;
 
   // Accused Info
   accusedId: number;
   accusedName?: string;
   accusedCnic?: string;
+  accusedContact?: string;
 
   // Vehicle Info
   vehicleId: number;
   plateNumber?: string;
+  vehiclePlateNumber?: string; // Backend uses this property name
   vehicleMake?: string;
+  vehicleColor?: string;
 
   // Violation Info
   violationId: number;
@@ -24,8 +28,14 @@ export interface ChallanDto {
   penaltyAmount?: number;
   isCognizable?: boolean;
 
-  // Challan Details
+  // Emission Report (Evidence)
   emissionReportId?: number;
+  deviceName?: string;
+  soundLevelDBa?: number;
+  mlClassification?: string;
+  emissionTestDateTime?: string;
+
+  // Challan Details
   evidencePath?: string;
   issueDateTime: string;
   dueDateTime: string;
@@ -41,8 +51,13 @@ export interface ChallanDto {
   hasFir: boolean;
   firId?: number;
 
-  // Days Overdue
+  // Computed Fields
+  issueDateFormatted?: string;
+  dueDateFormatted?: string;
+  daysUntilDue?: number;
   daysOverdue?: number;
+  isOverdue?: boolean;
+  integrityStatus?: string;
 }
 
 export interface ChallanSearchFilter {
