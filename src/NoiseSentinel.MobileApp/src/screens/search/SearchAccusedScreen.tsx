@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,47 +6,49 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native';
-import { Header } from '../../components/common/Header';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
-import { Loading } from '../../components/common/Loading';
-import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
-import accusedApi from '../../api/accusedApi';
-import challanApi from '../../api/challanApi';
-import { AccusedResponseDto } from '../../models/Accused';
-import { ChallanListItemDto } from '../../models/Challan';
-import { validation } from '../../utils/validation';
-import { formatters } from '../../utils/formatters';
+} from "react-native";
+import { Header } from "../../components/common/Header";
+import { Input } from "../../components/common/Input";
+import { Button } from "../../components/common/Button";
+import { Card } from "../../components/common/Card";
+import { Loading } from "../../components/common/Loading";
+import { colors } from "../../styles/colors";
+import { spacing } from "../../styles/spacing";
+import { typography } from "../../styles/typography";
+import accusedApi from "../../api/accusedApi";
+import challanApi from "../../api/challanApi";
+import { AccusedResponseDto } from "../../models/Accused";
+import { ChallanListItemDto } from "../../models/Challan";
+import { validation } from "../../utils/validation";
+import { formatters } from "../../utils/formatters";
 
 interface SearchAccusedScreenProps {
   navigation: any;
 }
 
-export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ navigation }) => {
-  const [cnic, setCnic] = useState('');
+export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({
+  navigation,
+}) => {
+  const [cnic, setCnic] = useState("");
   const [loading, setLoading] = useState(false);
   const [accused, setAccused] = useState<AccusedResponseDto | null>(null);
   const [challans, setChallans] = useState<ChallanListItemDto[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSearch = async () => {
     if (!cnic.trim()) {
-      setError('Please enter a CNIC');
+      setError("Please enter a CNIC");
       return;
     }
 
     if (!validation.cnic(cnic)) {
-      setError('Invalid CNIC format (12345-1234567-1)');
+      setError("Invalid CNIC format (12345-1234567-1)");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
       setAccused(null);
       setChallans([]);
 
@@ -54,10 +56,12 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
       setAccused(accusedData);
 
       // Load challans for this person
-      const challansData = await challanApi.getChallansByAccused(accusedData.accusedId);
+      const challansData = await challanApi.getChallansByAccused(
+        accusedData.accusedId
+      );
       setChallans(challansData);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Person not found');
+      setError(err.response?.data?.message || "Person not found");
     } finally {
       setLoading(false);
     }
@@ -66,7 +70,7 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Header
         title="Search Accused"
@@ -85,7 +89,7 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
             error={error}
           />
           <Button
-            title={loading ? 'Searching...' : 'Search'}
+            title={loading ? "Searching..." : "Search"}
             onPress={handleSearch}
             loading={loading}
             disabled={loading}
@@ -110,21 +114,21 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>City:</Text>
-                <Text style={styles.value}>{accused.city || 'N/A'}</Text>
+                <Text style={styles.value}>{accused.city || "N/A"}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Province:</Text>
-                <Text style={styles.value}>{accused.province || 'N/A'}</Text>
+                <Text style={styles.value}>{accused.province || "N/A"}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Address:</Text>
                 <Text style={styles.value} numberOfLines={2}>
-                  {accused.address || 'N/A'}
+                  {accused.address || "N/A"}
                 </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Contact:</Text>
-                <Text style={styles.value}>{accused.contact || 'N/A'}</Text>
+                <Text style={styles.value}>{accused.contact || "N/A"}</Text>
               </View>
             </Card>
 
@@ -133,7 +137,9 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
               <Text style={styles.cardTitle}>📊 Statistics</Text>
               <View style={styles.statsRow}>
                 <View style={styles.statBox}>
-                  <Text style={styles.statValue}>{accused.totalViolations}</Text>
+                  <Text style={styles.statValue}>
+                    {accused.totalViolations}
+                  </Text>
                   <Text style={styles.statLabel}>Total Violations</Text>
                 </View>
                 <View style={styles.statBox}>
@@ -150,7 +156,8 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
                 {accused.vehicles.map((vehicle) => (
                   <View key={vehicle.vehicleId} style={styles.vehicleItem}>
                     <Text style={styles.vehicleText}>
-                      {vehicle.plateNumber} - {vehicle.make || 'Unknown'} ({vehicle.color || 'N/A'})
+                      {vehicle.plateNumber} - {vehicle.make || "Unknown"} (
+                      {vehicle.color || "N/A"})
                     </Text>
                   </View>
                 ))}
@@ -164,11 +171,16 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
                 {challans.slice(0, 5).map((challan) => (
                   <View key={challan.challanId} style={styles.challanItem}>
                     <View style={styles.challanHeader}>
-                      <Text style={styles.challanViolation}>{challan.violationType}</Text>
+                      <Text style={styles.challanId}>
+                        Challan #{challan.challanId}
+                      </Text>
                       <Text style={styles.challanAmount}>
                         {formatters.formatCurrency(challan.penaltyAmount)}
                       </Text>
                     </View>
+                    <Text style={styles.challanViolation}>
+                      {challan.violationType}
+                    </Text>
                     <View style={styles.challanDetails}>
                       <Text style={styles.challanText}>
                         Vehicle: {challan.vehiclePlateNumber}
@@ -181,7 +193,7 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({ naviga
                       <Text
                         style={[
                           styles.statusBadge,
-                          challan.status === 'Paid' && styles.statusPaid,
+                          challan.status === "Paid" && styles.statusPaid,
                           challan.isOverdue && styles.statusOverdue,
                         ]}
                       >
@@ -219,8 +231,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: spacing.xs,
   },
   label: {
@@ -231,17 +243,17 @@ const styles = StyleSheet.create({
   value: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'right',
+    textAlign: "right",
   },
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginVertical: spacing.md,
   },
   statBox: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     ...typography.h2,
@@ -270,20 +282,25 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   challanHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: spacing.xs,
+  },
+  challanId: {
+    ...typography.bodySmall,
+    color: colors.primary,
+    fontWeight: "700",
   },
   challanViolation: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '600',
-    flex: 1,
+    fontWeight: "600",
+    marginBottom: spacing.xs,
   },
   challanAmount: {
     ...typography.body,
     color: colors.error,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   challanDetails: {
     marginBottom: spacing.xs,
@@ -297,13 +314,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   challanStatus: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
   statusBadge: {
     ...typography.caption,
     color: colors.info,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   statusPaid: {
     color: colors.success,

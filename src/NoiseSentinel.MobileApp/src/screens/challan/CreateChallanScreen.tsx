@@ -7,7 +7,10 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
+  TouchableOpacity,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
 import accusedApi from "../../api/accusedApi";
 import challanApi from "../../api/challanApi";
@@ -68,6 +71,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
   // Step 4: Evidence & Bank
   const [evidencePath, setEvidencePath] = useState("");
+  const [evidenceImage, setEvidenceImage] = useState<string | null>(null);
   const [bankDetails, setBankDetails] = useState("");
 
   const [errors, setErrors] = useState<any>({});
@@ -102,8 +106,38 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
   const loadViolations = async () => {
     try {
-      const data = await violationApi.getAllViolations();
-      setViolations(data);
+      const allViolations = await violationApi.getAllViolations();
+
+      // Filter based on whether this is from emission report or direct challan
+      if (emissionReportId) {
+        // From emission report → Only show COGNIZABLE violations
+        const cognizableViolations = allViolations.filter(
+          (v) => v.isCognizable === true
+        );
+        setViolations(cognizableViolations);
+
+        if (cognizableViolations.length === 0) {
+          Toast.show({
+            type: "warning",
+            text1: "No Cognizable Violations",
+            text2: "Please add cognizable violations in the system",
+          });
+        }
+      } else {
+        // Direct challan → Only show NON-COGNIZABLE violations
+        const nonCognizableViolations = allViolations.filter(
+          (v) => v.isCognizable === false
+        );
+        setViolations(nonCognizableViolations);
+
+        if (nonCognizableViolations.length === 0) {
+          Toast.show({
+            type: "warning",
+            text1: "No Non-Cognizable Violations",
+            text2: "Please add non-cognizable violations in the system",
+          });
+        }
+      }
     } catch (error) {
       Toast.show({
         type: "error",
@@ -111,6 +145,115 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
         text2: "Failed to load violations",
       });
     }
+  };
+
+  const requestPermissions = async () => {
+    if (Platform.OS !== "web") {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Sorry, we need camera roll permissions to upload evidence images."
+        );
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const pickImage = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7, // Compress to 70% quality
+        base64: true, // Get base64 string
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+
+        // Create base64 data URI
+        const base64Image = `data:image/jpeg;base64,${asset.base64}`;
+
+        setEvidenceImage(asset.uri); // For preview
+        setEvidencePath(base64Image); // For upload
+
+        Toast.show({
+          type: "success",
+          text1: "Image Selected",
+          text2: "Evidence image added successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to pick image",
+      });
+    }
+  };
+
+  const takePhoto = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    // Request camera permission
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "Sorry, we need camera permissions to take photos."
+      );
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+
+        const base64Image = `data:image/jpeg;base64,${asset.base64}`;
+
+        setEvidenceImage(asset.uri);
+        setEvidencePath(base64Image);
+
+        Toast.show({
+          type: "success",
+          text1: "Photo Captured",
+          text2: "Evidence photo added successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to take photo",
+      });
+    }
+  };
+
+  const removeImage = () => {
+    setEvidenceImage(null);
+    setEvidencePath("");
+    Toast.show({
+      type: "info",
+      text1: "Image Removed",
+      text2: "Evidence image removed",
+    });
   };
 
   const handleSearchVehicle = async () => {
@@ -284,22 +427,11 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     try {
       setLoading(true);
 
-      // Validate emissionReportId exists
-      if (!emissionReportId) {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2:
-            "Emission Report ID is missing. Please navigate from emission report.",
-        });
-        setLoading(false);
-        return;
-      }
-
       // Build the data object, only including defined fields
       const data: CreateChallanDto = {
         violationId: selectedViolation!.violationId,
-        emissionReportId: emissionReportId,
+        // EmissionReportId is optional - null for direct challans, set for emission report challans
+        emissionReportId: emissionReportId || null,
       };
 
       // Add vehicle info - either ID or input
@@ -355,11 +487,22 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
         text2: response.isCognizable
           ? "⚖️ Cognizable - FIR can be filed"
           : `Penalty: PKR ${response.penaltyAmount}`,
+        visibilityTime: 2000,
       });
 
-      // Navigate back to Dashboard (homepage)
+      // Navigation logic based on challan type
       setTimeout(() => {
-        navigation.navigate("Dashboard");
+        if (emissionReportId) {
+          // From emission report → Cannot go back, must go to dashboard
+          // Reset navigation stack to prevent going back to emission report
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+          });
+        } else {
+          // Direct challan → Also go to dashboard
+          navigation.navigate("Dashboard");
+        }
       }, 1500);
     } catch (error: any) {
       console.error("❌ Create Challan Error:", error);
@@ -599,15 +742,39 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
       <Card>
         <Text style={styles.cardTitle}>📸 Evidence (Optional)</Text>
-        <Input
-          label="Evidence Path"
-          placeholder="e.g., /uploads/IMG001.jpg"
-          value={evidencePath}
-          onChangeText={setEvidencePath}
-          multiline
-          numberOfLines={2}
-          helperText="Comma-separated paths for multiple files"
-        />
+        <Text style={styles.helperText}>
+          Upload photo evidence of the violation
+        </Text>
+
+        {evidenceImage ? (
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: evidenceImage }}
+              style={styles.previewImage}
+            />
+            <TouchableOpacity
+              style={styles.removeImageButton}
+              onPress={removeImage}
+            >
+              <Text style={styles.removeImageText}>✕ Remove</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.imageButtons}>
+            <Button
+              title="📷 Take Photo"
+              onPress={takePhoto}
+              variant="secondary"
+              style={styles.imageButton}
+            />
+            <Button
+              title="🖼️ Choose from Gallery"
+              onPress={pickImage}
+              variant="secondary"
+              style={styles.imageButton}
+            />
+          </View>
+        )}
       </Card>
 
       <Card>
@@ -836,6 +1003,39 @@ const styles = StyleSheet.create({
     color: colors.cognizable,
     marginTop: spacing.xs,
     fontWeight: "500",
+  },
+  helperText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  imageContainer: {
+    alignItems: "center",
+    marginVertical: spacing.md,
+  },
+  previewImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: borderRadius.md,
+    resizeMode: "cover",
+  },
+  removeImageButton: {
+    marginTop: spacing.md,
+    backgroundColor: colors.error,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
+  },
+  removeImageText: {
+    ...typography.bodySemibold,
+    color: colors.white,
+  },
+  imageButtons: {
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  imageButton: {
+    width: "100%",
   },
   footer: {
     padding: spacing.md,

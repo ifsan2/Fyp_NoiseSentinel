@@ -1,21 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   RefreshControl,
-} from 'react-native';
-import { Header } from '../../components/common/Header';
-import { Loading } from '../../components/common/Loading';
-import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Card } from '../../components/common/Card';
-import { colors } from '../../styles/colors';
-import { spacing, borderRadius } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
-import challanApi from '../../api/challanApi';
-import { ChallanResponseDto } from '../../models/Challan';
-import { formatters } from '../../utils/formatters';
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import { Header } from "../../components/common/Header";
+import { Loading } from "../../components/common/Loading";
+import { ErrorMessage } from "../../components/common/ErrorMessage";
+import { Card } from "../../components/common/Card";
+import { colors } from "../../styles/colors";
+import { spacing, borderRadius } from "../../styles/spacing";
+import { typography } from "../../styles/typography";
+import challanApi from "../../api/challanApi";
+import { ChallanResponseDto } from "../../models/Challan";
+import { formatters } from "../../utils/formatters";
 
 interface ChallanDetailScreenProps {
   navigation: any;
@@ -42,7 +44,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
       const data = await challanApi.getChallanById(challanId);
       setChallan(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load challan');
+      setError(err.response?.data?.message || "Failed to load challan");
     } finally {
       setLoading(false);
     }
@@ -75,15 +77,18 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
           showBack
           onBackPress={() => navigation.goBack()}
         />
-        <ErrorMessage message={error || 'Challan not found'} onRetry={loadChallan} />
+        <ErrorMessage
+          message={error || "Challan not found"}
+          onRetry={loadChallan}
+        />
       </View>
     );
   }
 
   const getStatusColor = () => {
     if (challan.isOverdue) return colors.error;
-    if (challan.status === 'Paid') return colors.success;
-    if (challan.status === 'Disputed') return colors.warning;
+    if (challan.status === "Paid") return colors.success;
+    if (challan.status === "Disputed") return colors.warning;
     return colors.info;
   };
 
@@ -102,12 +107,22 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
         }
       >
         {/* Status Badge */}
-        <View style={[styles.statusBanner, { backgroundColor: getStatusColor() }]}>
+        <View
+          style={[styles.statusBanner, { backgroundColor: getStatusColor() }]}
+        >
           <Text style={styles.statusText}>{challan.status}</Text>
           {challan.isOverdue && (
             <Text style={styles.overdueText}>⚠️ OVERDUE</Text>
           )}
         </View>
+
+        {/* Challan ID Card */}
+        <Card variant="elevated">
+          <View style={styles.challanIdContainer}>
+            <Text style={styles.challanIdLabel}>CHALLAN ID</Text>
+            <Text style={styles.challanIdValue}>#{challan.challanId}</Text>
+          </View>
+        </Card>
 
         {/* Vehicle & Violation */}
         <Card variant="elevated">
@@ -118,11 +133,11 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Make/Model:</Text>
-            <Text style={styles.value}>{challan.vehicleMake || 'N/A'}</Text>
+            <Text style={styles.value}>{challan.vehicleMake || "N/A"}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Color:</Text>
-            <Text style={styles.value}>{challan.vehicleColor || 'N/A'}</Text>
+            <Text style={styles.value}>{challan.vehicleColor || "N/A"}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>
@@ -157,37 +172,47 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Contact:</Text>
-            <Text style={styles.value}>{challan.accusedContact || 'N/A'}</Text>
+            <Text style={styles.value}>{challan.accusedContact || "N/A"}</Text>
           </View>
         </Card>
 
-        {/* Emission Report Evidence */}
-        <Card>
-          <Text style={styles.cardTitle}>📊 Emission Report Evidence</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Device:</Text>
-            <Text style={styles.value}>{challan.deviceName}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Sound Level:</Text>
-            <Text style={[styles.value, styles.soundLevel]}>
-              {formatters.formatSoundLevel(challan.soundLevelDBa)}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>ML Classification:</Text>
-            <Text style={styles.value}>{challan.mlClassification || 'N/A'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Test Date:</Text>
-            <Text style={styles.value}>
-              {formatters.formatDateTime(challan.emissionTestDateTime)}
-            </Text>
-          </View>
-          <View style={styles.integrityBadge}>
-            <Text style={styles.integrityText}>✓ {challan.integrityStatus}</Text>
-          </View>
-        </Card>
+        {/* Emission Report Evidence - Only show if emission report exists */}
+        {challan.emissionReportId && (
+          <Card>
+            <Text style={styles.cardTitle}>📊 Emission Report Evidence</Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Device:</Text>
+              <Text style={styles.value}>{challan.deviceName || "N/A"}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Sound Level:</Text>
+              <Text style={[styles.value, styles.soundLevel]}>
+                {challan.soundLevelDBa
+                  ? formatters.formatSoundLevel(challan.soundLevelDBa)
+                  : "N/A"}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>ML Classification:</Text>
+              <Text style={styles.value}>
+                {challan.mlClassification || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Test Date:</Text>
+              <Text style={styles.value}>
+                {challan.emissionTestDateTime
+                  ? formatters.formatDateTime(challan.emissionTestDateTime)
+                  : "N/A"}
+              </Text>
+            </View>
+            <View style={styles.integrityBadge}>
+              <Text style={styles.integrityText}>
+                ✓ {challan.integrityStatus}
+              </Text>
+            </View>
+          </Card>
+        )}
 
         {/* Officer & Station */}
         <Card>
@@ -223,11 +248,13 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Days Until Due:</Text>
-            <Text style={[styles.value, challan.daysUntilDue < 0 && styles.overdue]}>
+            <Text
+              style={[styles.value, challan.daysUntilDue < 0 && styles.overdue]}
+            >
               {challan.daysUntilDue > 0
                 ? `${challan.daysUntilDue} days`
                 : challan.daysUntilDue === 0
-                ? 'Today'
+                ? "Today"
                 : `${Math.abs(challan.daysUntilDue)} days overdue`}
             </Text>
           </View>
@@ -238,11 +265,15 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
           <Card>
             <Text style={styles.cardTitle}>📎 Additional Information</Text>
             {challan.evidencePath && (
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>Evidence:</Text>
-                <Text style={styles.value} numberOfLines={2}>
-                  {challan.evidencePath}
-                </Text>
+              <View style={styles.evidenceContainer}>
+                <Text style={styles.label}>Evidence Photo:</Text>
+                <TouchableOpacity activeOpacity={0.9}>
+                  <Image
+                    source={{ uri: challan.evidencePath }}
+                    style={styles.evidenceImage}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
               </View>
             )}
             {challan.bankDetails && (
@@ -261,9 +292,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
           <Card variant="elevated">
             <View style={styles.firCard}>
               <Text style={styles.firTitle}>⚖️ FIR Filed</Text>
-              <Text style={styles.firText}>
-                FIR ID: {challan.firId}
-              </Text>
+              <Text style={styles.firText}>FIR ID: {challan.firId}</Text>
               <Text style={styles.firSubtext}>
                 This case has been escalated to Station Authority
               </Text>
@@ -278,7 +307,8 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
             {challan.digitalSignatureValue}
           </Text>
           <Text style={styles.signatureHelp}>
-            This challan is protected by digital signature from the emission report
+            This challan is protected by digital signature from the emission
+            report
           </Text>
         </Card>
       </ScrollView>
@@ -299,19 +329,37 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: borderRadius.lg,
     marginBottom: spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   statusText: {
     ...typography.h3,
     color: colors.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   overdueText: {
     ...typography.body,
     color: colors.white,
-    fontWeight: '700',
+    fontWeight: "700",
+  },
+  challanIdContainer: {
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+  },
+  challanIdLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontSize: 11,
+    letterSpacing: 1,
+    fontWeight: "600",
+    marginBottom: spacing.xs,
+  },
+  challanIdValue: {
+    ...typography.h1,
+    color: colors.primary,
+    fontWeight: "700",
+    fontSize: 32,
   },
   cardTitle: {
     ...typography.h4,
@@ -319,8 +367,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: spacing.xs,
   },
   label: {
@@ -331,9 +379,19 @@ const styles = StyleSheet.create({
   value: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'right',
+    textAlign: "right",
+  },
+  evidenceContainer: {
+    marginBottom: spacing.md,
+  },
+  evidenceImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: borderRadius.md,
+    marginTop: spacing.sm,
+    backgroundColor: colors.gray100,
   },
   violation: {
     color: colors.error,
@@ -344,7 +402,7 @@ const styles = StyleSheet.create({
   },
   soundLevel: {
     color: colors.error,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   overdue: {
     color: colors.error,
@@ -356,30 +414,30 @@ const styles = StyleSheet.create({
   },
   cognizableBadge: {
     marginTop: spacing.sm,
-    backgroundColor: colors.warning + '20',
+    backgroundColor: colors.warning + "20",
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cognizableText: {
     ...typography.body,
     color: colors.warning,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   integrityBadge: {
     marginTop: spacing.sm,
-    backgroundColor: colors.success + '20',
+    backgroundColor: colors.success + "20",
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   integrityText: {
     ...typography.caption,
     color: colors.success,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   firCard: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: spacing.md,
   },
   firTitle: {
@@ -399,7 +457,7 @@ const styles = StyleSheet.create({
   signatureText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     backgroundColor: colors.gray100,
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
@@ -408,6 +466,6 @@ const styles = StyleSheet.create({
   signatureHelp: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
 });

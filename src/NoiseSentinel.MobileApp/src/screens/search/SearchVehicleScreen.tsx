@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,41 +6,43 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native';
-import { Header } from '../../components/common/Header';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
-import { Loading } from '../../components/common/Loading';
-import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
-import vehicleApi from '../../api/vehicleApi';
-import challanApi from '../../api/challanApi';
-import { VehicleResponseDto } from '../../models/Vehicle';
-import { ChallanListItemDto } from '../../models/Challan';
-import { formatters } from '../../utils/formatters';
+} from "react-native";
+import { Header } from "../../components/common/Header";
+import { Input } from "../../components/common/Input";
+import { Button } from "../../components/common/Button";
+import { Card } from "../../components/common/Card";
+import { Loading } from "../../components/common/Loading";
+import { colors } from "../../styles/colors";
+import { spacing } from "../../styles/spacing";
+import { typography } from "../../styles/typography";
+import vehicleApi from "../../api/vehicleApi";
+import challanApi from "../../api/challanApi";
+import { VehicleResponseDto } from "../../models/Vehicle";
+import { ChallanListItemDto } from "../../models/Challan";
+import { formatters } from "../../utils/formatters";
 
 interface SearchVehicleScreenProps {
   navigation: any;
 }
 
-export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ navigation }) => {
-  const [plateNumber, setPlateNumber] = useState('');
+export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({
+  navigation,
+}) => {
+  const [plateNumber, setPlateNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [vehicle, setVehicle] = useState<VehicleResponseDto | null>(null);
   const [challans, setChallans] = useState<ChallanListItemDto[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSearch = async () => {
     if (!plateNumber.trim()) {
-      setError('Please enter a plate number');
+      setError("Please enter a plate number");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
       setVehicle(null);
       setChallans([]);
 
@@ -48,10 +50,12 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ naviga
       setVehicle(vehicleData);
 
       // Load challans for this vehicle
-      const challansData = await challanApi.getChallansByVehicle(vehicleData.vehicleId);
+      const challansData = await challanApi.getChallansByVehicle(
+        vehicleData.vehicleId
+      );
       setChallans(challansData);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Vehicle not found');
+      setError(err.response?.data?.message || "Vehicle not found");
     } finally {
       setLoading(false);
     }
@@ -60,7 +64,7 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ naviga
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Header
         title="Search Vehicle"
@@ -79,7 +83,7 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ naviga
             error={error}
           />
           <Button
-            title={loading ? 'Searching...' : 'Search'}
+            title={loading ? "Searching..." : "Search"}
             onPress={handleSearch}
             loading={loading}
             disabled={loading}
@@ -100,19 +104,19 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ naviga
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Make/Model:</Text>
-                <Text style={styles.value}>{vehicle.make || 'N/A'}</Text>
+                <Text style={styles.value}>{vehicle.make || "N/A"}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Color:</Text>
-                <Text style={styles.value}>{vehicle.color || 'N/A'}</Text>
+                <Text style={styles.value}>{vehicle.color || "N/A"}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Chasis No:</Text>
-                <Text style={styles.value}>{vehicle.chasisNo || 'N/A'}</Text>
+                <Text style={styles.value}>{vehicle.chasisNo || "N/A"}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Engine No:</Text>
-                <Text style={styles.value}>{vehicle.engineNo || 'N/A'}</Text>
+                <Text style={styles.value}>{vehicle.engineNo || "N/A"}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Registration Year:</Text>
@@ -130,11 +134,13 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ naviga
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>CNIC:</Text>
-                  <Text style={styles.value}>{vehicle.ownerCnic || 'N/A'}</Text>
+                  <Text style={styles.value}>{vehicle.ownerCnic || "N/A"}</Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>Contact:</Text>
-                  <Text style={styles.value}>{vehicle.ownerContact || 'N/A'}</Text>
+                  <Text style={styles.value}>
+                    {vehicle.ownerContact || "N/A"}
+                  </Text>
                 </View>
               </Card>
             )}
@@ -144,7 +150,9 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ naviga
               <Text style={styles.cardTitle}>⚠️ Violation History</Text>
               <View style={styles.statsRow}>
                 <View style={styles.statBox}>
-                  <Text style={styles.statValue}>{vehicle.totalViolations}</Text>
+                  <Text style={styles.statValue}>
+                    {vehicle.totalViolations}
+                  </Text>
                   <Text style={styles.statLabel}>Total Violations</Text>
                 </View>
                 <View style={styles.statBox}>
@@ -158,11 +166,17 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({ naviga
                   <Text style={styles.challansTitle}>Recent Challans:</Text>
                   {challans.slice(0, 5).map((challan) => (
                     <View key={challan.challanId} style={styles.challanItem}>
+                      <View style={styles.challanHeader}>
+                        <Text style={styles.challanId}>
+                          #{challan.challanId}
+                        </Text>
+                        <Text style={styles.challanDate}>
+                          {formatters.formatDate(challan.issueDateTime)}
+                        </Text>
+                      </View>
                       <Text style={styles.challanText}>
-                        {challan.violationType} - {formatters.formatCurrency(challan.penaltyAmount)}
-                      </Text>
-                      <Text style={styles.challanDate}>
-                        {formatters.formatDate(challan.issueDateTime)}
+                        {challan.violationType} -{" "}
+                        {formatters.formatCurrency(challan.penaltyAmount)}
                       </Text>
                     </View>
                   ))}
@@ -196,8 +210,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: spacing.xs,
   },
   label: {
@@ -207,15 +221,15 @@ const styles = StyleSheet.create({
   value: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginVertical: spacing.md,
   },
   statBox: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     ...typography.h2,
@@ -231,7 +245,7 @@ const styles = StyleSheet.create({
   challansTitle: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: spacing.sm,
   },
   challanItem: {
@@ -239,6 +253,17 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderRadius: spacing.xs,
     marginBottom: spacing.xs,
+  },
+  challanHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.xs,
+  },
+  challanId: {
+    ...typography.bodySmall,
+    color: colors.primary,
+    fontWeight: "700",
   },
   challanText: {
     ...typography.bodySmall,
