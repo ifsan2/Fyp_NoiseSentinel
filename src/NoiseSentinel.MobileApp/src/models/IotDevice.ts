@@ -1,28 +1,29 @@
 export interface IotDeviceListItemDto {
   deviceId: number;
   deviceName: string;
-  firmwareVersion?: string;
-  isCalibrated: boolean;
-  isRegistered: boolean;
+  firmwareVersion: string;
+  calibrationDate: string | null;
+  calibrationStatus: boolean;
+  calibrationCertificateNo?: string;
+  isActive: boolean;
+  isPaired: boolean;
+  pairedOfficerId?: number;
+  pairedOfficerName?: string;
   pairingDateTime?: string;
-  totalEmissionReports: number;
-  status: string;
-  isAvailable: boolean;
 }
 
 export interface IotDeviceResponseDto {
   deviceId: number;
   deviceName: string;
-  firmwareVersion?: string;
-  isCalibrated: boolean;
-  isRegistered: boolean;
+  firmwareVersion: string;
+  calibrationDate: string | null;
+  calibrationStatus: boolean;
+  calibrationCertificateNo?: string;
+  isActive: boolean;
+  isPaired: boolean;
+  pairedOfficerId?: number;
+  pairedOfficerName?: string;
   pairingDateTime?: string;
-  totalEmissionReports: number;
-  status: string;
-  calibrationStatus: string;
-  registrationStatus: string;
-  availabilityStatus: string;
-  lastPaired: string;
 }
 
 export interface PairIotDeviceDto {
