@@ -1,9 +1,9 @@
-import { VehicleInputDto } from './Vehicle';
-import { AccusedInputDto } from './Accused';
+import { VehicleInputDto } from "./Vehicle";
+import { AccusedInputDto } from "./Accused";
 
 export interface CreateChallanDto {
   violationId: number;
-  emissionReportId: number;
+  emissionReportId: number | null; // Nullable - null for direct challans, set for emission report challans
   vehicleId?: number;
   vehicleInput?: VehicleInputDto;
   accusedId?: number;
@@ -30,11 +30,11 @@ export interface ChallanResponseDto {
   violationType: string;
   penaltyAmount: number;
   isCognizable: boolean;
-  emissionReportId: number;
-  deviceName: string;
-  soundLevelDBa: number;
-  mlClassification?: string;
-  emissionTestDateTime: string;
+  emissionReportId?: number | null; // Optional - only present for emission report challans
+  deviceName?: string | null;
+  soundLevelDBa?: number | null;
+  mlClassification?: string | null;
+  emissionTestDateTime?: string | null;
   evidencePath?: string;
   issueDateTime: string;
   dueDateTime: string;
