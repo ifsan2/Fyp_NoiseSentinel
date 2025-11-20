@@ -31,17 +31,21 @@ import {
   DirectionsCar,
   Visibility,
   Assignment,
+  Payment,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
+import { StatsCard } from "@/components/station/cards/StatsCard";
 import { STATION_ROUTES } from "@/utils/stationConstants";
 import vehicleApi, { VehicleDto } from "@/api/vehicleApi";
 import challanApi from "@/api/challanApi";
 import { ChallanDto } from "@/models/Challan";
 import { dateHelpers } from "@/utils/stationFilters";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewVehiclesPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
@@ -150,62 +154,37 @@ export const ViewVehiclesPage: React.FC = () => {
 
       {/* Statistics */}
       <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: "primary.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "primary.main",
-                }}
-              >
-                {filteredVehicles.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Vehicles Found
-              </Box>
-            </Box>
+            <StatsCard
+              title="Vehicles Found"
+              value={filteredVehicles.length}
+              icon={<DirectionsCar />}
+              color="#3B82F6"
+            />
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "warning.main",
-                }}
-              >
-                {filteredVehicles.reduce(
-                  (sum, v) => sum + (v.totalChallans || 0),
-                  0
-                )}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total Challans
-              </Box>
-            </Box>
+            <StatsCard
+              title="Total Challans"
+              value={filteredVehicles.reduce(
+                (sum, v) => sum + (v.totalChallans || 0),
+                0
+              )}
+              icon={<Assignment />}
+              color="#F59E0B"
+            />
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "1.5rem",
-                  fontWeight: 700,
-                  color: "error.main",
-                }}
-              >
-                PKR{" "}
-                {filteredVehicles
-                  .reduce((sum, v) => sum + (v.totalPenalties || 0), 0)
-                  .toLocaleString()}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total Penalties
-              </Box>
-            </Box>
+            <StatsCard
+              title="Total Penalties"
+              value={`PKR ${filteredVehicles
+                .reduce((sum, v) => sum + (v.totalPenalties || 0), 0)
+                .toLocaleString()}`}
+              icon={<Payment />}
+              color="#EF4444"
+            />
           </Grid>
         </Grid>
       </Box>

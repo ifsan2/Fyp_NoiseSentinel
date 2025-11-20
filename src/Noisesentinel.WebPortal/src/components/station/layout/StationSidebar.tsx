@@ -2,40 +2,42 @@ import React from "react";
 import {
   Box,
   List,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Typography,
-  Divider,
   Collapse,
+  useTheme,
+  alpha,
+  Avatar,
 } from "@mui/material";
 import {
-  Dashboard,
-  Business,
-  People,
-  Devices,
-  Gavel,
-  Assignment,
-  Report,
-  DirectionsCar,
-  PersonSearch,
+  DashboardOutlined,
+  BusinessOutlined,
+  PeopleOutlined,
+  DevicesOutlined,
+  GavelOutlined,
+  AssignmentOutlined,
+  ReportOutlined,
+  DirectionsCarOutlined,
+  PersonSearchOutlined,
   ExpandLess,
   ExpandMore,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { STATION_ROUTES } from "@/utils/stationConstants";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface MenuItem {
   label: string;
   icon: React.ReactNode;
   path?: string;
   children?: MenuItem[];
-  dividerAfter?: boolean;
 }
 
 export const StationSidebar: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -50,141 +52,87 @@ export const StationSidebar: React.FC = () => {
   const menuItems: MenuItem[] = [
     {
       label: "Dashboard",
-      icon: <Dashboard />,
+      icon: <DashboardOutlined />,
       path: STATION_ROUTES.DASHBOARD,
-      dividerAfter: true,
     },
     {
       label: "Police Stations",
-      icon: <Business />,
+      icon: <BusinessOutlined />,
       path: STATION_ROUTES.STATIONS,
     },
     {
       label: "Police Officers",
-      icon: <People />,
+      icon: <PeopleOutlined />,
       path: STATION_ROUTES.OFFICERS,
     },
     {
       label: "IoT Devices",
-      icon: <Devices />,
+      icon: <DevicesOutlined />,
       path: STATION_ROUTES.DEVICES,
     },
     {
       label: "Violations",
-      icon: <Gavel />,
+      icon: <GavelOutlined />,
       path: STATION_ROUTES.VIOLATIONS,
-      dividerAfter: true,
     },
     {
       label: "Monitoring",
-      icon: <Assignment />,
+      icon: <AssignmentOutlined />,
       children: [
         {
           label: "Challans",
-          icon: <Assignment />,
+          icon: <AssignmentOutlined />,
           path: STATION_ROUTES.CHALLANS,
         },
         {
           label: "FIRs",
-          icon: <Report />,
+          icon: <ReportOutlined />,
           path: STATION_ROUTES.FIRS,
         },
         {
           label: "Vehicles",
-          icon: <DirectionsCar />,
+          icon: <DirectionsCarOutlined />,
           path: STATION_ROUTES.VEHICLES,
         },
         {
           label: "Accused",
-          icon: <PersonSearch />,
+          icon: <PersonSearchOutlined />,
           path: STATION_ROUTES.ACCUSED,
         },
       ],
-      dividerAfter: true,
     },
   ];
 
-  const isActive = (path?: string) => {
-    if (!path) return false;
-    return (
-      location.pathname === path || location.pathname.startsWith(path + "/")
-    );
-  };
-
   const renderMenuItem = (item: MenuItem, index: number, depth: number = 0) => {
+    const isActive = item.path ? location.pathname === item.path : false;
     const hasChildren = item.children && item.children.length > 0;
-    const active = isActive(item.path);
+    const isOpen = hasChildren && openMenus[item.label.toLowerCase()];
 
     if (hasChildren) {
-      const isOpen = openMenus[item.label.toLowerCase().replace(/\s+/g, "_")];
       return (
         <React.Fragment key={index}>
-          <ListItem disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              onClick={() =>
-                handleToggle(item.label.toLowerCase().replace(/\s+/g, "_"))
-              }
-              sx={{
-                borderRadius: 2,
-                pl: depth * 2 + 2,
-                "&:hover": {
-                  bgcolor: "action.hover",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40, color: "text.secondary" }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: "0.9rem",
-                  fontWeight: 500,
-                }}
-              />
-              {isOpen ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>
-          </ListItem>
-          <Collapse in={isOpen} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              {item.children!.map((child, childIndex) =>
-                renderMenuItem(child, childIndex, depth + 1)
-              )}
-            </List>
-          </Collapse>
-          {item.dividerAfter && <Divider sx={{ my: 1 }} />}
-        </React.Fragment>
-      );
-    }
-
-    return (
-      <React.Fragment key={index}>
-        <ListItem disablePadding sx={{ mb: 0.5 }}>
           <ListItemButton
-            onClick={() => item.path && navigate(item.path)}
-            selected={active}
+            onClick={() => handleToggle(item.label.toLowerCase())}
             sx={{
-              borderRadius: 2,
-              pl: depth * 2 + 2,
-              "&.Mui-selected": {
-                bgcolor: "primary.main",
-                color: "white",
-                "&:hover": {
-                  bgcolor: "primary.dark",
-                },
-                "& .MuiListItemIcon-root": {
-                  color: "white",
-                },
-              },
+              mb: 0.5,
+              mx: 1,
+              px: 2,
+              py: 1.5,
+              borderRadius: "12px",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
               "&:hover": {
-                bgcolor: "action.hover",
+                backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                transform: "translateX(4px)",
               },
             }}
           >
             <ListItemIcon
               sx={{
                 minWidth: 40,
-                color: active ? "white" : "text.secondary",
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.text.secondary
+                    : "rgba(0, 0, 0, 0.65)",
               }}
             >
               {item.icon}
@@ -192,78 +140,296 @@ export const StationSidebar: React.FC = () => {
             <ListItemText
               primary={item.label}
               primaryTypographyProps={{
-                fontSize: "0.9rem",
-                fontWeight: active ? 600 : 400,
+                fontSize: "0.9375rem",
+                fontWeight: 500,
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.text.primary
+                    : "rgba(0, 0, 0, 0.87)",
               }}
             />
+            {isOpen ? (
+              <ExpandLess
+                sx={{
+                  fontSize: 20,
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.text.secondary
+                      : "rgba(0, 0, 0, 0.65)",
+                }}
+              />
+            ) : (
+              <ExpandMore
+                sx={{
+                  fontSize: 20,
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.text.secondary
+                      : "rgba(0, 0, 0, 0.65)",
+                }}
+              />
+            )}
           </ListItemButton>
-        </ListItem>
-        {item.dividerAfter && <Divider sx={{ my: 1 }} />}
+          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding sx={{ mt: 0.25, mb: 0.5 }}>
+              {item.children?.map((child, childIndex) =>
+                renderMenuItem(child, childIndex, depth + 1)
+              )}
+            </List>
+          </Collapse>
+        </React.Fragment>
+      );
+    }
+
+    return (
+      <React.Fragment key={index}>
+        <ListItemButton
+          selected={isActive}
+          onClick={() => item.path && navigate(item.path)}
+          sx={{
+            mb: 0.5,
+            mx: depth > 0 ? 2 : 1,
+            ml: depth > 0 ? 5 : 1,
+            px: 2,
+            py: 1.5,
+            borderRadius: "12px",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            position: "relative",
+            overflow: "hidden",
+            ...(isActive && {
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? theme.palette.primary.main
+                  : alpha(theme.palette.primary.main, 0.12),
+              color:
+                theme.palette.mode === "dark"
+                  ? "#fff"
+                  : theme.palette.primary.dark,
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`
+                  : `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`,
+              "&:hover": {
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.primary.dark
+                    : alpha(theme.palette.primary.main, 0.18),
+                transform: "translateX(2px)",
+              },
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 3,
+                height: "50%",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "#fff"
+                    : theme.palette.primary.main,
+                borderRadius: "0 4px 4px 0",
+              },
+            }),
+            ...(!isActive && {
+              "&:hover": {
+                backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                transform: "translateX(2px)",
+              },
+            }),
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 40,
+              color: isActive
+                ? theme.palette.mode === "dark"
+                  ? "#fff"
+                  : theme.palette.primary.dark
+                : theme.palette.mode === "dark"
+                ? theme.palette.text.secondary
+                : "rgba(0, 0, 0, 0.65)",
+            }}
+          >
+            {item.icon}
+          </ListItemIcon>
+          <ListItemText
+            primary={item.label}
+            primaryTypographyProps={{
+              fontSize: depth > 0 ? "0.875rem" : "0.9375rem",
+              fontWeight: isActive ? 600 : 500,
+              color: isActive
+                ? theme.palette.mode === "dark"
+                  ? "#fff"
+                  : theme.palette.primary.dark
+                : theme.palette.mode === "dark"
+                ? theme.palette.text.primary
+                : "rgba(0, 0, 0, 0.87)",
+            }}
+          />
+        </ListItemButton>
       </React.Fragment>
     );
   };
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* Logo/Brand */}
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background:
+          theme.palette.mode === "dark"
+            ? "linear-gradient(180deg, #1a1d29 0%, #13151f 100%)"
+            : "linear-gradient(180deg, #fafbff 0%, #f5f7fb 100%)",
+        borderRight: `1px solid ${theme.palette.divider}`,
+      }}
+    >
+      {/* Premium Header */}
       <Box
         sx={{
-          p: 3,
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          bgcolor: "primary.main",
-          color: "white",
+          p: 2.5,
+          pb: 2,
         }}
       >
+        <BrandLogo size="medium" showText={true} />
+
+        {/* User Profile Card - More Compact */}
         <Box
           sx={{
-            width: 48,
-            height: 48,
-            bgcolor: "white",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "24px",
+            mt: 2.5,
+            p: 1.5,
+            borderRadius: "12px",
+            background:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.primary.main, 0.1)
+                : "#ffffff",
+            border: `1px solid ${
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.primary.main, 0.1)
+                : alpha(theme.palette.primary.main, 0.15)
+            }`,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "none"
+                : "0 1px 3px rgba(0, 0, 0, 0.08)",
           }}
         >
-          🔊
-        </Box>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-            NoiseSentinel
-          </Typography>
-          <Typography variant="caption" sx={{ opacity: 0.9 }}>
-            Station Authority
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <Avatar
+              sx={{
+                width: 36,
+                height: 36,
+                bgcolor: theme.palette.primary.main,
+                fontSize: "0.9375rem",
+                fontWeight: 600,
+              }}
+            >
+              {user?.fullName?.charAt(0) || "S"}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  mb: 0.125,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {user?.fullName || "Station Auth"}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "0.625rem",
+                  fontWeight: 500,
+                  color: theme.palette.primary.main,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Station Portal
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Box>
 
-      {/* Navigation Menu */}
-      <Box sx={{ flexGrow: 1, overflow: "auto" }}>
-        <List sx={{ px: 2, py: 2 }}>
+      {/* Navigation with Section Header */}
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          px: 1.5,
+          py: 1,
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: alpha(theme.palette.text.primary, 0.1),
+            borderRadius: "3px",
+            "&:hover": {
+              background: alpha(theme.palette.text.primary, 0.2),
+            },
+          },
+          scrollbarWidth: "thin",
+          scrollbarColor: `${alpha(
+            theme.palette.text.primary,
+            0.1
+          )} transparent`,
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            px: 2,
+            mb: 1.5,
+            mt: 0.5,
+            color:
+              theme.palette.mode === "dark"
+                ? theme.palette.text.secondary
+                : "rgba(0, 0, 0, 0.5)",
+            fontWeight: 700,
+            fontSize: "0.6875rem",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          Menu
+        </Typography>
+        <List component="nav" disablePadding>
           {menuItems.map((item, index) => renderMenuItem(item, index))}
         </List>
       </Box>
 
-      {/* Footer */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
+      {/* Minimalist Footer */}
+      <Box
+        sx={{
+          p: 2,
+          borderTop: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+        }}
+      >
         <Typography
           variant="caption"
-          color="text.secondary"
-          align="center"
-          display="block"
+          sx={{
+            display: "block",
+            textAlign: "center",
+            color:
+              theme.palette.mode === "dark"
+                ? theme.palette.text.disabled
+                : "rgba(0, 0, 0, 0.38)",
+            fontSize: "0.6875rem",
+            fontWeight: 500,
+          }}
         >
-          {user?.fullName}
-        </Typography>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          align="center"
-          display="block"
-        >
-          Version 1.0.0
+          NoiseSentinel v1.0.0
         </Typography>
       </Box>
     </Box>

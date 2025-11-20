@@ -28,6 +28,8 @@ import stationApi from "@/api/stationApi";
 import stationOfficerApi from "@/api/stationOfficerApi";
 import deviceApi from "@/api/deviceApi";
 import violationApi from "@/api/violationApi";
+import challanApi from "@/api/challanApi";
+import firApi from "@/api/firApi";
 
 export const StationDashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -44,23 +46,105 @@ export const StationDashboardPage: React.FC = () => {
     setLoading(true);
     try {
       // Fetch all data in parallel
-      const [stations, officers, devices, violations] = await Promise.all([
-        stationApi.getAllStations(),
-        stationOfficerApi.getAllOfficers(),
-        deviceApi.getAllDevices(),
-        violationApi.getAllViolations(),
-      ]);
+      const [stations, officers, devices, violations, challans, firs] =
+        await Promise.all([
+          stationApi.getAllStations(),
+          stationOfficerApi.getAllOfficers(),
+          deviceApi.getAllDevices(),
+          violationApi.getAllViolations(),
+          challanApi.getAllChallans(),
+          firApi.getAllFirs(),
+        ]);
+
+      // Get today's date for filtering
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const thisMonth = new Date();
+      thisMonth.setDate(1);
+      thisMonth.setHours(0, 0, 0, 0);
+
+      // Filter today's challans
+      const todayChallans = challans.filter((c: any) => {
+        const issueDate = new Date(c.issueDateTime);
+        issueDate.setHours(0, 0, 0, 0);
+        return issueDate.getTime() === today.getTime();
+      });
+
+      // Filter this month's challans
+      const thisMonthChallans = challans.filter((c: any) => {
+        const issueDate = new Date(c.issueDateTime);
+        return issueDate >= thisMonth;
+      });
+
+      // Filter today's FIRs
+      const todayFirs = firs.filter((f: any) => {
+        const filedDate = new Date(f.filedDateTime);
+        filedDate.setHours(0, 0, 0, 0);
+        return filedDate.getTime() === today.getTime();
+      });
+
+      // Filter this month's FIRs
+      const thisMonthFirs = firs.filter((f: any) => {
+        const filedDate = new Date(f.filedDateTime);
+        return filedDate >= thisMonth;
+      });
+
+      // Count active and investigation officers
+      const activeOfficers = officers.filter(
+        (o: any) => o.status === "Active"
+      ).length;
+      const investigationOfficers = officers.filter(
+        (o: any) => o.rank === "Investigation Officer"
+      ).length;
+
+      // Count devices in use and available
+      const devicesInUse = devices.filter(
+        (d: any) => d.status === "In Use"
+      ).length;
+      const availableDevices = devices.filter(
+        (d: any) => d.status === "Available"
+      ).length;
+
+      // Count unpaid and overdue challans
+      const unpaidChallans = challans.filter(
+        (c: any) => c.status === "Unpaid"
+      ).length;
+      const now = new Date();
+      const overdueChallans = challans.filter((c: any) => {
+        return c.status === "Unpaid" && new Date(c.dueDateTime) < now;
+      }).length;
+
+      // Count FIRs under investigation
+      const underInvestigation = firs.filter(
+        (f: any) => f.status === "Under Investigation"
+      ).length;
+
+      // Calculate cognizable violations
+      const cognizableViolations = violations.filter(
+        (v: any) => v.isCognizable
+      ).length;
 
       // Calculate basic statistics
       setStats({
         totalStations: stations.length,
         totalOfficers: officers.length,
+        activeOfficers,
+        investigationOfficers,
         totalDevices: devices.length,
-        activeDevices: devices.filter((d: any) => d.status === "Active").length,
+        devicesInUse,
+        availableDevices,
+        totalChallans: challans.length,
+        unpaidChallans,
+        overdueChallans,
+        totalFirs: firs.length,
+        underInvestigation,
         totalViolations: violations.length,
-        cognizableViolations: violations.filter((v) => v.isCognizable).length,
-        totalChallans: 0, // Will be added when challan API is ready
-        totalFirs: 0, // Will be added when fir API is ready
+        cognizableViolations,
+        todayChallans: todayChallans.length,
+        todayFirs: todayFirs.length,
+        thisMonthChallans: thisMonthChallans.length,
+        thisMonthFirs: thisMonthFirs.length,
       });
     } catch (error: any) {
       enqueueSnackbar(

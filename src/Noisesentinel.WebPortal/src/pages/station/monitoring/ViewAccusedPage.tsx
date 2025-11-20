@@ -26,6 +26,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
   Search,
@@ -33,17 +35,22 @@ import {
   PersonSearch,
   Visibility,
   Warning,
+  Assignment,
+  Payment,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
+import { StatsCard } from "@/components/station/cards/StatsCard";
 import { STATION_ROUTES, PAKISTAN_PROVINCES } from "@/utils/stationConstants";
 import accusedApi, { AccusedDto } from "@/api/accusedApi";
 import challanApi from "@/api/challanApi";
 import { ChallanDto } from "@/models/Challan";
 import { dateHelpers } from "@/utils/stationFilters";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewAccusedPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
@@ -255,75 +262,46 @@ export const ViewAccusedPage: React.FC = () => {
 
       {/* Statistics */}
       <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "primary.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "primary.main",
-                }}
-              >
-                {filteredAccused.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Accused Found
-              </Box>
-            </Box>
+            <StatsCard
+              title="Accused Found"
+              value={filteredAccused.length}
+              icon={<PersonSearch />}
+              color="#3B82F6"
+            />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "warning.main",
-                }}
-              >
-                {filteredAccused.filter((a) => a.hasPendingChallans).length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                With Pending Challans
-              </Box>
-            </Box>
+            <StatsCard
+              title="With Pending Challans"
+              value={filteredAccused.filter((a) => a.hasPendingChallans).length}
+              icon={<Warning />}
+              color="#F59E0B"
+            />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
-              <Box
-                sx={{ fontSize: "2rem", fontWeight: 700, color: "error.main" }}
-              >
-                {filteredAccused.reduce(
-                  (sum, a) => sum + (a.totalChallans || 0),
-                  0
-                )}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total Challans
-              </Box>
-            </Box>
+            <StatsCard
+              title="Total Challans"
+              value={filteredAccused.reduce(
+                (sum, a) => sum + (a.totalChallans || 0),
+                0
+              )}
+              icon={<Assignment />}
+              color="#EF4444"
+            />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "1.5rem",
-                  fontWeight: 700,
-                  color: "success.main",
-                }}
-              >
-                PKR{" "}
-                {filteredAccused
-                  .reduce((sum, a) => sum + (a.totalPenalties || 0), 0)
-                  .toLocaleString()}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total Penalties
-              </Box>
-            </Box>
+            <StatsCard
+              title="Total Penalties"
+              value={`PKR ${filteredAccused
+                .reduce((sum, a) => sum + (a.totalPenalties || 0), 0)
+                .toLocaleString()}`}
+              icon={<Payment />}
+              color="#10B981"
+            />
           </Grid>
         </Grid>
       </Box>
@@ -544,50 +522,58 @@ export const ViewAccusedPage: React.FC = () => {
               {/* Summary Statistics */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid item xs={6}>
-                  <Box
+                  <Card
                     sx={{
-                      p: 2,
-                      bgcolor: "warning.light",
-                      borderRadius: 2,
+                      border: `1px solid ${theme.palette.divider}`,
+                      bgcolor: theme.palette.background.paper,
                       textAlign: "center",
                     }}
                   >
-                    <Typography
-                      variant="h4"
-                      color="warning.main"
-                      fontWeight={700}
-                    >
-                      {viewDialog.accused.totalChallans || 0}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Total Challans
-                    </Typography>
-                  </Box>
+                    <CardContent sx={{ py: 2 }}>
+                      <Typography
+                        variant="h4"
+                        sx={{
+                          fontWeight: 700,
+                          mb: 0.5,
+                          color: theme.palette.warning.main,
+                        }}
+                      >
+                        {viewDialog.accused.totalChallans || 0}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Total Challans
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
 
                 <Grid item xs={6}>
-                  <Box
+                  <Card
                     sx={{
-                      p: 2,
-                      bgcolor: "error.light",
-                      borderRadius: 2,
+                      border: `1px solid ${theme.palette.divider}`,
+                      bgcolor: theme.palette.background.paper,
                       textAlign: "center",
                     }}
                   >
-                    <Typography
-                      variant="h5"
-                      color="error.main"
-                      fontWeight={700}
-                    >
-                      PKR{" "}
-                      {(
-                        viewDialog.accused.totalPenalties || 0
-                      ).toLocaleString()}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Total Penalties
-                    </Typography>
-                  </Box>
+                    <CardContent sx={{ py: 2 }}>
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: 700,
+                          mb: 0.5,
+                          color: theme.palette.error.main,
+                        }}
+                      >
+                        PKR{" "}
+                        {(
+                          viewDialog.accused.totalPenalties || 0
+                        ).toLocaleString()}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Total Penalties
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
               </Grid>
 
@@ -632,7 +618,13 @@ export const ViewAccusedPage: React.FC = () => {
                             {dateHelpers.formatDate(challan.issueDateTime)}
                           </TableCell>
                           <TableCell>
-                            <Chip label={challan.plateNumber} size="small" />
+                            <Chip
+                              label={
+                                challan.vehiclePlateNumber ||
+                                challan.plateNumber
+                              }
+                              size="small"
+                            />
                           </TableCell>
                           <TableCell>{challan.violationType}</TableCell>
                           <TableCell>

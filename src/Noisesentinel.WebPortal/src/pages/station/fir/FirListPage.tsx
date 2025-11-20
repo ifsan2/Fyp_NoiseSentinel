@@ -20,17 +20,26 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Card,
+  CardContent,
+  Grid,
+  alpha,
+  InputAdornment,
 } from "@mui/material";
 import {
   Description as DescriptionIcon,
   Add as AddIcon,
   Visibility as VisibilityIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon,
 } from "@mui/icons-material";
 import firApi from "@/api/firApi";
 import { FirListItemDto } from "@/models/Fir";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@mui/material/styles";
 
 export default function FirListPage() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -122,8 +131,8 @@ export default function FirListPage() {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        {/* Header */}
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
         <Box
           sx={{
             display: "flex",
@@ -133,122 +142,274 @@ export default function FirListPage() {
           }}
         >
           <Box>
-            <Typography variant="h4" gutterBottom>
-              <DescriptionIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 0.5,
+                color: theme.palette.text.primary,
+                letterSpacing: "-0.02em",
+              }}
+            >
               FIR Management
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Manage all First Information Reports filed at your station
+              Manage all First Information Reports at your station
             </Typography>
           </Box>
           <Button
             variant="contained"
-            color="error"
             startIcon={<AddIcon />}
             onClick={() => navigate("/station/fir/cognizable")}
+            sx={{
+              py: 1.25,
+              px: 3,
+              fontWeight: 600,
+            }}
           >
             File New FIR
           </Button>
         </Box>
 
-        {/* Filters */}
-        <Box sx={{ mb: 3, display: "flex", gap: 2, flexWrap: "wrap" }}>
-          <TextField
-            label="Search by FIR No, Accused, CNIC, Vehicle"
-            variant="outlined"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ flexGrow: 1, minWidth: 300 }}
-          />
-
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={statusFilter}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value)}
+        {/* Summary Stats */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={6} sm={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+              }}
             >
-              <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="Filed">Filed</MenuItem>
-              <MenuItem value="UnderInvestigation">
-                Under Investigation
-              </MenuItem>
-              <MenuItem value="Completed">Completed</MenuItem>
-              <MenuItem value="Closed">Closed</MenuItem>
-            </Select>
-          </FormControl>
-
-          <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Case Status</InputLabel>
-            <Select
-              value={caseFilter}
-              label="Case Status"
-              onChange={(e) => setCaseFilter(e.target.value)}
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {filteredFirs.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Total FIRs
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+              }}
             >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="withCase">With Case</MenuItem>
-              <MenuItem value="withoutCase">Without Case</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.info.main,
+                  }}
+                >
+                  {filteredFirs.filter((f) => f.firStatus === "Filed").length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Filed
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.warning.main,
+                  }}
+                >
+                  {
+                    filteredFirs.filter(
+                      (f) => f.firStatus === "UnderInvestigation"
+                    ).length
+                  }
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Investigating
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.success.main,
+                  }}
+                >
+                  {filteredFirs.filter((f) => f.hasCase).length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  With Case
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
 
-        {/* Error */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+      {/* Filters */}
+      <Card sx={{ mb: 3, border: `1px solid ${theme.palette.divider}` }}>
+        <CardContent>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <TextField
+              placeholder="Search by FIR No, Accused, CNIC, Vehicle..."
+              variant="outlined"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{ flexGrow: 1, minWidth: 300 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: theme.palette.text.secondary }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-        {/* Loading */}
-        {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
+            <FormControl sx={{ minWidth: 160 }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={statusFilter}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <MenuItem value="all">All Statuses</MenuItem>
+                <MenuItem value="Filed">Filed</MenuItem>
+                <MenuItem value="UnderInvestigation">
+                  Under Investigation
+                </MenuItem>
+                <MenuItem value="Completed">Completed</MenuItem>
+                <MenuItem value="Closed">Closed</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl sx={{ minWidth: 160 }}>
+              <InputLabel>Case Status</InputLabel>
+              <Select
+                value={caseFilter}
+                label="Case Status"
+                onChange={(e) => setCaseFilter(e.target.value)}
+              >
+                <MenuItem value="all">All Cases</MenuItem>
+                <MenuItem value="withCase">With Case</MenuItem>
+                <MenuItem value="withoutCase">Without Case</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
-        )}
+        </CardContent>
+      </Card>
 
-        {/* Table */}
-        {!loading && (
-          <>
-            {filteredFirs.length === 0 ? (
-              <Alert severity="info">
+      {/* Error */}
+      {error && (
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+            borderRadius: "8px",
+            border: `1px solid ${theme.palette.error.main}20`,
+          }}
+        >
+          {error}
+        </Alert>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* Table */}
+      {!loading && (
+        <>
+          {filteredFirs.length === 0 ? (
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                textAlign: "center",
+                py: 6,
+              }}
+            >
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No FIRs Found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
                 {searchQuery || statusFilter !== "all" || caseFilter !== "all"
-                  ? "No FIRs found matching your filters."
-                  : 'No FIRs filed yet. Click "File New FIR" to get started.'}
-              </Alert>
-            ) : (
+                  ? "Try adjusting your filters."
+                  : 'Click "File New FIR" to get started.'}
+              </Typography>
+            </Card>
+          ) : (
+            <Card sx={{ border: `1px solid ${theme.palette.divider}` }}>
               <TableContainer>
-                <Table>
+                <Table sx={{ minWidth: 1200 }}>
                   <TableHead>
-                    <TableRow>
-                      <TableCell>
-                        <strong>FIR Number</strong>
+                    <TableRow
+                      sx={{
+                        bgcolor:
+                          theme.palette.mode === "dark"
+                            ? alpha(theme.palette.common.white, 0.02)
+                            : alpha(theme.palette.common.black, 0.02),
+                      }}
+                    >
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        FIR NUMBER
                       </TableCell>
-                      <TableCell>
-                        <strong>Station</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        STATION
                       </TableCell>
-                      <TableCell>
-                        <strong>Accused Details</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        ACCUSED
                       </TableCell>
-                      <TableCell>
-                        <strong>Vehicle</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        VEHICLE
                       </TableCell>
-                      <TableCell>
-                        <strong>Violation</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        VIOLATION
                       </TableCell>
-                      <TableCell>
-                        <strong>Sound Level</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        SOUND LEVEL
                       </TableCell>
-                      <TableCell>
-                        <strong>Filed Date</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        DATE
                       </TableCell>
-                      <TableCell>
-                        <strong>Status</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        STATUS
                       </TableCell>
-                      <TableCell>
-                        <strong>Case</strong>
+                      <TableCell sx={{ fontWeight: 600, fontSize: "0.75rem" }}>
+                        CASE
                       </TableCell>
-                      <TableCell align="center">
-                        <strong>Action</strong>
+                      <TableCell
+                        align="center"
+                        sx={{ fontWeight: 600, fontSize: "0.75rem" }}
+                      >
+                        ACTION
                       </TableCell>
                     </TableRow>
                   </TableHead>
@@ -257,7 +418,16 @@ export default function FirListPage() {
                       <TableRow
                         key={fir.firId}
                         hover
-                        sx={{ cursor: "pointer" }}
+                        sx={{
+                          cursor: "pointer",
+                          transition: "background-color 0.15s ease",
+                          "&:hover": {
+                            bgcolor:
+                              theme.palette.mode === "dark"
+                                ? alpha(theme.palette.common.white, 0.03)
+                                : alpha(theme.palette.common.black, 0.02),
+                          },
+                        }}
                         onClick={() =>
                           navigate(`/station/fir/detail/${fir.firId}`)
                         }
@@ -265,7 +435,7 @@ export default function FirListPage() {
                         <TableCell>
                           <Typography
                             variant="body2"
-                            fontWeight="bold"
+                            fontWeight={600}
                             color="error"
                           >
                             {fir.firNo}
@@ -280,15 +450,15 @@ export default function FirListPage() {
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2">
+                          <Typography variant="body2" fontWeight={500}>
                             {fir.accusedName}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            CNIC: {fir.accusedCnic}
+                            {fir.accusedCnic}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2" fontWeight="bold">
+                          <Typography variant="body2" fontWeight={600}>
                             {fir.vehiclePlateNumber}
                           </Typography>
                         </TableCell>
@@ -300,8 +470,13 @@ export default function FirListPage() {
                         <TableCell>
                           <Chip
                             label={`${fir.soundLevelDBa} dB(A)`}
-                            color="error"
                             size="small"
+                            sx={{
+                              bgcolor: alpha(theme.palette.error.main, 0.1),
+                              color: theme.palette.error.main,
+                              fontWeight: 600,
+                              fontSize: "0.75rem",
+                            }}
                           />
                         </TableCell>
                         <TableCell>
@@ -314,20 +489,37 @@ export default function FirListPage() {
                             label={formatStatus(fir.firStatus)}
                             color={getStatusColor(fir.firStatus)}
                             size="small"
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: "0.75rem",
+                            }}
                           />
                         </TableCell>
                         <TableCell>
                           {fir.hasCase ? (
                             <Chip
                               label="Case Filed"
-                              color="success"
                               size="small"
+                              sx={{
+                                bgcolor: alpha(theme.palette.success.main, 0.1),
+                                color: theme.palette.success.main,
+                                fontWeight: 500,
+                                fontSize: "0.75rem",
+                              }}
                             />
                           ) : (
                             <Chip
                               label="No Case"
-                              color="default"
                               size="small"
+                              sx={{
+                                bgcolor: alpha(
+                                  theme.palette.text.secondary,
+                                  0.1
+                                ),
+                                color: theme.palette.text.secondary,
+                                fontWeight: 500,
+                                fontSize: "0.75rem",
+                              }}
                             />
                           )}
                         </TableCell>
@@ -340,6 +532,11 @@ export default function FirListPage() {
                               e.stopPropagation();
                               navigate(`/station/fir/detail/${fir.firId}`);
                             }}
+                            sx={{
+                              fontSize: "0.8125rem",
+                              fontWeight: 500,
+                              textTransform: "none",
+                            }}
                           >
                             View
                           </Button>
@@ -349,37 +546,10 @@ export default function FirListPage() {
                   </TableBody>
                 </Table>
               </TableContainer>
-            )}
-
-            {/* Summary */}
-            {filteredFirs.length > 0 && (
-              <Box sx={{ mt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
-                <Chip label={`Total: ${filteredFirs.length}`} color="primary" />
-                <Chip
-                  label={`Filed: ${
-                    filteredFirs.filter((f) => f.firStatus === "Filed").length
-                  }`}
-                  color="info"
-                />
-                <Chip
-                  label={`Investigating: ${
-                    filteredFirs.filter(
-                      (f) => f.firStatus === "UnderInvestigation"
-                    ).length
-                  }`}
-                  color="warning"
-                />
-                <Chip
-                  label={`With Case: ${
-                    filteredFirs.filter((f) => f.hasCase).length
-                  }`}
-                  color="success"
-                />
-              </Box>
-            )}
-          </>
-        )}
-      </Paper>
+            </Card>
+          )}
+        </>
+      )}
     </Container>
   );
 }

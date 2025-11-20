@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -7,25 +7,25 @@ import {
   InputAdornment,
   IconButton,
   Alert,
-} from '@mui/material';
-import { Visibility, VisibilityOff, Save } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { useSnackbar } from 'notistack';
-import authApi from '@/api/authApi';
-import { CreateCourtAuthorityDto } from '@/models/Auth';
-import { PageHeader } from '@/components/common/PageHeader';
-import { FormCard } from '@/components/common/FormCard';
-import { ROUTES } from '@/utils/constants';
-import { validation, validationMessages } from '@/utils/validation';
+} from "@mui/material";
+import { Visibility, VisibilityOff, Save } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { useSnackbar } from "notistack";
+import authApi from "@/api/authApi";
+import { CreateCourtAuthorityDto } from "@/models/Auth";
+import { PageHeader } from "@/components/common/PageHeader";
+import { FormCard } from "@/components/common/FormCard";
+import { ROUTES } from "@/utils/constants";
+import { validation, validationMessages } from "@/utils/validation";
 
 export const CreateCourtAuthorityPage: React.FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const {
     control,
@@ -34,38 +34,39 @@ export const CreateCourtAuthorityPage: React.FC = () => {
     formState: { errors },
   } = useForm<CreateCourtAuthorityDto>({
     defaultValues: {
-      fullName: '',
-      email: '',
-      username: '',
-      password: '',
+      fullName: "",
+      email: "",
+      username: "",
+      password: "",
     },
   });
 
   const onSubmit = async (data: CreateCourtAuthorityDto) => {
     try {
       setLoading(true);
-      setErrorMessage('');
-      setSuccessMessage('');
+      setErrorMessage("");
+      setSuccessMessage("");
 
       const response = await authApi.createCourtAuthority(data);
 
       setSuccessMessage(
         `Court Authority account "${response.username}" created successfully!`
       );
-      enqueueSnackbar('Court Authority created successfully!', {
-        variant: 'success',
+      enqueueSnackbar("Court Authority created successfully!", {
+        variant: "success",
       });
 
       // Reset form after 2 seconds
       setTimeout(() => {
         reset();
-        setSuccessMessage('');
+        setSuccessMessage("");
       }, 3000);
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Failed to create Court Authority account.';
+        error.response?.data?.message ||
+        "Failed to create Court Authority account.";
       setErrorMessage(message);
-      enqueueSnackbar(message, { variant: 'error' });
+      enqueueSnackbar(message, { variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -77,8 +78,8 @@ export const CreateCourtAuthorityPage: React.FC = () => {
         title="Create Court Authority"
         subtitle="Create a new court administrator who can manage judges"
         breadcrumbs={[
-          { label: 'Dashboard', path: ROUTES.DASHBOARD },
-          { label: 'Create Court Authority' },
+          { label: "Dashboard", path: ROUTES.DASHBOARD },
+          { label: "Create Court Authority" },
         ]}
       />
 
@@ -105,14 +106,14 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                 name="fullName"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Full name'),
+                  required: validationMessages.required("Full name"),
                   minLength: {
                     value: 3,
-                    message: validationMessages.minLength('Full name', 3),
+                    message: validationMessages.minLength("Full name", 3),
                   },
                   maxLength: {
                     value: 255,
-                    message: validationMessages.maxLength('Full name', 255),
+                    message: validationMessages.maxLength("Full name", 255),
                   },
                 }}
                 render={({ field }) => (
@@ -120,6 +121,7 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                     {...field}
                     label="Full Name"
                     placeholder="e.g., Lahore High Court Admin"
+                    fullWidth
                     error={!!errors.fullName}
                     helperText={errors.fullName?.message}
                     required
@@ -134,12 +136,12 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                 name="email"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Email'),
+                  required: validationMessages.required("Email"),
                   validate: (value) =>
                     validation.email(value) || validationMessages.email,
                   maxLength: {
                     value: 255,
-                    message: validationMessages.maxLength('Email', 255),
+                    message: validationMessages.maxLength("Email", 255),
                   },
                 }}
                 render={({ field }) => (
@@ -148,6 +150,7 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                     type="email"
                     label="Email"
                     placeholder="e.g., lhc@court.gov.pk"
+                    fullWidth
                     error={!!errors.email}
                     helperText={errors.email?.message}
                     required
@@ -162,14 +165,14 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                 name="username"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Username'),
+                  required: validationMessages.required("Username"),
                   minLength: {
                     value: 3,
-                    message: validationMessages.minLength('Username', 3),
+                    message: validationMessages.minLength("Username", 3),
                   },
                   maxLength: {
                     value: 255,
-                    message: validationMessages.maxLength('Username', 255),
+                    message: validationMessages.maxLength("Username", 255),
                   },
                   validate: (value) =>
                     validation.username(value) || validationMessages.username,
@@ -179,10 +182,11 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                     {...field}
                     label="Username"
                     placeholder="e.g., lhc_admin"
+                    fullWidth
                     error={!!errors.username}
                     helperText={
                       errors.username?.message ||
-                      'Letters, numbers, underscores, and hyphens only'
+                      "Letters, numbers, underscores, and hyphens only"
                     }
                     required
                   />
@@ -196,10 +200,10 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                 name="password"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Password'),
+                  required: validationMessages.required("Password"),
                   minLength: {
                     value: 8,
-                    message: validationMessages.minLength('Password', 8),
+                    message: validationMessages.minLength("Password", 8),
                   },
                   validate: (value) =>
                     validation.password(value) || validationMessages.password,
@@ -207,13 +211,14 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     label="Password"
                     placeholder="Enter secure password"
+                    fullWidth
                     error={!!errors.password}
                     helperText={
                       errors.password?.message ||
-                      'Min 8 chars, uppercase, lowercase, number, special char'
+                      "Min 8 chars, uppercase, lowercase, number, special char"
                     }
                     required
                     InputProps={{
@@ -249,7 +254,7 @@ export const CreateCourtAuthorityPage: React.FC = () => {
 
             {/* Actions */}
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                 <Button
                   variant="outlined"
                   onClick={() => navigate(ROUTES.DASHBOARD)}
@@ -263,7 +268,7 @@ export const CreateCourtAuthorityPage: React.FC = () => {
                   startIcon={<Save />}
                   disabled={loading}
                 >
-                  {loading ? 'Creating Account...' : 'Create Court Authority'}
+                  {loading ? "Creating Account..." : "Create Court Authority"}
                 </Button>
               </Box>
             </Grid>

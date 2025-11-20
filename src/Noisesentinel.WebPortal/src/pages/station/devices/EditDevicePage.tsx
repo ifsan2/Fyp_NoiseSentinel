@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -7,16 +7,16 @@ import {
   FormControlLabel,
   Checkbox,
   CircularProgress,
-} from '@mui/material';
-import { Save, Cancel } from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { FormCard } from '@/components/common/FormCard';
-import { STATION_ROUTES } from '@/utils/stationConstants';
-import deviceApi from '@/api/deviceApi';
-import { UpdateDeviceDto } from '@/models/Device';
+} from "@mui/material";
+import { Save, Cancel } from "@mui/icons-material";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { FormCard } from "@/components/common/FormCard";
+import { STATION_ROUTES } from "@/utils/stationConstants";
+import deviceApi from "@/api/deviceApi";
+import { UpdateDeviceDto } from "@/models/Device";
 
 export const EditDevicePage: React.FC = () => {
   const navigate = useNavigate();
@@ -46,14 +46,16 @@ export const EditDevicePage: React.FC = () => {
         deviceId: data.deviceId,
         deviceName: data.deviceName,
         firmwareVersion: data.firmwareVersion,
-        calibrationDate: data.calibrationDate.split('T')[0],
+        calibrationDate: data.calibrationDate
+          ? data.calibrationDate.split("T")[0]
+          : "",
         calibrationStatus: data.calibrationStatus,
         calibrationCertificateNo: data.calibrationCertificateNo,
       });
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load device',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load device",
+        { variant: "error" }
       );
       navigate(STATION_ROUTES.DEVICES);
     } finally {
@@ -65,12 +67,12 @@ export const EditDevicePage: React.FC = () => {
     setLoading(true);
     try {
       await deviceApi.updateDevice(data);
-      enqueueSnackbar('Device updated successfully', { variant: 'success' });
+      enqueueSnackbar("Device updated successfully", { variant: "success" });
       navigate(STATION_ROUTES.DEVICES);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to update device',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to update device",
+        { variant: "error" }
       );
     } finally {
       setLoading(false);
@@ -79,7 +81,7 @@ export const EditDevicePage: React.FC = () => {
 
   if (loadingData) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -91,9 +93,9 @@ export const EditDevicePage: React.FC = () => {
         title="Edit IoT Device"
         subtitle="Update device information"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'IoT Devices', path: STATION_ROUTES.DEVICES },
-          { label: 'Edit Device' },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "IoT Devices", path: STATION_ROUTES.DEVICES },
+          { label: "Edit Device" },
         ]}
       />
 
@@ -105,7 +107,7 @@ export const EditDevicePage: React.FC = () => {
               <Controller
                 name="deviceName"
                 control={control}
-                rules={{ required: 'Device name is required' }}
+                rules={{ required: "Device name is required" }}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -124,7 +126,7 @@ export const EditDevicePage: React.FC = () => {
               <Controller
                 name="firmwareVersion"
                 control={control}
-                rules={{ required: 'Firmware version is required' }}
+                rules={{ required: "Firmware version is required" }}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -143,7 +145,7 @@ export const EditDevicePage: React.FC = () => {
               <Controller
                 name="calibrationDate"
                 control={control}
-                rules={{ required: 'Calibration date is required' }}
+                rules={{ required: "Calibration date is required" }}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -182,7 +184,10 @@ export const EditDevicePage: React.FC = () => {
                 render={({ field }) => (
                   <FormControlLabel
                     control={
-                      <Checkbox checked={field.value} onChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
                     }
                     label="Device is Calibrated"
                   />
@@ -192,7 +197,7 @@ export const EditDevicePage: React.FC = () => {
 
             {/* Action Buttons */}
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                 <Button
                   variant="outlined"
                   startIcon={<Cancel />}
@@ -207,7 +212,7 @@ export const EditDevicePage: React.FC = () => {
                   startIcon={<Save />}
                   disabled={loading}
                 >
-                  {loading ? 'Updating...' : 'Update Device'}
+                  {loading ? "Updating..." : "Update Device"}
                 </Button>
               </Box>
             </Grid>

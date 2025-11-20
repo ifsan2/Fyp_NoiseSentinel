@@ -14,6 +14,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Card,
+  CardContent,
+  Typography,
 } from "@mui/material";
 import { Search, Add, Refresh } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -24,8 +27,10 @@ import { STATION_ROUTES } from "@/utils/stationConstants";
 import violationApi from "@/api/violationApi";
 import { ViolationDto } from "@/models/Violation";
 import { stationFilters } from "@/utils/stationFilters";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewViolationsPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
@@ -201,49 +206,81 @@ export const ViewViolationsPage: React.FC = () => {
       </Box>
 
       {/* Results Count */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "warning.main",
-                }}
-              >
-                {filteredViolations.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Violations Found
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.warning.main,
+                  }}
+                >
+                  {filteredViolations.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Violations Found
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
-              <Box
-                sx={{ fontSize: "2rem", fontWeight: 700, color: "error.main" }}
-              >
-                {filteredViolations.filter((v) => v.isCognizable).length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Cognizable
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.error.main,
+                  }}
+                >
+                  {filteredViolations.filter((v) => v.isCognizable).length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Cognizable
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2 }}>
-              <Box
-                sx={{ fontSize: "2rem", fontWeight: 700, color: "info.main" }}
-              >
-                {filteredViolations.filter((v) => !v.isCognizable).length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Non-Cognizable
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.info.main,
+                  }}
+                >
+                  {filteredViolations.filter((v) => !v.isCognizable).length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Non-Cognizable
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>

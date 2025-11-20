@@ -107,7 +107,7 @@ export const ChallanTable: React.FC<ChallanTableProps> = ({
                     </Typography>
                     <br />
                     <Chip
-                      label={challan.plateNumber}
+                      label={challan.vehiclePlateNumber || challan.plateNumber}
                       size="small"
                       sx={{ mt: 0.5 }}
                     />

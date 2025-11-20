@@ -16,6 +16,10 @@ import {
   DialogActions,
   Chip,
   SelectChangeEvent,
+  Card,
+  CardContent,
+  Typography,
+  alpha,
 } from "@mui/material";
 import { Search, Add, Refresh, FileDownload } from "@mui/icons-material";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -30,8 +34,10 @@ import { PoliceOfficerDetailsDto } from "@/models/User";
 import { PoliceStationDto } from "@/models/Station";
 import { stationFilters } from "@/utils/stationFilters";
 import { stationExport } from "@/utils/stationExport";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewOfficersPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { enqueueSnackbar } = useSnackbar();
@@ -361,76 +367,112 @@ export const ViewOfficersPage: React.FC = () => {
       </Box>
 
       {/* Results Count */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2 }}>
-              <Box
-                sx={{ fontSize: "2rem", fontWeight: 700, color: "info.main" }}
-              >
-                {filteredOfficers.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Officers Found
-              </Box>
-            </Box>
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.info.main,
+                  }}
+                >
+                  {filteredOfficers.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Officers Found
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
-          <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "success.main",
-                }}
-              >
-                {filteredOfficers.filter((o) => o.isActive).length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Active
-              </Box>
-            </Box>
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.success.main,
+                  }}
+                >
+                  {filteredOfficers.filter((o) => o.isActive).length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Active
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
-          <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "warning.main",
-                }}
-              >
-                {
-                  filteredOfficers.filter((o) => o.isInvestigationOfficer)
-                    .length
-                }
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Investigation Officers
-              </Box>
-            </Box>
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.warning.main,
+                  }}
+                >
+                  {
+                    filteredOfficers.filter((o) => o.isInvestigationOfficer)
+                      .length
+                  }
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Investigation Officers
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
-          <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "primary.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "primary.main",
-                }}
-              >
-                {filteredOfficers.reduce(
-                  (sum, o) => sum + (o.totalChallans || 0),
-                  0
-                )}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total Challans
-              </Box>
-            </Box>
+          <Grid item xs={12} sm={6} lg={3}>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {filteredOfficers.reduce(
+                    (sum, o) => sum + (o.totalChallans || 0),
+                    0
+                  )}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Total Challans
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>

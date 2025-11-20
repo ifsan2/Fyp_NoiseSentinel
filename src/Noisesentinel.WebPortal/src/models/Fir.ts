@@ -47,6 +47,7 @@ export interface FirListItemDto {
   firId: number;
   firNo: string;
   stationName: string;
+  stationId?: number; // Added for filtering
   accusedName: string;
   accusedCnic: string;
   vehiclePlateNumber: string;
@@ -57,6 +58,9 @@ export interface FirListItemDto {
   daysSinceFiled: number;
   hasCase: boolean;
 }
+
+// Alias for backward compatibility
+export type FirDto = FirListItemDto;
 
 export interface CognizableChallanDto {
   challanId: number;

@@ -8,6 +8,7 @@ export interface ChallanDto {
   officerName?: string;
   badgeNumber?: string;
   officerBadgeNumber?: string;
+  officerRank?: string;
 
   // Accused Info
   accusedId: number;

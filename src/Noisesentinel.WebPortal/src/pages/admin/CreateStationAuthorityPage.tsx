@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -7,25 +7,25 @@ import {
   InputAdornment,
   IconButton,
   Alert,
-} from '@mui/material';
-import { Visibility, VisibilityOff, Save } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { useSnackbar } from 'notistack';
-import authApi from '@/api/authApi';
-import { CreateStationAuthorityDto } from '@/models/Auth';
-import { PageHeader } from '@/components/common/PageHeader';
-import { FormCard } from '@/components/common/FormCard';
-import { ROUTES } from '@/utils/constants';
-import { validation, validationMessages } from '@/utils/validation';
+} from "@mui/material";
+import { Visibility, VisibilityOff, Save } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { useSnackbar } from "notistack";
+import authApi from "@/api/authApi";
+import { CreateStationAuthorityDto } from "@/models/Auth";
+import { PageHeader } from "@/components/common/PageHeader";
+import { FormCard } from "@/components/common/FormCard";
+import { ROUTES } from "@/utils/constants";
+import { validation, validationMessages } from "@/utils/validation";
 
 export const CreateStationAuthorityPage: React.FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const {
     control,
@@ -34,38 +34,39 @@ export const CreateStationAuthorityPage: React.FC = () => {
     formState: { errors },
   } = useForm<CreateStationAuthorityDto>({
     defaultValues: {
-      fullName: '',
-      email: '',
-      username: '',
-      password: '',
+      fullName: "",
+      email: "",
+      username: "",
+      password: "",
     },
   });
 
   const onSubmit = async (data: CreateStationAuthorityDto) => {
     try {
       setLoading(true);
-      setErrorMessage('');
-      setSuccessMessage('');
+      setErrorMessage("");
+      setSuccessMessage("");
 
       const response = await authApi.createStationAuthority(data);
 
       setSuccessMessage(
         `Station Authority account "${response.username}" created successfully!`
       );
-      enqueueSnackbar('Station Authority created successfully!', {
-        variant: 'success',
+      enqueueSnackbar("Station Authority created successfully!", {
+        variant: "success",
       });
 
       // Reset form after 3 seconds
       setTimeout(() => {
         reset();
-        setSuccessMessage('');
+        setSuccessMessage("");
       }, 3000);
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Failed to create Station Authority account.';
+        error.response?.data?.message ||
+        "Failed to create Station Authority account.";
       setErrorMessage(message);
-      enqueueSnackbar(message, { variant: 'error' });
+      enqueueSnackbar(message, { variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -77,8 +78,8 @@ export const CreateStationAuthorityPage: React.FC = () => {
         title="Create Station Authority"
         subtitle="Create a new police station administrator who can manage officers"
         breadcrumbs={[
-          { label: 'Dashboard', path: ROUTES.DASHBOARD },
-          { label: 'Create Station Authority' },
+          { label: "Dashboard", path: ROUTES.DASHBOARD },
+          { label: "Create Station Authority" },
         ]}
       />
 
@@ -105,14 +106,14 @@ export const CreateStationAuthorityPage: React.FC = () => {
                 name="fullName"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Full name'),
+                  required: validationMessages.required("Full name"),
                   minLength: {
                     value: 3,
-                    message: validationMessages.minLength('Full name', 3),
+                    message: validationMessages.minLength("Full name", 3),
                   },
                   maxLength: {
                     value: 255,
-                    message: validationMessages.maxLength('Full name', 255),
+                    message: validationMessages.maxLength("Full name", 255),
                   },
                 }}
                 render={({ field }) => (
@@ -120,6 +121,7 @@ export const CreateStationAuthorityPage: React.FC = () => {
                     {...field}
                     label="Full Name"
                     placeholder="e.g., Lahore Police Admin"
+                    fullWidth
                     error={!!errors.fullName}
                     helperText={errors.fullName?.message}
                     required
@@ -134,12 +136,12 @@ export const CreateStationAuthorityPage: React.FC = () => {
                 name="email"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Email'),
+                  required: validationMessages.required("Email"),
                   validate: (value) =>
                     validation.email(value) || validationMessages.email,
                   maxLength: {
                     value: 255,
-                    message: validationMessages.maxLength('Email', 255),
+                    message: validationMessages.maxLength("Email", 255),
                   },
                 }}
                 render={({ field }) => (
@@ -148,6 +150,7 @@ export const CreateStationAuthorityPage: React.FC = () => {
                     type="email"
                     label="Email"
                     placeholder="e.g., lahore@police.gov.pk"
+                    fullWidth
                     error={!!errors.email}
                     helperText={errors.email?.message}
                     required
@@ -162,14 +165,14 @@ export const CreateStationAuthorityPage: React.FC = () => {
                 name="username"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Username'),
+                  required: validationMessages.required("Username"),
                   minLength: {
                     value: 3,
-                    message: validationMessages.minLength('Username', 3),
+                    message: validationMessages.minLength("Username", 3),
                   },
                   maxLength: {
                     value: 255,
-                    message: validationMessages.maxLength('Username', 255),
+                    message: validationMessages.maxLength("Username", 255),
                   },
                   validate: (value) =>
                     validation.username(value) || validationMessages.username,
@@ -179,10 +182,11 @@ export const CreateStationAuthorityPage: React.FC = () => {
                     {...field}
                     label="Username"
                     placeholder="e.g., lahore_station"
+                    fullWidth
                     error={!!errors.username}
                     helperText={
                       errors.username?.message ||
-                      'Letters, numbers, underscores, and hyphens only'
+                      "Letters, numbers, underscores, and hyphens only"
                     }
                     required
                   />
@@ -196,10 +200,10 @@ export const CreateStationAuthorityPage: React.FC = () => {
                 name="password"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Password'),
+                  required: validationMessages.required("Password"),
                   minLength: {
                     value: 8,
-                    message: validationMessages.minLength('Password', 8),
+                    message: validationMessages.minLength("Password", 8),
                   },
                   validate: (value) =>
                     validation.password(value) || validationMessages.password,
@@ -207,13 +211,14 @@ export const CreateStationAuthorityPage: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     label="Password"
                     placeholder="Enter secure password"
+                    fullWidth
                     error={!!errors.password}
                     helperText={
                       errors.password?.message ||
-                      'Min 8 chars, uppercase, lowercase, number, special char'
+                      "Min 8 chars, uppercase, lowercase, number, special char"
                     }
                     required
                     InputProps={{
@@ -251,7 +256,7 @@ export const CreateStationAuthorityPage: React.FC = () => {
 
             {/* Actions */}
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                 <Button
                   variant="outlined"
                   onClick={() => navigate(ROUTES.DASHBOARD)}
@@ -265,7 +270,7 @@ export const CreateStationAuthorityPage: React.FC = () => {
                   startIcon={<Save />}
                   disabled={loading}
                 >
-                  {loading ? 'Creating Account...' : 'Create Station Authority'}
+                  {loading ? "Creating Account..." : "Create Station Authority"}
                 </Button>
               </Box>
             </Grid>

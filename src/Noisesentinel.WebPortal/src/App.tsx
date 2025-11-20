@@ -1,14 +1,11 @@
-import { ThemeProvider } from "@mui/material/styles";
-import { CssBaseline } from "@mui/material";
 import { SnackbarProvider } from "notistack";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppRouter } from "@/routes/AppRouter";
-import { theme } from "@/styles/theme";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ThemeProvider>
       <SnackbarProvider
         maxSnack={3}
         anchorOrigin={{

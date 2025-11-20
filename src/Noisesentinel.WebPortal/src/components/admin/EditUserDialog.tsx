@@ -171,6 +171,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                     <TextField
                       {...field}
                       label="Full Name"
+                      fullWidth
                       error={!!errors.fullName}
                       helperText={errors.fullName?.message}
                       required
@@ -194,6 +195,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       {...field}
                       type="email"
                       label="Email"
+                      fullWidth
                       error={!!errors.email}
                       helperText={errors.email?.message}
                       required
@@ -218,6 +220,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       <TextField
                         {...field}
                         label="Username"
+                        fullWidth
                         error={!!(errors as any).username}
                         helperText={(errors as any).username?.message}
                         required
@@ -241,6 +244,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                         {...field}
                         label="CNIC"
                         placeholder="12345-1234567-1"
+                        fullWidth
                         error={!!(errors as any).cnic}
                         helperText={(errors as any).cnic?.message}
                         required
@@ -264,6 +268,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                         {...field}
                         label="Contact Number"
                         placeholder="+92-300-1234567"
+                        fullWidth
                         error={!!(errors as any).contactNo}
                         helperText={(errors as any).contactNo?.message}
                         required
@@ -286,6 +291,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       <TextField
                         {...field}
                         label="Badge Number"
+                        fullWidth
                         error={!!(errors as any).badgeNumber}
                         helperText={(errors as any).badgeNumber?.message}
                         required
@@ -308,6 +314,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({
                       <TextField
                         {...field}
                         label="Rank"
+                        fullWidth
                         error={!!(errors as any).rank}
                         helperText={(errors as any).rank?.message}
                         required

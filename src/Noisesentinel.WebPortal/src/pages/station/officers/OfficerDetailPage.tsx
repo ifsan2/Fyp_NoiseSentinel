@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -9,7 +9,7 @@ import {
   Chip,
   CircularProgress,
   Divider,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Edit,
   LocalPolice,
@@ -18,13 +18,17 @@ import {
   Badge,
   Email,
   SwapHoriz,
-} from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { STATION_ROUTES } from '@/utils/stationConstants';
-import stationOfficerApi from '@/api/stationOfficerApi';
-import { PoliceOfficerDetailsDto } from '@/models/User';
+  Assignment,
+  Report,
+  TrendingUp,
+} from "@mui/icons-material";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { StatsCard } from "@/components/station/cards/StatsCard";
+import { STATION_ROUTES } from "@/utils/stationConstants";
+import stationOfficerApi from "@/api/stationOfficerApi";
+import { PoliceOfficerDetailsDto } from "@/models/User";
 
 export const OfficerDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -46,14 +50,14 @@ export const OfficerDetailPage: React.FC = () => {
       const officerData = officers.find((o) => o.userId === parseInt(userId!));
 
       if (!officerData) {
-        throw new Error('Officer not found');
+        throw new Error("Officer not found");
       }
 
       setOfficer(officerData);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load officer details',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load officer details",
+        { variant: "error" }
       );
       navigate(STATION_ROUTES.OFFICERS);
     } finally {
@@ -62,16 +66,16 @@ export const OfficerDetailPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -87,8 +91,8 @@ export const OfficerDetailPage: React.FC = () => {
         title={officer.fullName}
         subtitle="Police Officer Details"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'Police Officers', path: STATION_ROUTES.OFFICERS },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "Police Officers", path: STATION_ROUTES.OFFICERS },
           { label: officer.fullName },
         ]}
         actions={
@@ -96,7 +100,11 @@ export const OfficerDetailPage: React.FC = () => {
             <Button
               variant="outlined"
               startIcon={<SwapHoriz />}
-              onClick={() => navigate(`${STATION_ROUTES.TRANSFER_OFFICER}/${officer.officerId}`)}
+              onClick={() =>
+                navigate(
+                  `${STATION_ROUTES.TRANSFER_OFFICER}/${officer.officerId}`
+                )
+              }
               sx={{ mr: 1 }}
             >
               Transfer
@@ -104,7 +112,9 @@ export const OfficerDetailPage: React.FC = () => {
             <Button
               variant="contained"
               startIcon={<Edit />}
-              onClick={() => navigate(`${STATION_ROUTES.EDIT_OFFICER}/${officer.officerId}`)}
+              onClick={() =>
+                navigate(`${STATION_ROUTES.EDIT_OFFICER}/${officer.officerId}`)
+              }
             >
               Edit Officer
             </Button>
@@ -117,8 +127,10 @@ export const OfficerDetailPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <LocalPolice sx={{ fontSize: 40, color: 'info.main' }} />
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}
+              >
+                <LocalPolice sx={{ fontSize: 40, color: "info.main" }} />
                 <Typography variant="h5" fontWeight={600}>
                   Personal Information
                 </Typography>
@@ -126,7 +138,7 @@ export const OfficerDetailPage: React.FC = () => {
 
               <Divider sx={{ mb: 2 }} />
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Box>
                   <Typography variant="caption" color="text.secondary">
                     Full Name
@@ -138,7 +150,14 @@ export const OfficerDetailPage: React.FC = () => {
                   <Typography variant="caption" color="text.secondary">
                     Email
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mt: 0.5,
+                    }}
+                  >
                     <Email color="action" />
                     <Typography variant="body1">{officer.email}</Typography>
                   </Box>
@@ -162,7 +181,14 @@ export const OfficerDetailPage: React.FC = () => {
                   <Typography variant="caption" color="text.secondary">
                     Contact Number
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mt: 0.5,
+                    }}
+                  >
                     <Phone color="action" />
                     <Typography variant="body1">{officer.contactNo}</Typography>
                   </Box>
@@ -174,8 +200,8 @@ export const OfficerDetailPage: React.FC = () => {
                   </Typography>
                   <Box sx={{ mt: 0.5 }}>
                     <Chip
-                      label={officer.isActive ? 'Active' : 'Inactive'}
-                      color={officer.isActive ? 'success' : 'default'}
+                      label={officer.isActive ? "Active" : "Inactive"}
+                      color={officer.isActive ? "success" : "default"}
                       size="small"
                     />
                   </Box>
@@ -189,8 +215,10 @@ export const OfficerDetailPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Badge sx={{ fontSize: 40, color: 'warning.main' }} />
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}
+              >
+                <Badge sx={{ fontSize: 40, color: "warning.main" }} />
                 <Typography variant="h5" fontWeight={600}>
                   Service Information
                 </Typography>
@@ -198,7 +226,7 @@ export const OfficerDetailPage: React.FC = () => {
 
               <Divider sx={{ mb: 2 }} />
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Box>
                   <Typography variant="caption" color="text.secondary">
                     Badge Number
@@ -223,8 +251,10 @@ export const OfficerDetailPage: React.FC = () => {
                   </Typography>
                   <Box sx={{ mt: 0.5 }}>
                     <Chip
-                      label={officer.isInvestigationOfficer ? 'Yes' : 'No'}
-                      color={officer.isInvestigationOfficer ? 'warning' : 'default'}
+                      label={officer.isInvestigationOfficer ? "Yes" : "No"}
+                      color={
+                        officer.isInvestigationOfficer ? "warning" : "default"
+                      }
                       size="small"
                     />
                   </Box>
@@ -243,7 +273,14 @@ export const OfficerDetailPage: React.FC = () => {
                   <Typography variant="caption" color="text.secondary">
                     Assigned Station
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mt: 0.5,
+                    }}
+                  >
                     <Business color="primary" />
                     <Box>
                       <Typography variant="h6" color="primary.main">
@@ -270,49 +307,41 @@ export const OfficerDetailPage: React.FC = () => {
 
               <Divider sx={{ my: 2 }} />
 
-              <Grid container spacing={2}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 3, bgcolor: 'primary.light', borderRadius: 2, textAlign: 'center' }}>
-                    <Typography variant="h3" color="primary.main" fontWeight={700}>
-                      {officer.totalChallans || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Challans Issued
-                    </Typography>
-                  </Box>
+                  <StatsCard
+                    title="Total Challans Issued"
+                    value={officer.totalChallans || 0}
+                    icon={<Assignment />}
+                    color="#3B82F6"
+                  />
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 3, bgcolor: 'success.light', borderRadius: 2, textAlign: 'center' }}>
-                    <Typography variant="h3" color="success.main" fontWeight={700}>
-                      0
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Challans This Month
-                    </Typography>
-                  </Box>
+                  <StatsCard
+                    title="Challans This Month"
+                    value={0}
+                    icon={<Assignment />}
+                    color="#10B981"
+                  />
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 3, bgcolor: 'warning.light', borderRadius: 2, textAlign: 'center' }}>
-                    <Typography variant="h3" color="warning.main" fontWeight={700}>
-                      0
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      FIRs Involved
-                    </Typography>
-                  </Box>
+                  <StatsCard
+                    title="FIRs Involved"
+                    value={0}
+                    icon={<Report />}
+                    color="#F59E0B"
+                  />
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 3, bgcolor: 'info.light', borderRadius: 2, textAlign: 'center' }}>
-                    <Typography variant="h3" color="info.main" fontWeight={700}>
-                      -
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Success Rate
-                    </Typography>
-                  </Box>
+                  <StatsCard
+                    title="Success Rate"
+                    value="-"
+                    icon={<TrendingUp />}
+                    color="#06B6D4"
+                  />
                 </Grid>
               </Grid>
             </CardContent>
@@ -335,7 +364,9 @@ export const OfficerDetailPage: React.FC = () => {
                     variant="outlined"
                     fullWidth
                     onClick={() =>
-                      navigate(`${STATION_ROUTES.CHALLANS}?officerId=${officer.officerId}`)
+                      navigate(
+                        `${STATION_ROUTES.CHALLANS}?officerId=${officer.officerId}`
+                      )
                     }
                   >
                     View Challans
@@ -347,7 +378,9 @@ export const OfficerDetailPage: React.FC = () => {
                     variant="outlined"
                     fullWidth
                     onClick={() =>
-                      navigate(`${STATION_ROUTES.FIRS}?officerId=${officer.officerId}`)
+                      navigate(
+                        `${STATION_ROUTES.FIRS}?officerId=${officer.officerId}`
+                      )
                     }
                   >
                     View FIRs
@@ -358,7 +391,11 @@ export const OfficerDetailPage: React.FC = () => {
                   <Button
                     variant="outlined"
                     fullWidth
-                    onClick={() => navigate(`${STATION_ROUTES.EDIT_OFFICER}/${officer.officerId}`)}
+                    onClick={() =>
+                      navigate(
+                        `${STATION_ROUTES.EDIT_OFFICER}/${officer.officerId}`
+                      )
+                    }
                   >
                     Edit Officer
                   </Button>
@@ -369,7 +406,11 @@ export const OfficerDetailPage: React.FC = () => {
                     variant="outlined"
                     fullWidth
                     color="warning"
-                    onClick={() => navigate(`${STATION_ROUTES.TRANSFER_OFFICER}/${officer.officerId}`)}
+                    onClick={() =>
+                      navigate(
+                        `${STATION_ROUTES.TRANSFER_OFFICER}/${officer.officerId}`
+                      )
+                    }
                   >
                     Transfer Officer
                   </Button>

@@ -147,24 +147,26 @@ export const stationFilters = {
     return firs.filter((fir) => {
       const matchesSearch =
         !searchQuery ||
-        fir.firNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        fir.firNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
         fir.accusedName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        fir.vehiclePlate?.toLowerCase().includes(searchQuery.toLowerCase());
+        fir.vehiclePlateNumber
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
       const matchesStation =
         !stationIds ||
         stationIds.length === 0 ||
-        stationIds.includes(fir.stationId);
+        (fir.stationId && stationIds.includes(fir.stationId));
 
       const matchesStatus =
-        !statuses || statuses.length === 0 || statuses.includes(fir.status);
+        !statuses || statuses.length === 0 || statuses.includes(fir.firStatus);
 
       const matchesCase = hasCase === undefined || fir.hasCase === hasCase;
 
       const matchesDate =
         !dateRange ||
-        (new Date(fir.filedDate) >= new Date(dateRange.start) &&
-          new Date(fir.filedDate) <= new Date(dateRange.end));
+        (new Date(fir.dateFiled) >= new Date(dateRange.start) &&
+          new Date(fir.dateFiled) <= new Date(dateRange.end));
 
       return (
         matchesSearch &&
@@ -182,7 +184,6 @@ export const stationFilters = {
   filterDevices(
     devices: DeviceDto[],
     searchQuery?: string,
-    stationId?: number,
     calibrationStatus?: boolean,
     isPaired?: boolean
   ): DeviceDto[] {
@@ -192,8 +193,6 @@ export const stationFilters = {
         device.deviceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         device.firmwareVersion.includes(searchQuery);
 
-      const matchesStation = !stationId || device.stationId === stationId;
-
       const matchesCalibration =
         calibrationStatus === undefined ||
         device.calibrationStatus === calibrationStatus;
@@ -201,9 +200,7 @@ export const stationFilters = {
       const matchesPaired =
         isPaired === undefined || device.isPaired === isPaired;
 
-      return (
-        matchesSearch && matchesStation && matchesCalibration && matchesPaired
-      );
+      return matchesSearch && matchesCalibration && matchesPaired;
     });
   },
 

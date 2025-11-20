@@ -10,6 +10,9 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Card,
+  CardContent,
+  Typography,
 } from "@mui/material";
 import { Search, Add, Refresh, FileDownload } from "@mui/icons-material";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -21,8 +24,10 @@ import deviceApi from "@/api/deviceApi";
 import { DeviceDto } from "@/models/Device";
 import { stationFilters } from "@/utils/stationFilters";
 import { stationExport } from "@/utils/stationExport";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewDevicesPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { enqueueSnackbar } = useSnackbar();
@@ -85,7 +90,6 @@ export const ViewDevicesPage: React.FC = () => {
     return stationFilters.filterDevices(
       devices,
       searchQuery,
-      undefined,
       calibrationStatus,
       isPaired
     );
@@ -216,67 +220,103 @@ export const ViewDevicesPage: React.FC = () => {
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "secondary.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "secondary.main",
-                }}
-              >
-                {filteredDevices.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Devices Found
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.secondary.main,
+                  }}
+                >
+                  {filteredDevices.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Devices Found
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "success.main",
-                }}
-              >
-                {filteredDevices.filter((d) => d.calibrationStatus).length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Calibrated
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.success.main,
+                  }}
+                >
+                  {filteredDevices.filter((d) => d.calibrationStatus).length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Calibrated
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "warning.main",
-                }}
-              >
-                {filteredDevices.filter((d) => d.isPaired).length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                In Use (Paired)
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.warning.main,
+                  }}
+                >
+                  {filteredDevices.filter((d) => d.isPaired).length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  In Use (Paired)
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={3}>
-            <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2 }}>
-              <Box
-                sx={{ fontSize: "2rem", fontWeight: 700, color: "info.main" }}
-              >
-                {filteredDevices.filter((d) => !d.isPaired).length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Available
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.info.main,
+                  }}
+                >
+                  {filteredDevices.filter((d) => !d.isPaired).length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Available
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>

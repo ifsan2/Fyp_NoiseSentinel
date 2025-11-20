@@ -18,6 +18,8 @@ import {
   DialogActions,
   Typography,
   Divider,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { Search, Refresh, FileDownload, Report } from "@mui/icons-material";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -32,8 +34,10 @@ import { PoliceStationDto } from "@/models/Station";
 import { stationFilters } from "@/utils/stationFilters";
 import { stationExport } from "@/utils/stationExport";
 import { dateHelpers } from "@/utils/stationFilters";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewFirsPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { enqueueSnackbar } = useSnackbar();
@@ -86,7 +90,7 @@ export const ViewFirsPage: React.FC = () => {
   };
 
   const handleView = (firId: number) => {
-    const fir = firs.find((f) => f.firid === firId);
+    const fir = firs.find((f) => f.firId === firId);
     if (fir) {
       setViewDialog({ open: true, fir });
     }
@@ -123,10 +127,10 @@ export const ViewFirsPage: React.FC = () => {
 
   // Calculate statistics
   const underInvestigation = filteredFirs.filter(
-    (f) => f.status === "Under Investigation"
+    (f) => f.firStatus === "Under Investigation"
   ).length;
   const forwardedToCourt = filteredFirs.filter(
-    (f) => f.status === "Forwarded to Court"
+    (f) => f.firStatus === "Forwarded to Court"
   ).length;
   const withCase = filteredFirs.filter((f) => f.hasCase).length;
   const withoutCase = filteredFirs.filter((f) => !f.hasCase).length;
@@ -326,63 +330,103 @@ export const ViewFirsPage: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
-              <Box
-                sx={{ fontSize: "2rem", fontWeight: 700, color: "error.main" }}
-              >
-                {filteredFirs.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total FIRs
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.error.main,
+                  }}
+                >
+                  {filteredFirs.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Total FIRs
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "warning.main",
-                }}
-              >
-                {underInvestigation}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Under Investigation
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.warning.main,
+                  }}
+                >
+                  {underInvestigation}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Under Investigation
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "success.main",
-                }}
-              >
-                {forwardedToCourt}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Forwarded to Court
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.success.main,
+                  }}
+                >
+                  {forwardedToCourt}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Forwarded to Court
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2 }}>
-              <Box
-                sx={{ fontSize: "2rem", fontWeight: 700, color: "info.main" }}
-              >
-                {withCase} / {withoutCase}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                With Case / Without Case
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.info.main,
+                  }}
+                >
+                  {withCase} / {withoutCase}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  With Case / Without Case
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>
@@ -408,7 +452,7 @@ export const ViewFirsPage: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom color="error.main">
-                  {viewDialog.fir.firNumber}
+                  {viewDialog.fir.firNo}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
               </Grid>
@@ -436,7 +480,7 @@ export const ViewFirsPage: React.FC = () => {
                   Vehicle Plate
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewDialog.fir.vehiclePlate}
+                  {viewDialog.fir.vehiclePlateNumber}
                 </Typography>
               </Grid>
 
@@ -454,16 +498,16 @@ export const ViewFirsPage: React.FC = () => {
                   Station
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewDialog.fir.stationName} ({viewDialog.fir.stationCode})
+                  {viewDialog.fir.stationName}
                 </Typography>
               </Grid>
 
               <Grid item xs={6}>
                 <Typography variant="caption" color="text.secondary">
-                  Investigation Officer
+                  Sound Level
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewDialog.fir.informantName}
+                  {viewDialog.fir.soundLevelDBa} dB(A)
                 </Typography>
               </Grid>
 
@@ -472,7 +516,7 @@ export const ViewFirsPage: React.FC = () => {
                   Filed Date
                 </Typography>
                 <Typography variant="body1">
-                  {dateHelpers.formatDate(viewDialog.fir.filedDate)}
+                  {dateHelpers.formatDate(viewDialog.fir.dateFiled)}
                 </Typography>
               </Grid>
 
@@ -481,20 +525,18 @@ export const ViewFirsPage: React.FC = () => {
                   Status
                 </Typography>
                 <Box sx={{ mt: 0.5 }}>
-                  <Chip label={viewDialog.fir.status} color="warning" />
+                  <Chip label={viewDialog.fir.firStatus} color="warning" />
                 </Box>
               </Grid>
 
-              {viewDialog.fir.description && (
-                <Grid item xs={12}>
-                  <Typography variant="caption" color="text.secondary">
-                    Description
-                  </Typography>
-                  <Typography variant="body2">
-                    {viewDialog.fir.description}
-                  </Typography>
-                </Grid>
-              )}
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary">
+                  Days Since Filed
+                </Typography>
+                <Typography variant="body1" fontWeight={600}>
+                  {viewDialog.fir.daysSinceFiled} days
+                </Typography>
+              </Grid>
 
               {viewDialog.fir.hasCase && (
                 <Grid item xs={12}>
@@ -502,15 +544,7 @@ export const ViewFirsPage: React.FC = () => {
                     Case Information
                   </Typography>
                   <Box sx={{ mt: 0.5 }}>
-                    <Chip
-                      label={`Case: ${viewDialog.fir.caseNumber}`}
-                      color="primary"
-                      sx={{ mr: 1 }}
-                    />
-                    <Chip
-                      label={viewDialog.fir.caseStatus || "N/A"}
-                      color="info"
-                    />
+                    <Chip label="Case Filed" color="primary" />
                   </Box>
                 </Grid>
               )}

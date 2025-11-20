@@ -14,6 +14,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Card,
+  CardContent,
+  Typography,
 } from "@mui/material";
 import { Search, Add, Refresh, FileDownload } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -26,8 +29,10 @@ import stationApi from "@/api/stationApi";
 import { PoliceStationDto } from "@/models/Station";
 import { stationFilters } from "@/utils/stationFilters";
 import { stationExport } from "@/utils/stationExport";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewStationsPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
@@ -222,23 +227,31 @@ export const ViewStationsPage: React.FC = () => {
       </Box>
 
       {/* Results Count */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, bgcolor: "primary.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "primary.main",
-                }}
-              >
-                {filteredStations.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Stations Found
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {filteredStations.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Stations Found
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>

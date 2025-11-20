@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Drawer,
@@ -12,22 +12,22 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Logout,
-  Person,
-  Lock,
-} from '@mui/icons-material';
-import { useNavigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { StationSidebar } from './StationSidebar';
-import { useSnackbar } from 'notistack';
-import { STATION_ROUTES, ROUTES } from '@/utils/constants';
+  alpha,
+  useTheme,
+} from "@mui/material";
+import { Menu as MenuIcon, Logout, Person, Lock } from "@mui/icons-material";
+import { useNavigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { StationSidebar } from "./StationSidebar";
+import { useSnackbar } from "notistack";
+import { STATION_ROUTES, ROUTES } from "@/utils/constants";
+import { ThemeToggleButton } from "@/components/ThemeToggleButton";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const drawerWidth = 280;
 
 export const StationLayout: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
@@ -59,65 +59,139 @@ export const StationLayout: React.FC = () => {
   const handleLogout = () => {
     handleProfileMenuClose();
     logout();
-    enqueueSnackbar('Logged out successfully', { variant: 'success' });
+    enqueueSnackbar("Logged out successfully", { variant: "success" });
     navigate(ROUTES.LOGIN);
   };
 
   const getInitials = (fullName: string): string => {
     return fullName
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* App Bar */}
+    <Box sx={{ display: "flex" }}>
+      {/* Glassmorphism App Bar */}
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          bgcolor: 'primary.main',
+          background:
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.background.paper, 0.8)
+              : alpha(theme.palette.background.paper, 0.95),
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          boxShadow: "none",
+          borderBottom: `1px solid ${
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.common.white, 0.08)
+              : alpha(theme.palette.common.black, 0.08)
+          }`,
+          color: theme.palette.text.primary,
         }}
       >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{
+                mr: 1,
+                display: { sm: "none" },
+                "&:hover": {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
 
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Station Authority Portal
-          </Typography>
+            <Box>
+              <Typography
+                variant="h6"
+                noWrap
+                component="div"
+                sx={{
+                  fontWeight: 700,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Station Authority
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontWeight: 500,
+                  display: { xs: "none", md: "block" },
+                }}
+              >
+                Enforcement Portal
+              </Typography>
+            </Box>
+          </Box>
 
-          {/* User Profile Menu */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ display: { xs: 'none', md: 'block' }, textAlign: 'right' }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          {/* Right side - Theme Toggle & User Profile */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <ThemeToggleButton />
+
+            <Box
+              sx={{
+                display: { xs: "none", md: "block" },
+                textAlign: "right",
+                mr: 1,
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 600, lineHeight: 1.2 }}
+              >
                 {user?.fullName}
               </Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontSize: "0.75rem",
+                }}
+              >
                 {user?.role}
               </Typography>
             </Box>
 
-            <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
+            <IconButton
+              onClick={handleProfileMenuOpen}
+              sx={{
+                p: 0,
+                transition: "transform 0.2s ease-in-out",
+                "&:hover": {
+                  transform: "scale(1.05)",
+                },
+              }}
+            >
               <Avatar
                 sx={{
-                  bgcolor: 'secondary.main',
-                  width: 40,
-                  height: 40,
-                  fontWeight: 600,
+                  bgcolor: theme.palette.primary.main,
+                  width: 42,
+                  height: 42,
+                  fontWeight: 700,
+                  border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  boxShadow: `0 4px 14px ${alpha(
+                    theme.palette.primary.main,
+                    0.3
+                  )}`,
                 }}
               >
-                {user ? getInitials(user.fullName) : 'SA'}
+                {user ? getInitials(user.fullName) : "SA"}
               </Avatar>
             </IconButton>
           </Box>
@@ -127,8 +201,39 @@ export const StationLayout: React.FC = () => {
             open={Boolean(anchorEl)}
             onClose={handleProfileMenuClose}
             onClick={handleProfileMenuClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            PaperProps={{
+              sx: {
+                mt: 1.5,
+                minWidth: 200,
+                borderRadius: "12px",
+                background:
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.background.paper, 0.95)
+                    : theme.palette.background.paper,
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                border: `1px solid ${
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.common.white, 0.08)
+                    : alpha(theme.palette.common.black, 0.08)
+                }`,
+                boxShadow:
+                  theme.palette.mode === "dark"
+                    ? "0 8px 32px rgba(0, 0, 0, 0.4)"
+                    : "0 8px 32px rgba(0, 0, 0, 0.08)",
+                "& .MuiMenuItem-root": {
+                  borderRadius: "8px",
+                  mx: 1,
+                  my: 0.5,
+                  transition: "all 0.2s ease-in-out",
+                  "&:hover": {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                  },
+                },
+              },
+            }}
           >
             <MenuItem onClick={handleProfile}>
               <ListItemIcon>
@@ -144,11 +249,25 @@ export const StationLayout: React.FC = () => {
               <ListItemText>Change Password</ListItemText>
             </MenuItem>
 
-            <Divider />
+            <Divider sx={{ my: 1 }} />
 
-            <MenuItem onClick={handleLogout}>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                color: theme.palette.error.main,
+                "&:hover": {
+                  backgroundColor: `${alpha(
+                    theme.palette.error.main,
+                    0.08
+                  )} !important`,
+                },
+              }}
+            >
               <ListItemIcon>
-                <Logout fontSize="small" />
+                <Logout
+                  fontSize="small"
+                  sx={{ color: theme.palette.error.main }}
+                />
               </ListItemIcon>
               <ListItemText>Logout</ListItemText>
             </MenuItem>
@@ -170,10 +289,21 @@ export const StationLayout: React.FC = () => {
             keepMounted: true,
           }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
+            display: { xs: "block", sm: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
               width: drawerWidth,
+              background:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.background.paper, 0.95)
+                  : theme.palette.background.paper,
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              borderRight: `1px solid ${
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.common.white, 0.08)
+                  : alpha(theme.palette.common.black, 0.08)
+              }`,
             },
           }}
         >
@@ -184,10 +314,21 @@ export const StationLayout: React.FC = () => {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
+            display: { xs: "none", sm: "block" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
               width: drawerWidth,
+              background:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.background.paper, 0.95)
+                  : theme.palette.background.paper,
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              borderRight: `1px solid ${
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.common.white, 0.08)
+                  : alpha(theme.palette.common.black, 0.08)
+              }`,
             },
           }}
           open
@@ -201,14 +342,21 @@ export const StationLayout: React.FC = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, md: 3 },
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          minHeight: '100vh',
-          bgcolor: 'background.default',
+          minHeight: "100vh",
+          bgcolor: "background.default",
         }}
       >
         <Toolbar /> {/* Spacer for fixed AppBar */}
-        <Outlet />
+        <Box
+          sx={{
+            maxWidth: "1600px",
+            margin: "0 auto",
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

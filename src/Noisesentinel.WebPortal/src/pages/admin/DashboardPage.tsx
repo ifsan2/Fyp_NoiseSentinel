@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -6,30 +6,34 @@ import {
   CardContent,
   Typography,
   Button,
-  Paper,
   Avatar,
-} from '@mui/material';
+  Chip,
+  alpha,
+} from "@mui/material";
 import {
   Gavel,
   LocalPolice,
   AdminPanelSettings,
   PersonAdd,
   Groups,
-  People, // ✅ ADD THIS IMPORT
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { PageHeader } from '@/components/common/PageHeader';
-import { ROUTES } from '@/utils/constants';
-import userApi from '@/api/userApi'; // ✅ ADD THIS IMPORT
-import { UserCountsDto } from '@/models/User'; // ✅ ADD THIS IMPORT
+  People,
+  TrendingUp,
+  ArrowForward,
+} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { PageHeader } from "@/components/common/PageHeader";
+import { ROUTES } from "@/utils/constants";
+import userApi from "@/api/userApi";
+import { UserCountsDto } from "@/models/User";
+import { useTheme } from "@mui/material/styles";
 
 export const DashboardPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [counts, setCounts] = useState<UserCountsDto | null>(null); // ✅ ADD THIS STATE
+  const [counts, setCounts] = useState<UserCountsDto | null>(null);
 
-  // ✅ ADD THIS EFFECT
   useEffect(() => {
     loadCounts();
   }, []);
@@ -39,136 +43,198 @@ export const DashboardPage: React.FC = () => {
       const data = await userApi.getUserCounts();
       setCounts(data);
     } catch (error) {
-      console.error('Failed to load counts:', error);
+      console.error("Failed to load counts:", error);
     }
   };
 
   const quickActions = [
     {
-      title: 'View Users', // ✅ ADD THIS ACTION
-      description: 'View and manage all users',
-      icon: <People sx={{ fontSize: 40 }} />,
-      color: '#8B5CF6',
+      title: "View All Users",
+      description: "Manage system users",
+      icon: <People />,
+      color: theme.palette.primary.main,
       path: ROUTES.VIEW_USERS,
     },
     {
-      title: 'Create Court Authority',
-      description: 'Add new court administrator',
-      icon: <Gavel sx={{ fontSize: 40 }} />,
-      color: '#F59E0B',
+      title: "Court Authority",
+      description: "Add court administrator",
+      icon: <Gavel />,
+      color: theme.palette.warning.main,
       path: ROUTES.CREATE_COURT_AUTHORITY,
     },
     {
-      title: 'Create Station Authority',
-      description: 'Add new police station administrator',
-      icon: <LocalPolice sx={{ fontSize: 40 }} />,
-      color: '#3B82F6',
+      title: "Station Authority",
+      description: "Add station administrator",
+      icon: <LocalPolice />,
+      color: theme.palette.info.main,
       path: ROUTES.CREATE_STATION_AUTHORITY,
     },
     {
-      title: 'Create Admin',
-      description: 'Add additional system administrator',
-      icon: <AdminPanelSettings sx={{ fontSize: 40 }} />,
-      color: '#10B981',
+      title: "System Admin",
+      description: "Add system administrator",
+      icon: <AdminPanelSettings />,
+      color: theme.palette.success.main,
       path: ROUTES.CREATE_ADMIN,
     },
   ];
 
-  // ✅ UPDATE STATS WITH REAL DATA
   const stats = [
     {
-      label: 'Court Authorities',
-      value: counts?.totalCourtAuthorities.toString() || '0',
-      icon: <Gavel />,
-      color: '#F59E0B',
+      label: "Court Authorities",
+      value: counts?.totalCourtAuthorities || 0,
+      icon: <Gavel sx={{ fontSize: 24 }} />,
+      color: theme.palette.warning.main,
+      change: "+12%",
+      trend: "up",
     },
     {
-      label: 'Station Authorities',
-      value: counts?.totalStationAuthorities.toString() || '0',
-      icon: <LocalPolice />,
-      color: '#3B82F6',
+      label: "Station Authorities",
+      value: counts?.totalStationAuthorities || 0,
+      icon: <LocalPolice sx={{ fontSize: 24 }} />,
+      color: theme.palette.info.main,
+      change: "+8%",
+      trend: "up",
     },
     {
-      label: 'Total Users',
-      value: counts?.totalUsers.toString() || '0',
-      icon: <Groups />,
-      color: '#10B981',
+      label: "Total Users",
+      value: counts?.totalUsers || 0,
+      icon: <Groups sx={{ fontSize: 24 }} />,
+      color: theme.palette.success.main,
+      change: "+15%",
+      trend: "up",
     },
   ];
 
   return (
     <Box>
-      <PageHeader
-        title="Admin Dashboard"
-        subtitle="Welcome to NoiseSentinel Administration"
-      />
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
+            mb: 0.5,
+            color: theme.palette.text.primary,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Admin Dashboard
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          System administration and user management
+        </Typography>
+      </Box>
 
       {/* Welcome Card */}
-      <Paper
-        elevation={0}
+      <Card
         sx={{
-          p: 4,
           mb: 4,
-          bgcolor: 'primary.main',
-          color: 'white',
-          borderRadius: 3,
+          bgcolor:
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.primary.main, 0.08)
+              : alpha(theme.palette.primary.main, 0.04),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          <Avatar
-            sx={{
-              width: 80,
-              height: 80,
-              bgcolor: 'white',
-              color: 'primary.main',
-              fontSize: '2rem',
-              fontWeight: 700,
-            }}
-          >
-            {user?.fullName
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .toUpperCase()
-              .slice(0, 2)}
-          </Avatar>
-          <Box>
-            <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-              Welcome, {user?.fullName}!
-            </Typography>
-            <Typography variant="body1" sx={{ opacity: 0.9 }}>
-              👤 {user?.role} • 📧 {user?.email}
-            </Typography>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <Avatar
+              sx={{
+                width: 64,
+                height: 64,
+                bgcolor: theme.palette.primary.main,
+                fontSize: "1.5rem",
+                fontWeight: 600,
+              }}
+            >
+              {user?.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2)}
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Welcome back, {user?.fullName}
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                <Chip
+                  label={user?.role}
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(theme.palette.primary.main, 0.15),
+                    color: theme.palette.primary.main,
+                    fontWeight: 600,
+                    fontSize: "0.75rem",
+                  }}
+                />
+                <Typography variant="body2" color="text.secondary">
+                  {user?.email}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
-        </Box>
-      </Paper>
+        </CardContent>
+      </Card>
 
       {/* Statistics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} md={4} key={index}>
-            <Card elevation={2}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar
+            <Card
+              sx={{
+                height: "100%",
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 2,
+                  }}
+                >
+                  <Box
                     sx={{
-                      bgcolor: stat.color + '20',
+                      width: 48,
+                      height: 48,
+                      borderRadius: "10px",
+                      bgcolor: alpha(stat.color, 0.1),
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       color: stat.color,
-                      width: 56,
-                      height: 56,
                     }}
                   >
                     {stat.icon}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                      {stat.value}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {stat.label}
-                    </Typography>
                   </Box>
+                  <Chip
+                    icon={<TrendingUp sx={{ fontSize: 16 }} />}
+                    label={stat.change}
+                    size="small"
+                    sx={{
+                      bgcolor: alpha(theme.palette.success.main, 0.1),
+                      color: theme.palette.success.main,
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                    }}
+                  />
                 </Box>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  {stat.value.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {stat.label}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -176,66 +242,97 @@ export const DashboardPage: React.FC = () => {
       </Grid>
 
       {/* Quick Actions */}
-      <PageHeader title="🎯 Quick Actions" subtitle="Manage users and authorities" />
+      <Box sx={{ mb: 2 }}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 600,
+            mb: 0.5,
+            color: theme.palette.text.primary,
+          }}
+        >
+          Quick Actions
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Manage users and system authorities
+        </Typography>
+      </Box>
 
       <Grid container spacing={3}>
         {quickActions.map((action, index) => (
-          <Grid item xs={12} md={6} lg={3} key={index}>
+          <Grid item xs={12} sm={6} lg={3} key={index}>
             <Card
-              elevation={2}
               sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: 6,
+                height: "100%",
+                border: `1px solid ${theme.palette.divider}`,
+                transition: "all 0.2s ease",
+                cursor: "pointer",
+                "&:hover": {
+                  borderColor: action.color,
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? `0 4px 20px ${alpha(action.color, 0.15)}`
+                      : `0 4px 20px ${alpha(action.color, 0.1)}`,
+                  transform: "translateY(-2px)",
                 },
               }}
+              onClick={() => navigate(action.path)}
             >
-              <CardContent sx={{ flexGrow: 1 }}>
+              <CardContent sx={{ p: 3 }}>
                 <Box
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    gap: 2,
+                    width: 48,
+                    height: 48,
+                    borderRadius: "10px",
+                    bgcolor: alpha(action.color, 0.1),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: action.color,
+                    mb: 2,
                   }}
                 >
-                  <Avatar
-                    sx={{
-                      bgcolor: action.color + '20',
-                      color: action.color,
-                      width: 80,
-                      height: 80,
-                    }}
-                  >
-                    {action.icon}
-                  </Avatar>
-                  <Typography variant="h4" gutterBottom>
-                    {action.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {action.description}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={<PersonAdd />}
-                    onClick={() => navigate(action.path)}
-                    sx={{
-                      bgcolor: action.color,
-                      '&:hover': {
-                        bgcolor: action.color,
-                        filter: 'brightness(0.9)',
-                      },
-                    }}
-                  >
-                    {action.title.includes('View') ? 'View' : 'Create'}
-                  </Button>
+                  {action.icon}
                 </Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    mb: 0.5,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  {action.title}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2, minHeight: 40 }}
+                >
+                  {action.description}
+                </Typography>
+                <Button
+                  size="small"
+                  endIcon={<ArrowForward />}
+                  sx={{
+                    color: action.color,
+                    fontWeight: 600,
+                    textTransform: "none",
+                    p: 0,
+                    minWidth: 0,
+                    "&:hover": {
+                      bgcolor: "transparent",
+                      "& .MuiButton-endIcon": {
+                        transform: "translateX(4px)",
+                      },
+                    },
+                    "& .MuiButton-endIcon": {
+                      transition: "transform 0.2s ease",
+                    },
+                  }}
+                >
+                  {action.title.includes("View") ? "View all" : "Create new"}
+                </Button>
               </CardContent>
             </Card>
           </Grid>

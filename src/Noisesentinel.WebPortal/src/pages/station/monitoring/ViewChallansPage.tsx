@@ -18,6 +18,8 @@ import {
   DialogActions,
   Typography,
   Divider,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
   Search,
@@ -40,8 +42,10 @@ import { ViolationDto } from "@/models/Violation";
 import { stationFilters } from "@/utils/stationFilters";
 import { stationExport } from "@/utils/stationExport";
 import { dateHelpers } from "@/utils/stationFilters";
+import { useTheme } from "@mui/material/styles";
 
 export const ViewChallansPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { enqueueSnackbar } = useSnackbar();
@@ -372,74 +376,107 @@ export const ViewChallansPage: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "primary.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "primary.main",
-                }}
-              >
-                {filteredChallans.length}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total Challans
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {filteredChallans.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Total Challans
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "warning.main",
-                }}
-              >
-                {unpaidCount}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Unpaid Challans
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    color: theme.palette.warning.main,
+                  }}
+                >
+                  {unpaidCount}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Unpaid Challans
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "error.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "error.main",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <Warning /> {overdueCount}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Overdue Challans
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Warning sx={{ color: theme.palette.error.main }} />
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      mb: 0.5,
+                      color: theme.palette.error.main,
+                    }}
+                  >
+                    {overdueCount}
+                  </Typography>
+                </Box>
+                <Typography variant="caption" color="text.secondary">
+                  Overdue Challans
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2 }}>
-              <Box
-                sx={{
-                  fontSize: "1.5rem",
-                  fontWeight: 700,
-                  color: "success.main",
-                }}
-              >
-                PKR {totalPenalties.toLocaleString()}
-              </Box>
-              <Box sx={{ fontSize: "0.875rem", color: "text.secondary" }}>
-                Total Penalties
-              </Box>
-            </Box>
+            <Card
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+              }}
+            >
+              <CardContent sx={{ py: 2 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    fontSize: "1.5rem",
+                    color: theme.palette.success.main,
+                  }}
+                >
+                  PKR {totalPenalties.toLocaleString()}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Total Penalties
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>
@@ -493,7 +530,8 @@ export const ViewChallansPage: React.FC = () => {
                   Vehicle Plate
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewDialog.challan.plateNumber}
+                  {viewDialog.challan.vehiclePlateNumber ||
+                    viewDialog.challan.plateNumber}
                 </Typography>
               </Grid>
 
@@ -549,6 +587,18 @@ export const ViewChallansPage: React.FC = () => {
                 <Typography variant="body1">
                   {viewDialog.challan.officerName}
                 </Typography>
+                {(viewDialog.challan.officerBadgeNumber ||
+                  viewDialog.challan.officerRank) && (
+                  <Typography variant="caption" color="text.secondary">
+                    {viewDialog.challan.officerBadgeNumber &&
+                      `Badge: ${viewDialog.challan.officerBadgeNumber}`}
+                    {viewDialog.challan.officerBadgeNumber &&
+                      viewDialog.challan.officerRank &&
+                      " • "}
+                    {viewDialog.challan.officerRank &&
+                      `Rank: ${viewDialog.challan.officerRank}`}
+                  </Typography>
+                )}
               </Grid>
 
               <Grid item xs={6}>
@@ -572,6 +622,32 @@ export const ViewChallansPage: React.FC = () => {
                     label={`Overdue by ${viewDialog.challan.daysOverdue} days`}
                     color="error"
                     icon={<Warning />}
+                  />
+                </Grid>
+              )}
+
+              {viewDialog.challan.evidencePath && (
+                <Grid item xs={12}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Evidence Photo
+                  </Typography>
+                  <Box
+                    component="img"
+                    src={viewDialog.challan.evidencePath}
+                    alt="Challan Evidence"
+                    sx={{
+                      width: "100%",
+                      maxHeight: 400,
+                      objectFit: "contain",
+                      borderRadius: 1,
+                      border: 1,
+                      borderColor: "divider",
+                      mt: 1,
+                    }}
                   />
                 </Grid>
               )}

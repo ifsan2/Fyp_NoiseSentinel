@@ -83,12 +83,12 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
             </TableRow>
           ) : (
             firs.map((fir) => (
-              <TableRow key={fir.firid} hover>
+              <TableRow key={fir.firId} hover>
                 <TableCell>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Report color="error" fontSize="small" />
                     <Typography variant="body2" fontWeight={600}>
-                      {fir.firNumber}
+                      {fir.firNo}
                     </Typography>
                   </Box>
                 </TableCell>
@@ -102,7 +102,7 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
                     </Typography>
                     <br />
                     <Chip
-                      label={fir.vehiclePlate}
+                      label={fir.vehiclePlateNumber}
                       size="small"
                       sx={{ mt: 0.5 }}
                     />
@@ -119,34 +119,30 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
                       {fir.stationName}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {fir.stationCode}
-                    </Typography>
-                    <br />
-                    <Typography variant="caption" color="text.secondary">
-                      IO: {fir.informantName}
+                      {fir.daysSinceFiled} days ago
                     </Typography>
                   </Box>
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2">
-                    {formatDate(fir.filedDate)}
+                    {formatDate(fir.dateFiled)}
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={fir.status}
+                    label={fir.firStatus}
                     size="small"
-                    color={getStatusColor(fir.status) as any}
+                    color={getStatusColor(fir.firStatus) as any}
                   />
                 </TableCell>
                 <TableCell>
                   {fir.hasCase ? (
                     <Box>
                       <Typography variant="body2" fontWeight={600}>
-                        {fir.caseNumber}
+                        Yes
                       </Typography>
                       <Chip
-                        label={fir.caseStatus}
+                        label="Case Filed"
                         size="small"
                         color="primary"
                         sx={{ mt: 0.5 }}
@@ -163,7 +159,7 @@ export const FirTable: React.FC<FirTableProps> = ({ firs, onView }) => {
                     <IconButton
                       size="small"
                       color="info"
-                      onClick={() => onView(fir.firid)}
+                      onClick={() => onView(fir.firId)}
                     >
                       <Visibility fontSize="small" />
                     </IconButton>

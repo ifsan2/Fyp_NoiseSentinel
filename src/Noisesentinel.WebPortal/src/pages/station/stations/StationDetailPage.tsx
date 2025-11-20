@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -9,16 +9,26 @@ import {
   Chip,
   CircularProgress,
   Divider,
-} from '@mui/material';
-import { Edit, Business, Phone, LocationOn } from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { STATION_ROUTES } from '@/utils/stationConstants';
-import stationApi from '@/api/stationApi';
-import stationOfficerApi from '@/api/stationOfficerApi';
-import deviceApi from '@/api/deviceApi';
-import { PoliceStationDto } from '@/models/Station';
+} from "@mui/material";
+import {
+  Edit,
+  Business,
+  Phone,
+  LocationOn,
+  People,
+  PersonSearch,
+  Devices,
+  DeviceHub,
+} from "@mui/icons-material";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { StatsCard } from "@/components/station/cards/StatsCard";
+import { STATION_ROUTES } from "@/utils/stationConstants";
+import stationApi from "@/api/stationApi";
+import stationOfficerApi from "@/api/stationOfficerApi";
+import deviceApi from "@/api/deviceApi";
+import { PoliceStationDto } from "@/models/Station";
 
 export const StationDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -55,8 +65,12 @@ export const StationDetailPage: React.FC = () => {
       const stationOfficers = officers.filter(
         (o) => o.stationId === parseInt(id!)
       );
+
+      // Get devices paired with officers from this station
+      const stationOfficerIds = stationOfficers.map((o) => o.officerId);
       const stationDevices = devices.filter(
-        (d) => d.stationId === parseInt(id!)
+        (d) =>
+          d.pairedOfficerId && stationOfficerIds.includes(d.pairedOfficerId)
       );
 
       setStats({
@@ -70,8 +84,8 @@ export const StationDetailPage: React.FC = () => {
       });
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load station details',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load station details",
+        { variant: "error" }
       );
       navigate(STATION_ROUTES.STATIONS);
     } finally {
@@ -81,7 +95,7 @@ export const StationDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -97,8 +111,8 @@ export const StationDetailPage: React.FC = () => {
         title={station.stationName}
         subtitle="Police Station Details"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'Police Stations', path: STATION_ROUTES.STATIONS },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "Police Stations", path: STATION_ROUTES.STATIONS },
           { label: station.stationName },
         ]}
         actions={
@@ -117,8 +131,10 @@ export const StationDetailPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Business sx={{ fontSize: 40, color: 'primary.main' }} />
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}
+              >
+                <Business sx={{ fontSize: 40, color: "primary.main" }} />
                 <Typography variant="h5" fontWeight={600}>
                   Station Information
                 </Typography>
@@ -126,7 +142,7 @@ export const StationDetailPage: React.FC = () => {
 
               <Divider sx={{ mb: 2 }} />
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Box>
                   <Typography variant="caption" color="text.secondary">
                     Station Code
@@ -140,10 +156,17 @@ export const StationDetailPage: React.FC = () => {
                   <Typography variant="caption" color="text.secondary">
                     Location
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'start', gap: 1, mt: 0.5 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "start",
+                      gap: 1,
+                      mt: 0.5,
+                    }}
+                  >
                     <LocationOn color="action" />
                     <Typography variant="body1">
-                      {station.location || 'N/A'}
+                      {station.location || "N/A"}
                     </Typography>
                   </Box>
                 </Box>
@@ -152,24 +175,35 @@ export const StationDetailPage: React.FC = () => {
                   <Typography variant="caption" color="text.secondary">
                     District
                   </Typography>
-                  <Typography variant="body1">{station.district || 'N/A'}</Typography>
+                  <Typography variant="body1">
+                    {station.district || "N/A"}
+                  </Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="caption" color="text.secondary">
                     Province
                   </Typography>
-                  <Typography variant="body1">{station.province || 'N/A'}</Typography>
+                  <Typography variant="body1">
+                    {station.province || "N/A"}
+                  </Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="caption" color="text.secondary">
                     Contact Number
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mt: 0.5,
+                    }}
+                  >
                     <Phone color="action" />
                     <Typography variant="body1">
-                      {station.contact || 'N/A'}
+                      {station.contact || "N/A"}
                     </Typography>
                   </Box>
                 </Box>
@@ -189,59 +223,49 @@ export const StationDetailPage: React.FC = () => {
               <Divider sx={{ mb: 2 }} />
 
               <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Box sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 2 }}>
-                    <Typography variant="h4" color="primary.main" fontWeight={700}>
-                      {stats.totalOfficers}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Officers
-                    </Typography>
-                  </Box>
+                <Grid item xs={12} sm={6}>
+                  <StatsCard
+                    title="Total Officers"
+                    value={stats.totalOfficers}
+                    icon={<People />}
+                    color="#3B82F6"
+                  />
                 </Grid>
 
-                <Grid item xs={6}>
-                  <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
-                    <Typography variant="h4" color="success.main" fontWeight={700}>
-                      {stats.activeOfficers}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Active Officers
-                    </Typography>
-                  </Box>
+                <Grid item xs={12} sm={6}>
+                  <StatsCard
+                    title="Active Officers"
+                    value={stats.activeOfficers}
+                    icon={<People />}
+                    color="#10B981"
+                  />
                 </Grid>
 
-                <Grid item xs={6}>
-                  <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
-                    <Typography variant="h4" color="warning.main" fontWeight={700}>
-                      {stats.investigationOfficers}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Investigation Officers
-                    </Typography>
-                  </Box>
+                <Grid item xs={12} sm={6}>
+                  <StatsCard
+                    title="Investigation Officers"
+                    value={stats.investigationOfficers}
+                    icon={<PersonSearch />}
+                    color="#F59E0B"
+                  />
                 </Grid>
 
-                <Grid item xs={6}>
-                  <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 2 }}>
-                    <Typography variant="h4" color="info.main" fontWeight={700}>
-                      {stats.totalDevices}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      IoT Devices
-                    </Typography>
-                  </Box>
+                <Grid item xs={12} sm={6}>
+                  <StatsCard
+                    title="IoT Devices"
+                    value={stats.totalDevices}
+                    icon={<Devices />}
+                    color="#06B6D4"
+                  />
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Box sx={{ p: 2, bgcolor: 'secondary.light', borderRadius: 2 }}>
-                    <Typography variant="h4" color="secondary.main" fontWeight={700}>
-                      {stats.devicesInUse}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Devices In Use
-                    </Typography>
-                  </Box>
+                  <StatsCard
+                    title="Devices In Use"
+                    value={stats.devicesInUse}
+                    icon={<DeviceHub />}
+                    color="#8B5CF6"
+                  />
                 </Grid>
               </Grid>
             </CardContent>
