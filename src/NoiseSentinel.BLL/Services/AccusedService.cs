@@ -166,11 +166,14 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            ContactNo = a.Contact,
+            Address = a.Address,
             City = a.City,
             Province = a.Province,
-            Contact = a.Contact,
-            TotalViolations = a.Challans?.Count ?? 0,
-            TotalVehicles = a.Vehicles?.Count ?? 0
+            TotalChallans = a.Challans?.Count ?? 0,
+            TotalPenalties = a.Challans?.Sum(c => c.Violation?.PenaltyAmount ?? 0) ?? 0,
+            HasPendingChallans = a.Challans?.Any(c => c.Status != null && 
+                (c.Status.ToLower() == "unpaid" || c.Status.ToLower() == "pending")) ?? false
         }).ToList();
 
         return ServiceResult<IEnumerable<AccusedListItemDto>>.SuccessResult(response);
@@ -185,11 +188,14 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            ContactNo = a.Contact,
+            Address = a.Address,
             City = a.City,
             Province = a.Province,
-            Contact = a.Contact,
-            TotalViolations = a.Challans?.Count ?? 0,
-            TotalVehicles = a.Vehicles?.Count ?? 0
+            TotalChallans = a.Challans?.Count ?? 0,
+            TotalPenalties = a.Challans?.Sum(c => c.Violation?.PenaltyAmount ?? 0) ?? 0,
+            HasPendingChallans = a.Challans?.Any(c => c.Status != null && 
+                (c.Status.ToLower() == "unpaid" || c.Status.ToLower() == "pending")) ?? false
         }).ToList();
 
         return ServiceResult<IEnumerable<AccusedListItemDto>>.SuccessResult(response);
@@ -204,11 +210,14 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            ContactNo = a.Contact,
+            Address = a.Address,
             City = a.City,
             Province = a.Province,
-            Contact = a.Contact,
-            TotalViolations = a.Challans?.Count ?? 0,
-            TotalVehicles = a.Vehicles?.Count ?? 0
+            TotalChallans = a.Challans?.Count ?? 0,
+            TotalPenalties = a.Challans?.Sum(c => c.Violation?.PenaltyAmount ?? 0) ?? 0,
+            HasPendingChallans = a.Challans?.Any(c => c.Status != null && 
+                (c.Status.ToLower() == "unpaid" || c.Status.ToLower() == "pending")) ?? false
         }).ToList();
 
         return ServiceResult<IEnumerable<AccusedListItemDto>>.SuccessResult(response);
@@ -223,11 +232,14 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            ContactNo = a.Contact,
+            Address = a.Address,
             City = a.City,
             Province = a.Province,
-            Contact = a.Contact,
-            TotalViolations = a.Challans?.Count ?? 0,
-            TotalVehicles = a.Vehicles?.Count ?? 0
+            TotalChallans = a.Challans?.Count ?? 0,
+            TotalPenalties = a.Challans?.Sum(c => c.Violation?.PenaltyAmount ?? 0) ?? 0,
+            HasPendingChallans = a.Challans?.Any(c => c.Status != null && 
+                (c.Status.ToLower() == "unpaid" || c.Status.ToLower() == "pending")) ?? false
         }).ToList();
 
         return ServiceResult<IEnumerable<AccusedListItemDto>>.SuccessResult(response);

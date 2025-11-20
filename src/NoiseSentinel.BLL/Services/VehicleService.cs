@@ -174,9 +174,14 @@ public class VehicleService : IVehicleService
             VehicleId = v.VehicleId,
             PlateNumber = v.PlateNumber ?? string.Empty,
             Make = v.Make,
+            Model = null, // Vehicle model doesn't have this field
             Color = v.Color,
+            RegistrationYear = v.VehRegYear?.Year,
             OwnerName = v.Owner?.FullName,
-            TotalViolations = v.Challans?.Count ?? 0
+            OwnerCnic = v.Owner?.Cnic,
+            OwnerContact = v.Owner?.Contact,
+            TotalChallans = v.Challans?.Count ?? 0,
+            TotalPenalties = v.Challans?.Sum(c => c.Violation?.PenaltyAmount ?? 0) ?? 0
         }).ToList();
 
         return ServiceResult<IEnumerable<VehicleListItemDto>>.SuccessResult(response);
@@ -191,9 +196,14 @@ public class VehicleService : IVehicleService
             VehicleId = v.VehicleId,
             PlateNumber = v.PlateNumber ?? string.Empty,
             Make = v.Make,
+            Model = null, // Vehicle model doesn't have this field
             Color = v.Color,
+            RegistrationYear = v.VehRegYear?.Year,
             OwnerName = v.Owner?.FullName,
-            TotalViolations = v.Challans?.Count ?? 0
+            OwnerCnic = v.Owner?.Cnic,
+            OwnerContact = v.Owner?.Contact,
+            TotalChallans = v.Challans?.Count ?? 0,
+            TotalPenalties = v.Challans?.Sum(c => c.Violation?.PenaltyAmount ?? 0) ?? 0
         }).ToList();
 
         return ServiceResult<IEnumerable<VehicleListItemDto>>.SuccessResult(response);
@@ -208,9 +218,14 @@ public class VehicleService : IVehicleService
             VehicleId = v.VehicleId,
             PlateNumber = v.PlateNumber ?? string.Empty,
             Make = v.Make,
+            Model = null, // Vehicle model doesn't have this field
             Color = v.Color,
+            RegistrationYear = v.VehRegYear?.Year,
             OwnerName = v.Owner?.FullName,
-            TotalViolations = v.Challans?.Count ?? 0
+            OwnerCnic = v.Owner?.Cnic,
+            OwnerContact = v.Owner?.Contact,
+            TotalChallans = v.Challans?.Count ?? 0,
+            TotalPenalties = v.Challans?.Sum(c => c.Violation?.PenaltyAmount ?? 0) ?? 0
         }).ToList();
 
         return ServiceResult<IEnumerable<VehicleListItemDto>>.SuccessResult(response);

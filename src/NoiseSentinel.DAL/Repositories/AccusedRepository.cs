@@ -40,6 +40,7 @@ public class AccusedRepository : IAccusedRepository
         return await _context.Accuseds
             .Include(a => a.Vehicles)
             .Include(a => a.Challans)
+                .ThenInclude(c => c.Violation)
             .FirstOrDefaultAsync(a => a.Cnic != null &&
                                      a.Cnic.Replace("-", "").ToLower() == cnic.Replace("-", "").ToLower());
     }
@@ -49,6 +50,7 @@ public class AccusedRepository : IAccusedRepository
         return await _context.Accuseds
             .Include(a => a.Vehicles)
             .Include(a => a.Challans)
+                .ThenInclude(c => c.Violation)
             .OrderBy(a => a.FullName)
             .ToListAsync();
     }
@@ -58,6 +60,7 @@ public class AccusedRepository : IAccusedRepository
         return await _context.Accuseds
             .Include(a => a.Vehicles)
             .Include(a => a.Challans)
+                .ThenInclude(c => c.Violation)
             .Where(a => a.FullName != null && a.FullName.ToLower().Contains(name.ToLower()))
             .OrderBy(a => a.FullName)
             .ToListAsync();
@@ -68,6 +71,7 @@ public class AccusedRepository : IAccusedRepository
         return await _context.Accuseds
             .Include(a => a.Vehicles)
             .Include(a => a.Challans)
+                .ThenInclude(c => c.Violation)
             .Where(a => a.Province != null && a.Province.ToLower() == province.ToLower())
             .OrderBy(a => a.FullName)
             .ToListAsync();
@@ -78,6 +82,7 @@ public class AccusedRepository : IAccusedRepository
         return await _context.Accuseds
             .Include(a => a.Vehicles)
             .Include(a => a.Challans)
+                .ThenInclude(c => c.Violation)
             .Where(a => a.City != null && a.City.ToLower() == city.ToLower())
             .OrderBy(a => a.FullName)
             .ToListAsync();

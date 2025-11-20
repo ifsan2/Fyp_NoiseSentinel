@@ -422,13 +422,18 @@ public class ChallanService : IChallanService
         {
             ChallanId = challan.ChallanId,
             OfficerName = challan.Officer?.User?.FullName ?? string.Empty,
+            OfficerBadgeNumber = challan.Officer?.BadgeNumber,
+            OfficerRank = challan.Officer?.Rank,
             AccusedName = challan.Accused?.FullName ?? string.Empty,
+            AccusedCnic = challan.Accused?.Cnic ?? string.Empty,
             VehiclePlateNumber = challan.Vehicle?.PlateNumber ?? string.Empty,
             ViolationType = challan.Violation?.ViolationType ?? string.Empty,
             PenaltyAmount = challan.Violation?.PenaltyAmount ?? 0,
             IssueDateTime = challan.IssueDateTime ?? DateTime.MinValue,
             DueDateTime = challan.DueDateTime ?? DateTime.MinValue,
             Status = challan.Status ?? string.Empty,
+            StationName = challan.Officer?.Station?.StationName ?? string.Empty,
+            EvidencePath = DecompressEvidenceImage(challan.EvidencePath),
             IsOverdue = isOverdue,
             HasFir = challan.Firs?.Any() ?? false
         };

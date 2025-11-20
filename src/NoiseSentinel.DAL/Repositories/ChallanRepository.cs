@@ -48,6 +48,8 @@ public class ChallanRepository : IChallanRepository
         return await _context.Challans
             .Include(c => c.Officer)
                 .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
             .Include(c => c.Accused)
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)
@@ -61,6 +63,8 @@ public class ChallanRepository : IChallanRepository
         return await _context.Challans
             .Include(c => c.Officer)
                 .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
             .Include(c => c.Accused)
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)
@@ -91,6 +95,8 @@ public class ChallanRepository : IChallanRepository
         return await _context.Challans
             .Include(c => c.Officer)
                 .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
             .Include(c => c.Accused)
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)
@@ -105,6 +111,8 @@ public class ChallanRepository : IChallanRepository
         return await _context.Challans
             .Include(c => c.Officer)
                 .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
             .Include(c => c.Accused)
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)
@@ -119,6 +127,8 @@ public class ChallanRepository : IChallanRepository
         return await _context.Challans
             .Include(c => c.Officer)
                 .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
             .Include(c => c.Accused)
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)
@@ -133,6 +143,8 @@ public class ChallanRepository : IChallanRepository
         return await _context.Challans
             .Include(c => c.Officer)
                 .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
             .Include(c => c.Accused)
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)
@@ -148,6 +160,8 @@ public class ChallanRepository : IChallanRepository
         return await _context.Challans
             .Include(c => c.Officer)
                 .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
             .Include(c => c.Accused)
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)

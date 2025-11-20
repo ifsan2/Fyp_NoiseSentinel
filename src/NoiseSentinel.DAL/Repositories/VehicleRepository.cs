@@ -49,6 +49,7 @@ public class VehicleRepository : IVehicleRepository
         return await _context.Vehicles
             .Include(v => v.Owner)
             .Include(v => v.Challans)
+                .ThenInclude(c => c.Violation)
             .OrderBy(v => v.PlateNumber)
             .ToListAsync();
     }
@@ -58,6 +59,7 @@ public class VehicleRepository : IVehicleRepository
         return await _context.Vehicles
             .Include(v => v.Owner)
             .Include(v => v.Challans)
+                .ThenInclude(c => c.Violation)
             .Where(v => v.OwnerId == ownerId)
             .OrderBy(v => v.PlateNumber)
             .ToListAsync();
@@ -68,6 +70,7 @@ public class VehicleRepository : IVehicleRepository
         return await _context.Vehicles
             .Include(v => v.Owner)
             .Include(v => v.Challans)
+                .ThenInclude(c => c.Violation)
             .Where(v => v.Make != null && v.Make.ToLower().Contains(make.ToLower()))
             .OrderBy(v => v.PlateNumber)
             .ToListAsync();
