@@ -9,7 +9,6 @@ import {
   View,
   Dimensions,
 } from "react-native";
-import { Shield, User, Lock } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 import authApi from "../../api/authApi";
 import { Button } from "../../components/common/Button";
@@ -223,7 +222,7 @@ export const LoginScreen: React.FC = () => {
                 ]}
               >
                 <View style={styles.logoInner}>
-                  <Shield size={56} color={colors.accent[600]} strokeWidth={2.5} />
+                  <Text style={styles.logoIcon}>🔊</Text>
                 </View>
                 {/* Glow effect rings */}
                 <View style={[styles.glowRing, styles.glowRing1]} />
@@ -263,7 +262,7 @@ export const LoginScreen: React.FC = () => {
                   error={errors.username}
                   autoCapitalize="none"
                   required
-                  leftIcon={<User size={20} color={colors.text.tertiary} />}
+                  leftIcon={<Text style={styles.inputIcon}>👤</Text>}
                 />
 
                 <Input
@@ -277,7 +276,7 @@ export const LoginScreen: React.FC = () => {
                   error={errors.password}
                   secureTextEntry
                   required
-                  leftIcon={<Lock size={20} color={colors.text.tertiary} />}
+                  leftIcon={<Text style={styles.inputIcon}>🔒</Text>}
                 />
 
                 <Button
@@ -292,7 +291,7 @@ export const LoginScreen: React.FC = () => {
 
                 {/* Security badge */}
                 <View style={styles.securityBadge}>
-                  <Shield size={16} color={colors.accent[600]} strokeWidth={2} />
+                  <Text style={styles.securityIcon}>🛡️</Text>
                   <Text style={styles.securityText}>
                     256-bit encrypted connection
                   </Text>
@@ -302,10 +301,7 @@ export const LoginScreen: React.FC = () => {
 
             {/* Footer */}
             <View style={styles.footer}>
-              <View style={styles.footerLockContainer}>
-                <Lock size={14} color={colors.text.tertiary} strokeWidth={2} />
-                <Text style={styles.footerText}>Authorized Personnel Only</Text>
-              </View>
+              <Text style={styles.footerText}>🔒 Authorized Personnel Only</Text>
               <Text style={styles.versionText}>
                 v1.0.0 • Traffic Police Department • {new Date().getFullYear()}
               </Text>
@@ -434,8 +430,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.15)",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.25)",
@@ -451,10 +447,9 @@ const styles = StyleSheet.create({
   badgeText: {
     ...typography.caption,
     color: colors.white,
-    fontWeight: "600",
-    letterSpacing: 1,
-    fontSize: 10,
-    opacity: 0.9,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    fontSize: 11,
   },
   formContainer: {
     marginBottom: spacing.xl,
@@ -516,7 +511,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border.light,
-    gap: spacing.xs,
+  },
+  securityIcon: {
+    fontSize: 14,
+    marginRight: spacing.xs,
   },
   securityText: {
     ...typography.caption,
@@ -527,26 +525,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: spacing.lg,
   },
-  footerLockContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
-  },
   footerText: {
     ...typography.bodySmall,
     color: colors.white,
-    fontWeight: "500",
+    fontWeight: "600",
+    marginBottom: spacing.xs,
     textAlign: "center",
-    opacity: 0.7,
-    fontSize: 13,
+    opacity: 0.9,
   },
   versionText: {
     ...typography.caption,
     color: colors.white,
     textAlign: "center",
-    opacity: 0.5,
-    fontSize: 10,
+    opacity: 0.7,
   },
 });
 
