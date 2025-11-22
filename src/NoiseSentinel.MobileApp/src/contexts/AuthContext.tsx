@@ -1,10 +1,12 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { AuthResponseDto } from '../models/Auth';
+import { AuthResponseDto, UserDetailsDto } from '../models/Auth';
 import storageService from '../services/storage.service';
 import authApi from '../api/authApi';
+import userApi from '../api/userApi';
 
 interface AuthContextData {
   user: AuthResponseDto | null;
+  userDetails: UserDetailsDto | null;
   loading: boolean;
   isAuthenticated: boolean;
   login: (token: string, userData: AuthResponseDto) => Promise<void>;
@@ -20,6 +22,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthResponseDto | null>(null);
+  const [userDetails, setUserDetails] = useState<UserDetailsDto | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Load user from storage on mount
@@ -39,6 +42,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (expiresAt > now) {
           setUser(userData);
+          // Fetch full user details with officer information
+          try {
+            const details = await userApi.getCurrentUserDetails();
+            setUserDetails(details);
+          } catch (error) {
+            console.error('Error fetching user details:', error);
+          }
         } else {
           // Token expired, clear storage
           await storageService.clearAll();
@@ -57,6 +67,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await storageService.saveToken(token);
       await storageService.saveUserData(userData);
       setUser(userData);
+      // Fetch full user details with officer information
+      try {
+        const details = await userApi.getCurrentUserDetails();
+        setUserDetails(details);
+      } catch (error) {
+        console.error('Error fetching user details after login:', error);
+      }
     } catch (error) {
       console.error('Error during login:', error);
       throw error;
@@ -67,6 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await storageService.clearAll();
       setUser(null);
+      setUserDetails(null);
     } catch (error) {
       console.error('Error during logout:', error);
     }
@@ -77,6 +95,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = await storageService.getUserData();
       if (userData) {
         setUser(userData);
+        // Refresh full user details
+        try {
+          const details = await userApi.getCurrentUserDetails();
+          setUserDetails(details);
+        } catch (error) {
+          console.error('Error refreshing user details:', error);
+        }
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
@@ -87,6 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        userDetails,
         loading,
         isAuthenticated: !!user,
         login,
