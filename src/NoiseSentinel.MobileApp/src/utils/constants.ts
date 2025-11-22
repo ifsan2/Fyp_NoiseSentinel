@@ -4,7 +4,7 @@ export const API_CONFIG = {
   // For Android emulator: use http://10.0.2.2:5200/api
   // For real device: use your PC's IP (e.g., http://192.168.100.16:5200/api)
   BASE_URL: __DEV__
-    ? "http://localhost:5200/api" // Development - HTTP port from launchSettings
+    ? "http://localhost:5200/api" // Development - localhost for web, change to device IP for mobile
     : "https://your-production-api.com/api", // Production
   TIMEOUT: 30000,
 };
