@@ -77,13 +77,13 @@ const styles = StyleSheet.create({
   violationCard: {
     backgroundColor: colors.white,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: colors.border.default,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
   violationCardSelected: {
-    borderColor: colors.primary,
+    bordercolor: colors.primary[600],
     backgroundColor: colors.primary + '10',
   },
   violationHeader: {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   violationTypeSelected: {
-    color: colors.primary,
+    color: colors.primary[600],
   },
   cognizableBadge: {
     backgroundColor: colors.warning + '20',
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   cognizableText: {
     ...typography.caption,
-    color: colors.warning,
+    color: colors.warning[600],
     fontWeight: '600',
   },
   violationDescription: {
@@ -127,11 +127,11 @@ const styles = StyleSheet.create({
   },
   penaltyAmount: {
     ...typography.h4,
-    color: colors.error,
+    color: colors.error[600],
   },
   selectedIndicator: {
     marginTop: spacing.sm,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary[600],
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
     alignItems: 'center',
@@ -142,3 +142,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+

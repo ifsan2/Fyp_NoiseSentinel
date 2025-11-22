@@ -1,10 +1,13 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform } from "react-native";
 import { ChallanListItemDto } from "../../models/Challan";
 import { colors } from "../../styles/colors";
 import { spacing, borderRadius } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
 import { formatters } from "../../utils/formatters";
+
+// PREMIUM CHALLAN CARD
+// Features: Micro-interactions, Premium shadows, Elegant status badges
 
 interface ChallanCardProps {
   challan: ChallanListItemDto;
@@ -15,19 +18,49 @@ export const ChallanCard: React.FC<ChallanCardProps> = ({
   challan,
   onPress,
 }) => {
+  const [scaleAnim] = useState(new Animated.Value(1));
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.98,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 8,
+    }).start();
+  };
+
   const getStatusColor = () => {
-    if (challan.isOverdue) return colors.error;
-    if (challan.status === "Paid") return colors.success;
-    if (challan.status === "Disputed") return colors.warning;
-    return colors.info;
+    if (challan.isOverdue) return colors.error[500];
+    if (challan.status === "Paid") return colors.success[500];
+    if (challan.status === "Disputed") return colors.warning[500];
+    return colors.info[500];
+  };
+
+  const getStatusBg = () => {
+    if (challan.isOverdue) return colors.error[50];
+    if (challan.status === "Paid") return colors.success[50];
+    if (challan.status === "Disputed") return colors.warning[50];
+    return colors.info[50];
   };
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onPress(challan.challanId)}
-      activeOpacity={0.7}
-    >
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => onPress(challan.challanId)}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1}
+      >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.challanIdLabel}>Challan ID</Text>
@@ -36,9 +69,10 @@ export const ChallanCard: React.FC<ChallanCardProps> = ({
         <View
           style={[
             styles.statusBadge,
-            { backgroundColor: getStatusColor() + "20" },
+            { backgroundColor: getStatusBg() },
           ]}
         >
+          <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
           <Text style={[styles.statusText, { color: getStatusColor() }]}>
             {challan.status}
           </Text>
@@ -99,21 +133,30 @@ export const ChallanCard: React.FC<ChallanCardProps> = ({
           <Text style={styles.overdueText}>⚠️ Overdue</Text>
         </View>
       )}
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
     marginBottom: spacing.md,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow.default,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   header: {
     flexDirection: "row",
@@ -132,30 +175,44 @@ const styles = StyleSheet.create({
   },
   challanId: {
     ...typography.h3,
-    color: colors.primary,
-    fontWeight: "700",
+    color: colors.primary[700],
+    fontWeight: "800",
+    letterSpacing: -0.3,
   },
   plateNumber: {
     ...typography.h4,
-    color: colors.textPrimary,
+    color: colors.text.primary,
+    fontWeight: "700",
     flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.md,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.05)",
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: spacing.xs,
   },
   statusText: {
     ...typography.caption,
     fontWeight: "700",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.sm,
+    backgroundColor: colors.border.light,
+    marginVertical: spacing.md,
   },
   content: {
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   row: {
     flexDirection: "row",
@@ -164,44 +221,53 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
+    color: colors.text.tertiary,
+    fontWeight: "500",
   },
   value: {
     ...typography.bodySmall,
-    color: colors.textPrimary,
-    fontWeight: "600",
+    color: colors.text.primary,
+    fontWeight: "700",
     flex: 1,
     textAlign: "right",
   },
   penalty: {
-    color: colors.error,
+    color: colors.error[600],
     fontSize: 16,
+    fontWeight: "800",
   },
   overdue: {
-    color: colors.error,
+    color: colors.error[600],
   },
   firBadge: {
-    marginTop: spacing.sm,
-    backgroundColor: colors.warning + "20",
-    padding: spacing.sm,
-    borderRadius: borderRadius.sm,
+    marginTop: spacing.md,
+    backgroundColor: colors.warning[50],
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.warning[200],
   },
   firText: {
     ...typography.caption,
-    color: colors.warning,
-    fontWeight: "600",
+    color: colors.warning[700],
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   overdueWarning: {
-    marginTop: spacing.sm,
-    backgroundColor: colors.error + "20",
-    padding: spacing.sm,
-    borderRadius: borderRadius.sm,
+    marginTop: spacing.md,
+    backgroundColor: colors.error[50],
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.error[200],
   },
   overdueText: {
     ...typography.caption,
-    color: colors.error,
-    fontWeight: "700",
+    color: colors.error[700],
+    fontWeight: "800",
+    letterSpacing: 0.3,
   },
 });
+
