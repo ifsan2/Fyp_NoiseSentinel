@@ -17,10 +17,10 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
   isPairing = false,
 }) => {
   const getStatusColor = () => {
-    if (!device.isActive) return colors.error;
-    if (!device.calibrationStatus) return colors.warning;
-    if (device.isPaired) return colors.info;
-    return colors.success;
+    if (!device.isActive) return colors.error[500];
+    if (!device.calibrationStatus) return colors.warning[500];
+    if (device.isPaired) return colors.info[500];
+    return colors.success[500];
   };
 
   const getStatusText = () => {
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.border.default,
   },
   header: {
     marginBottom: spacing.md,
@@ -147,13 +147,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   success: {
-    color: colors.success,
+    color: colors.success[600],
   },
   error: {
-    color: colors.error,
+    color: colors.error[600],
   },
   pairButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary[500],
     borderRadius: borderRadius.md,
     padding: spacing.md,
     alignItems: "center",
@@ -166,3 +166,4 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 });
+

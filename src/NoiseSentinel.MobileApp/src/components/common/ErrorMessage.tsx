@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.error + '10',
     borderWidth: 1,
-    borderColor: colors.error,
+    bordercolor: colors.error[600],
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginVertical: spacing.md,
@@ -39,13 +39,14 @@ const styles = StyleSheet.create({
   },
   message: {
     ...typography.body,
-    color: colors.error,
+    color: colors.error[600],
     textAlign: 'center',
   },
   retryButton: {
     ...typography.bodySmall,
-    color: colors.primary,
+    color: colors.error[700],
     marginTop: spacing.sm,
     textDecorationLine: 'underline',
   },
 });
+

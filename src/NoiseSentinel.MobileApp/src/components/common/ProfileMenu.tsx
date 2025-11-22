@@ -6,10 +6,14 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from "react-native";
+import { Lock, LogOut, User, X } from "lucide-react-native";
 import { colors } from "../../styles/colors";
 import { borderRadius, spacing } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
+
+const { width, height } = Dimensions.get("window");
 
 interface ProfileMenuProps {
   userName?: string;
@@ -44,10 +48,10 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
       <TouchableOpacity
         style={styles.profileButton}
         onPress={() => setVisible(true)}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.avatarIcon}>
-          <Text style={styles.avatarText}>👤</Text>
+          <User size={20} color={colors.white} strokeWidth={2.5} />
         </View>
       </TouchableOpacity>
 
@@ -64,54 +68,57 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           onPress={handleClose}
         >
           <View style={styles.menuContainer}>
+            {/* Close Button */}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleClose}
+              activeOpacity={0.7}
+            >
+              <X size={20} color={colors.white} strokeWidth={2.5} />
+            </TouchableOpacity>
+
             {/* User Info Section */}
             <View style={styles.userInfoSection}>
               <View style={styles.userAvatarLarge}>
                 <Text style={styles.userAvatarLargeText}>👮</Text>
               </View>
-              <Text style={styles.userName}>{userName}</Text>
-              <Text style={styles.userRole}>{userRole}</Text>
+              <Text style={styles.userName}>{userName || "moiz"}</Text>
+              <Text style={styles.userRole}>{userRole || "POLICE OFFICER"}</Text>
             </View>
 
-            <View style={styles.divider} />
-
             {/* Menu Items */}
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleChangePassword}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuIconContainer}>
-                <Text style={styles.menuIcon}>🔒</Text>
-              </View>
-              <View style={styles.menuTextContainer}>
-                <Text style={styles.menuItemText}>Change Password</Text>
-                <Text style={styles.menuItemSubtext}>Update your password</Text>
-              </View>
-              <Text style={styles.menuArrow}>→</Text>
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            <TouchableOpacity
-              style={[styles.menuItem, styles.logoutItem]}
-              onPress={handleLogout}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[styles.menuIconContainer, styles.logoutIconContainer]}
+            <View style={styles.menuItemsContainer}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleChangePassword}
+                activeOpacity={0.8}
               >
-                <Text style={styles.menuIcon}>🚪</Text>
-              </View>
-              <View style={styles.menuTextContainer}>
-                <Text style={[styles.menuItemText, styles.logoutText]}>
-                  Logout
-                </Text>
-                <Text style={styles.menuItemSubtext}>
-                  Sign out of your account
-                </Text>
-              </View>
-            </TouchableOpacity>
+                <View style={styles.menuIconContainer}>
+                  <Lock size={20} color={colors.warning[600]} strokeWidth={2.5} />
+                </View>
+                <View style={styles.menuTextContainer}>
+                  <Text style={styles.menuItemText}>Change Password</Text>
+                  <Text style={styles.menuItemSubtext}>Update your password</Text>
+                </View>
+                <View style={styles.menuArrowContainer}>
+                  <Text style={styles.menuArrow}>→</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.menuItem, styles.logoutItem]}
+                onPress={handleLogout}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.menuIconContainer, styles.logoutIconContainer]}>
+                  <LogOut size={20} color={colors.error[500]} strokeWidth={2.5} />
+                </View>
+                <View style={styles.menuTextContainer}>
+                  <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
+                  <Text style={styles.menuItemSubtext}>Sign out of your account</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -121,128 +128,213 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
 const styles = StyleSheet.create({
   profileButton: {
-    padding: spacing.xs,
+    padding: spacing.xs - 2,
   },
   avatarIcon: {
-    width: 36,
-    height: 36,
-    backgroundColor: colors.secondary,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    backgroundColor: colors.primary[600],
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.secondaryLight,
-  },
-  avatarText: {
-    fontSize: 18,
+    borderColor: colors.primary[400],
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary[500],
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: `0 2px 6px ${colors.primary[500]}30`,
+      },
+    }),
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    backdropFilter: "blur(8px)",
     justifyContent: "flex-start",
     alignItems: "flex-end",
-    paddingTop: Platform.OS === "ios" ? 90 : 70,
+    paddingTop: Platform.OS === "ios" ? 80 : 60,
     paddingRight: spacing.md,
   },
   menuContainer: {
     backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    minWidth: 280,
+    borderRadius: borderRadius.xxl,
+    width: Math.min(width - spacing.xxl, 320),
     maxWidth: 320,
+    overflow: "hidden",
     ...Platform.select({
       ios: {
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowColor: "#64748B",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
       },
       android: {
-        elevation: 8,
+        elevation: 12,
+      },
+      web: {
+        boxShadow: "0 8px 32px rgba(100, 116, 139, 0.12)",
+      },
+    }),
+  },
+  closeButton: {
+    position: "absolute",
+    top: spacing.md,
+    right: spacing.md,
+    width: 32,
+    height: 32,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.15)",
       },
     }),
   },
   userInfoSection: {
     alignItems: "center",
-    padding: spacing.lg,
-    backgroundColor: colors.primary,
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
+    paddingTop: spacing.xl + spacing.md,
+    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.primary[600],
+    position: "relative",
   },
   userAvatarLarge: {
-    width: 64,
-    height: 64,
+    width: 72,
+    height: 72,
     backgroundColor: colors.secondary,
-    borderRadius: 32,
+    borderRadius: 36,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
     borderWidth: 3,
-    borderColor: colors.secondaryLight,
+    borderColor: "rgba(255, 255, 255, 0.25)",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+      web: {
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+      },
+    }),
   },
   userAvatarLargeText: {
-    fontSize: 32,
+    fontSize: 36,
   },
   userName: {
-    ...typography.h4,
+    ...typography.h3,
+    fontSize: 22,
     color: colors.white,
-    fontWeight: "700",
-    marginBottom: 2,
+    fontWeight: "800",
+    marginBottom: 4,
+    letterSpacing: -0.4,
   },
   userRole: {
-    ...typography.caption,
+    ...typography.bodySmall,
+    fontSize: 11,
     color: colors.secondary,
-    fontWeight: "600",
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
+  menuItemsContainer: {
+    padding: spacing.lg,
+    gap: spacing.sm + 2,
+    backgroundColor: colors.background.secondary,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: spacing.md,
+    padding: spacing.md + 4,
     backgroundColor: colors.white,
+    borderRadius: borderRadius.lg,
+    borderWidth: 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#64748B",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: "0 2px 6px rgba(100, 116, 139, 0.04)",
+      },
+    }),
   },
   logoutItem: {
-    borderBottomLeftRadius: borderRadius.lg,
-    borderBottomRightRadius: borderRadius.lg,
+    backgroundColor: colors.error[50],
+    borderWidth: 1,
+    borderColor: colors.error[100],
   },
   menuIconContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: colors.primary + "10",
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    backgroundColor: colors.warning[100],
+    borderRadius: borderRadius.md,
     justifyContent: "center",
     alignItems: "center",
     marginRight: spacing.md,
   },
   logoutIconContainer: {
-    backgroundColor: colors.error + "10",
-  },
-  menuIcon: {
-    fontSize: 20,
+    backgroundColor: colors.error[100],
   },
   menuTextContainer: {
     flex: 1,
   },
   menuItemText: {
     ...typography.bodyMedium,
-    color: colors.textPrimary,
+    fontSize: 15,
+    color: colors.text.primary,
+    fontWeight: "700",
     marginBottom: 2,
+    letterSpacing: -0.2,
   },
   logoutText: {
-    color: colors.error,
-    fontWeight: "600",
+    color: colors.error[600],
   },
   menuItemSubtext: {
     ...typography.caption,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontWeight: "500",
+    letterSpacing: 0,
+  },
+  menuArrowContainer: {
+    marginLeft: spacing.xs,
   },
   menuArrow: {
-    fontSize: 18,
-    color: colors.primary,
+    fontSize: 22,
+    color: colors.primary[600],
     fontWeight: "600",
   },
 });
+
+

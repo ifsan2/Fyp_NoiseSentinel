@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.border.default,
   },
   title: {
     fontSize: 18,
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   badge: {
-    backgroundColor: colors.success,
+    backgroundColor: colors.success[600],
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -199,13 +199,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   valid: {
-    color: colors.success,
+    color: colors.success[600],
   },
   invalid: {
-    color: colors.error,
+    color: colors.error[600],
   },
   unpairButton: {
-    backgroundColor: colors.error,
+    backgroundColor: colors.error[600],
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -220,3 +220,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+
