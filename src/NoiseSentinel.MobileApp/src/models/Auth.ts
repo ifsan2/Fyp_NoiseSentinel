@@ -13,6 +13,36 @@ export interface AuthResponseDto {
   expiresAt: string;
 }
 
+export interface UserDetailsDto {
+  userId: number;
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  roleId?: number;
+  roleName?: string;
+  // For Judge
+  judgeId?: number;
+  cnic?: string;
+  contactNo?: string;
+  rank?: string;
+  courtId?: number;
+  courtName?: string;
+  courtLocation?: string;
+  courtType?: string;
+  // For Police Officer
+  officerId?: number;
+  badgeNumber?: string;
+  isInvestigationOfficer?: boolean;
+  stationId?: number;
+  stationName?: string;
+  stationLocation?: string;
+  stationCode?: string;
+  postingDate?: string;
+}
+
 export interface ChangePasswordDto {
   currentPassword: string;
   newPassword: string;
