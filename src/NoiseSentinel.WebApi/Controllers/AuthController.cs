@@ -16,11 +16,13 @@ namespace NoiseSentinel.WebApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IUserService _userService;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService, IUserService userService, ILogger<AuthController> logger)
     {
         _authService = authService;
+        _userService = userService;
         _logger = logger;
     }
 
@@ -541,20 +543,22 @@ public class AuthController : ControllerBase
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public IActionResult GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var username = User.FindFirstValue(ClaimTypes.Name);
-        var email = User.FindFirstValue(ClaimTypes.Email);
-        var role = User.FindFirstValue(ClaimTypes.Role);
-
-        return Ok(new
+        
+        if (string.IsNullOrEmpty(userId))
         {
-            userId = int.Parse(userId!),
-            username,
-            email,
-            role,
-            claims = User.Claims.Select(c => new { c.Type, c.Value })
-        });
+            return Unauthorized(new { message = "Invalid token" });
+        }
+
+        var result = await _userService.GetUserByIdAsync(int.Parse(userId));
+        
+        if (!result.Success)
+        {
+            return NotFound(new { message = result.Message, errors = result.Errors });
+        }
+
+        return Ok(new { message = "User profile retrieved successfully", data = result.Data });
     }
 }
