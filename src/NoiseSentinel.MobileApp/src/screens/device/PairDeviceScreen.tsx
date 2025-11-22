@@ -202,7 +202,7 @@ export const PairDeviceScreen: React.FC<PairDeviceScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   loadingContainer: {
     flex: 1,
@@ -216,3 +216,5 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
 });
+
+

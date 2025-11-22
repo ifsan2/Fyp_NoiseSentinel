@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { Scan } from "lucide-react-native";
 import { Header } from "../../components/common/Header";
 import { Input } from "../../components/common/Input";
 import { Button } from "../../components/common/Button";
@@ -160,8 +161,8 @@ export const CreateEmissionReportScreen: React.FC<
 
   const getSoundLevelColor = () => {
     const level = parseFloat(soundLevel);
-    if (isNaN(level)) return colors.textSecondary;
-    return level > SOUND_THRESHOLD ? colors.error : colors.success;
+    if (isNaN(level)) return colors.text.secondary;
+    return level > SOUND_THRESHOLD ? colors.error[500] : colors.success[500];
   };
 
   const getSoundLevelStatus = () => {
@@ -202,7 +203,10 @@ export const CreateEmissionReportScreen: React.FC<
 
           {/* Scan Button */}
           <Card>
-            <Text style={styles.sectionTitle}>� Scan Vehicle Emissions</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Scan size={20} color={colors.primary[600]} strokeWidth={2.5} />
+              <Text style={styles.sectionTitle}>Scan Vehicle Emissions</Text>
+            </View>
             <Button
               title={scanned ? "✓ Scanned - Data Captured" : "🔍 Start Scan"}
               onPress={handleScan}
@@ -316,7 +320,7 @@ export const CreateEmissionReportScreen: React.FC<
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   loadingContainer: {
     flex: 1,
@@ -338,7 +342,7 @@ const styles = StyleSheet.create({
   },
   deviceValue: {
     ...typography.h4,
-    color: colors.primary,
+    color: colors.primary[500],
     marginBottom: spacing.xs,
   },
   deviceHint: {
@@ -346,17 +350,22 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontStyle: "italic",
   },
+  sectionTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
   sectionTitle: {
     ...typography.h4,
     color: colors.textPrimary,
-    marginBottom: spacing.md,
   },
   scanButton: {
     marginBottom: spacing.sm,
   },
   scanNote: {
     ...typography.bodySmall,
-    color: colors.info,
+    color: colors.info[600],
     textAlign: "center",
     marginTop: spacing.sm,
   },
@@ -375,3 +384,5 @@ const styles = StyleSheet.create({
     marginVertical: spacing.lg,
   },
 });
+
+

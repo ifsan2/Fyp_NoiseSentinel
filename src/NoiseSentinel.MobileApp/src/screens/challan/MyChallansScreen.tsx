@@ -91,8 +91,8 @@ export const MyChallansScreen: React.FC<MyChallansScreenProps> = ({ navigation }
     <View style={styles.container}>
       <Header
         title="My Challans"
-        showBack
-        onBackPress={() => navigation.goBack()}
+        // showBack - Removed for tab view
+        // onBackPress={() => navigation.goBack()}
       />
 
       {/* Filters */}
@@ -150,12 +150,12 @@ export const MyChallansScreen: React.FC<MyChallansScreenProps> = ({ navigation }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   filtersContainer: {
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.border.default,
   },
   filtersList: {
     paddingHorizontal: spacing.md,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   filterButtonActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary[500],
   },
   filterText: {
     ...typography.bodySmall,
@@ -181,5 +181,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.md,
+    paddingBottom: 100, // Space for floating tab bar
   },
 });
+

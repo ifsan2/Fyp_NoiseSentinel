@@ -214,7 +214,7 @@ export const SearchAccusedScreen: React.FC<SearchAccusedScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   content: {
     flex: 1,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.h2,
-    color: colors.primary,
+    color: colors.primary[500],
   },
   statLabel: {
     ...typography.caption,
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     borderRadius: spacing.sm,
     marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.border.default,
   },
   challanHeader: {
     flexDirection: "row",
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   challanId: {
     ...typography.bodySmall,
-    color: colors.primary,
+    color: colors.primary[500],
     fontWeight: "700",
   },
   challanViolation: {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   challanAmount: {
     ...typography.body,
-    color: colors.error,
+    color: colors.error[600],
     fontWeight: "700",
   },
   challanDetails: {
@@ -319,13 +319,15 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     ...typography.caption,
-    color: colors.info,
+    color: colors.info[600],
     fontWeight: "600",
   },
   statusPaid: {
-    color: colors.success,
+    color: colors.success[600],
   },
   statusOverdue: {
-    color: colors.error,
+    color: colors.error[600],
   },
 });
+
+

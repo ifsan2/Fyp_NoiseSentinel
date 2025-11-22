@@ -574,14 +574,17 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       <Card>
         <Text style={styles.cardTitle}>🔍 Search Existing Vehicle</Text>
         <View style={styles.searchRow}>
-          <Input
-            placeholder="Enter plate number (e.g., PK-ABC-123)"
-            value={vehicleSearchPlate}
-            onChangeText={setVehicleSearchPlate}
-            autoCapitalize="characters"
-            style={styles.searchInput}
-          />
-          <Button title="Search" onPress={handleSearchVehicle} size="small" />
+          <View style={styles.searchInputWrapper}>
+            <Input
+              placeholder="Enter plate number (e.g., PK-ABC-123)"
+              value={vehicleSearchPlate}
+              onChangeText={setVehicleSearchPlate}
+              autoCapitalize="characters"
+            />
+          </View>
+          <View style={styles.searchButtonWrapper}>
+            <Button title="Search" onPress={handleSearchVehicle} size="small" />
+          </View>
         </View>
       </Card>
 
@@ -654,14 +657,17 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       <Card>
         <Text style={styles.cardTitle}>🔍 Search Existing Person</Text>
         <View style={styles.searchRow}>
-          <Input
-            placeholder="Enter CNIC (12345-1234567-1)"
-            value={accusedSearchCnic}
-            onChangeText={setAccusedSearchCnic}
-            keyboardType="numeric"
-            style={styles.searchInput}
-          />
-          <Button title="Search" onPress={handleSearchAccused} size="small" />
+          <View style={styles.searchInputWrapper}>
+            <Input
+              placeholder="Enter CNIC (12345-1234567-1)"
+              value={accusedSearchCnic}
+              onChangeText={setAccusedSearchCnic}
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={styles.searchButtonWrapper}>
+            <Button title="Search" onPress={handleSearchAccused} size="small" />
+          </View>
         </View>
       </Card>
 
@@ -878,7 +884,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   stepIndicator: {
     flexDirection: "row",
@@ -898,19 +904,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: spacing.sm,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: colors.border.default,
   },
   stepDotActive: {
     backgroundColor: colors.primaryLight + "30",
     borderColor: colors.primaryLight,
   },
   stepDotCurrent: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary[500],
     borderColor: colors.secondary,
     borderWidth: 3,
     ...Platform.select({
       ios: {
-        shadowColor: colors.primary,
+        shadowColor: colors.primary[500],
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 4,
@@ -934,7 +940,7 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     ...typography.h2,
-    color: colors.primary,
+    color: colors.primary[500],
     marginBottom: spacing.md,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -942,7 +948,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     ...typography.h4,
-    color: colors.primary,
+    color: colors.primary[500],
     marginBottom: spacing.md,
     fontWeight: "700",
   },
@@ -950,13 +956,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     gap: spacing.sm,
+    marginBottom: spacing.md,
   },
-  searchInput: {
+  searchInputWrapper: {
     flex: 1,
+  },
+  searchButtonWrapper: {
+    marginBottom: spacing.md,
   },
   reviewTitle: {
     ...typography.h3,
-    color: colors.primary,
+    color: colors.primary[500],
     marginBottom: spacing.lg,
     textAlign: "center",
     fontWeight: "700",
@@ -1021,7 +1031,7 @@ const styles = StyleSheet.create({
   },
   removeImageButton: {
     marginTop: spacing.md,
-    backgroundColor: colors.error,
+    backgroundColor: colors.error[600],
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.md,
@@ -1055,3 +1065,5 @@ const styles = StyleSheet.create({
     }),
   },
 });
+
+

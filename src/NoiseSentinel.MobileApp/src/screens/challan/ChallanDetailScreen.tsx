@@ -86,10 +86,10 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
   }
 
   const getStatusColor = () => {
-    if (challan.isOverdue) return colors.error;
-    if (challan.status === "Paid") return colors.success;
-    if (challan.status === "Disputed") return colors.warning;
-    return colors.info;
+    if (challan.isOverdue) return colors.error[500];
+    if (challan.status === "Paid") return colors.success[500];
+    if (challan.status === "Disputed") return colors.warning[500];
+    return colors.info[500];
   };
 
   return (
@@ -319,7 +319,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   content: {
     flex: 1,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   challanIdValue: {
     ...typography.h1,
-    color: colors.primary,
+    color: colors.primary[500],
     fontWeight: "700",
     fontSize: 32,
   },
@@ -394,46 +394,46 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray100,
   },
   violation: {
-    color: colors.error,
+    color: colors.error[600],
   },
   penalty: {
-    color: colors.error,
+    color: colors.error[600],
     fontSize: 18,
   },
   soundLevel: {
-    color: colors.error,
+    color: colors.error[600],
     fontWeight: "700",
   },
   overdue: {
-    color: colors.error,
+    color: colors.error[600],
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.border.default,
     marginVertical: spacing.sm,
   },
   cognizableBadge: {
     marginTop: spacing.sm,
-    backgroundColor: colors.warning + "20",
+    backgroundColor: colors.warning[500] + "20",
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
     alignItems: "center",
   },
   cognizableText: {
     ...typography.body,
-    color: colors.warning,
+    color: colors.warning[600],
     fontWeight: "700",
   },
   integrityBadge: {
     marginTop: spacing.sm,
-    backgroundColor: colors.success + "20",
+    backgroundColor: colors.success[500] + "20",
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
     alignItems: "center",
   },
   integrityText: {
     ...typography.caption,
-    color: colors.success,
+    color: colors.success[600],
     fontWeight: "600",
   },
   firCard: {
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   },
   firTitle: {
     ...typography.h3,
-    color: colors.warning,
+    color: colors.warning[600],
     marginBottom: spacing.sm,
   },
   firText: {
@@ -469,3 +469,5 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
 });
+
+

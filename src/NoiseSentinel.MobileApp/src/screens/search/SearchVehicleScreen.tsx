@@ -193,7 +193,7 @@ export const SearchVehicleScreen: React.FC<SearchVehicleScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   content: {
     flex: 1,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.h2,
-    color: colors.primary,
+    color: colors.primary[500],
   },
   statLabel: {
     ...typography.caption,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   challanItem: {
-    backgroundColor: colors.gray100,
+    backgroundColor: colors.neutral[100],
     padding: spacing.sm,
     borderRadius: spacing.xs,
     marginBottom: spacing.xs,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   challanId: {
     ...typography.bodySmall,
-    color: colors.primary,
+    color: colors.primary[500],
     fontWeight: "700",
   },
   challanText: {
@@ -274,3 +274,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 });
+
+

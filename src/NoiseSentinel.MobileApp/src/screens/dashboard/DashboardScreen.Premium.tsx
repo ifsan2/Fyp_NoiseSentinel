@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
-  Animated as RNAnimated,
+  Animated,
   Platform,
   RefreshControl,
   ScrollView,
@@ -10,11 +10,8 @@ import {
   View,
   Dimensions,
 } from "react-native";
-import Reanimated, { FadeInUp, Layout } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
-import { Link, BarChart3, FileText, History, Search, User as UserIcon, Car, AlertTriangle } from "lucide-react-native";
 import challanApi from "../../api/challanApi";
-import { SkeletonCard, SkeletonStat, SkeletonList } from "../../components/common/Skeleton";
 import { Card } from "../../components/common/Card";
 import { Header } from "../../components/common/Header";
 import { ProfileMenu } from "../../components/common/ProfileMenu";
@@ -36,8 +33,7 @@ interface DashboardScreenProps {
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   navigation,
 }) => {
-  const { user, userDetails, logout } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { user, logout } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
     totalChallans: 0,
@@ -45,20 +41,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   });
 
   // Animation values
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-  const slideAnim = useRef(new RNAnimated.Value(30)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     loadDashboardData();
 
     // Entrance animation
-    RNAnimated.parallel([
-      RNAnimated.timing(fadeAnim, {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 600,
         useNativeDriver: true,
       }),
-      RNAnimated.spring(slideAnim, {
+      Animated.spring(slideAnim, {
         toValue: 0,
         speed: 12,
         bounciness: 6,
@@ -85,8 +81,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       });
     } catch (error) {
       console.error("Error loading dashboard data:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -108,25 +102,25 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const quickActions = [
     {
       title: "Pair Device",
-      IconComponent: Link,
+      icon: "🔗",
       gradient: [colors.primary[600], colors.primary[700]],
       onPress: () => navigation.navigate("PairDevice"),
     },
     {
       title: "Generate Report",
-      IconComponent: BarChart3,
+      icon: "📊",
       gradient: [colors.accent[500], colors.accent[600]],
       onPress: () => navigation.navigate("CreateEmissionReport"),
     },
     {
       title: "Create Challan",
-      IconComponent: FileText,
+      icon: "📝",
       gradient: [colors.primary[500], colors.primary[600]],
       onPress: () => navigation.navigate("CreateChallan"),
     },
     {
       title: "My Challans",
-      IconComponent: History,
+      icon: "📋",
       gradient: [colors.accent[600], colors.accent[700]],
       onPress: () => navigation.navigate("MyChallans"),
     },
@@ -136,21 +130,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     {
       title: "Search Vehicle",
       description: "Find vehicle records",
-      IconComponent: Car,
+      icon: "🚗",
       color: colors.primary[600],
       onPress: () => navigation.navigate("SearchVehicle"),
     },
     {
       title: "Search Accused",
       description: "Find accused records",
-      IconComponent: UserIcon,
+      icon: "👤",
       color: colors.accent[600],
       onPress: () => navigation.navigate("SearchAccused"),
     },
     {
       title: "Violations List",
       description: "View all violations",
-      IconComponent: AlertTriangle,
+      icon: "⚠️",
       color: colors.warning[500],
       onPress: () => navigation.navigate("Violations"),
     },
@@ -170,8 +164,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         variant="elevated"
         rightComponent={
           <ProfileMenu
-            userName={userDetails?.fullName || user?.fullName}
-            userRole={userDetails?.role || user?.role}
+            userName={user?.fullName}
+            userRole={user?.role}
             onChangePassword={() => navigation.navigate("ChangePassword")}
             onLogout={handleLogout}
           />
@@ -191,42 +185,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         }
         showsVerticalScrollIndicator={false}
       >
-        <RNAnimated.View
+        <Animated.View
           style={{
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
           }}
         >
           {/* Premium Officer Card with glassmorphism */}
-          <Reanimated.View entering={FadeInUp.duration(600)} layout={Layout.springify()}>
-            <Card style={styles.officerCard} variant="glass">
+          <Card style={styles.officerCard} variant="glass">
             <View style={styles.officerHeader}>
               <View style={styles.avatarContainer}>
                 <View style={styles.avatarGlow} />
                 <View style={styles.avatarInner}>
-                  <UserIcon size={40} color={colors.primary[600]} strokeWidth={2} />
+                  <Text style={styles.avatarText}>👮</Text>
                 </View>
               </View>
               <View style={styles.officerInfo}>
-                <Text style={styles.officerName}>{userDetails?.fullName || user?.fullName}</Text>
+                <Text style={styles.officerName}>{user?.fullName}</Text>
                 <View style={styles.roleContainer}>
                   <View style={styles.roleDot} />
-                  <Text style={styles.officerRole}>{userDetails?.role?.toUpperCase() || user?.role?.toUpperCase()}</Text>
+                  <Text style={styles.officerRole}>{user?.role}</Text>
                 </View>
-                {userDetails?.rank && (
-                  <Text style={styles.officerBadge}>
-                    {userDetails.rank}
-                  </Text>
-                )}
-                {userDetails?.badgeNumber && (
-                  <Text style={styles.officerBadge}>
-                    Badge • {userDetails.badgeNumber}
-                  </Text>
-                )}
+                <Text style={styles.officerBadge}>
+                  Badge • {user?.username?.toUpperCase()}
+                </Text>
               </View>
             </View>
-            </Card>
-          </Reanimated.View>
+          </Card>
 
           {/* Premium Statistics Grid */}
           <View style={styles.section}>
@@ -241,34 +226,36 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               </View>
             </View>
 
-            {loading ? (
-              <View style={styles.statsGrid}>
-                <SkeletonStat />
-                <SkeletonStat />
-              </View>
-            ) : (
-              <View style={styles.statsGrid}>
-                <Reanimated.View entering={FadeInUp.duration(500).delay(50)} layout={Layout.springify()} style={styles.statCardWrapper}>
-                  <View style={styles.statCard}>
-                    <View style={styles.statIconContainer}>
-                      <FileText size={28} color={colors.primary[600]} strokeWidth={2.5} />
-                    </View>
-                    <Text style={styles.statValue}>{stats.todayChallans}</Text>
-                    <Text style={styles.statLabel}>Today's Challans</Text>
-                  </View>
-                </Reanimated.View>
+            <View style={styles.statsGrid}>
+              <Card style={styles.statCard} variant="elevated">
+                <View style={styles.statIconContainer}>
+                  <View style={styles.statIconGlow} />
+                  <Text style={styles.statIcon}>📝</Text>
+                </View>
+                <Text style={styles.statValue}>{stats.todayChallans}</Text>
+                <Text style={styles.statLabel}>Today's Challans</Text>
+                <View style={styles.statProgress}>
+                  <View
+                    style={[
+                      styles.statProgressBar,
+                      { width: `${Math.min((stats.todayChallans / 10) * 100, 100)}%` },
+                    ]}
+                  />
+                </View>
+              </Card>
 
-                <Reanimated.View entering={FadeInUp.duration(500).delay(120)} layout={Layout.springify()} style={styles.statCardWrapper}>
-                  <View style={styles.statCard}>
-                    <View style={styles.statIconContainer}>
-                      <BarChart3 size={28} color={colors.accent[600]} strokeWidth={2.5} />
-                    </View>
-                    <Text style={styles.statValue}>{stats.totalChallans}</Text>
-                    <Text style={styles.statLabel}>Total Issued</Text>
-                  </View>
-                </Reanimated.View>
-              </View>
-            )}
+              <Card style={styles.statCard} variant="elevated">
+                <View style={styles.statIconContainer}>
+                  <View style={styles.statIconGlow} />
+                  <Text style={styles.statIcon}>📊</Text>
+                </View>
+                <Text style={styles.statValue}>{stats.totalChallans}</Text>
+                <Text style={styles.statLabel}>Total Issued</Text>
+                <View style={styles.statProgress}>
+                  <View style={[styles.statProgressBar, { width: "100%" }]} />
+                </View>
+              </Card>
+            </View>
           </View>
 
           {/* Premium Quick Actions Grid */}
@@ -282,23 +269,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
             <View style={styles.actionsGrid}>
               {quickActions.map((action, index) => (
-                <Reanimated.View key={index} entering={FadeInUp.duration(500).delay(200 + index * 60)} layout={Layout.springify()}>
-                  <TouchableOpacity
-                    style={styles.actionCard}
-                    onPress={action.onPress}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.actionCardInner}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.actionCard}
+                  onPress={action.onPress}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.actionCardInner}>
                     <View style={styles.actionIconContainer}>
-                      <action.IconComponent size={28} color={colors.accent[600]} strokeWidth={2} />
+                      <Text style={styles.actionIcon}>{action.icon}</Text>
                     </View>
-                      <Text style={styles.actionTitle}>{action.title}</Text>
-                      <View style={styles.actionArrow}>
-                        <Text style={styles.actionArrowText}>→</Text>
-                      </View>
+                    <Text style={styles.actionTitle}>{action.title}</Text>
+                    <View style={styles.actionArrow}>
+                      <Text style={styles.actionArrowText}>→</Text>
                     </View>
-                  </TouchableOpacity>
-                </Reanimated.View>
+                  </View>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
@@ -313,24 +299,23 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             </View>
 
             {searchActions.map((action, index) => (
-              <Reanimated.View key={index} entering={FadeInUp.duration(500).delay(420 + index * 60)} layout={Layout.springify()}>
-                <TouchableOpacity
-                  style={styles.searchCard}
-                  onPress={action.onPress}
-                  activeOpacity={0.8}
-                >
+              <TouchableOpacity
+                key={index}
+                style={styles.searchCard}
+                onPress={action.onPress}
+                activeOpacity={0.8}
+              >
                 <View style={[styles.searchIconContainer, { backgroundColor: `${action.color}15` }]}>
-                  <action.IconComponent size={24} color={action.color} strokeWidth={2} />
+                  <Text style={styles.searchIcon}>{action.icon}</Text>
                 </View>
-                  <View style={styles.searchContent}>
-                    <Text style={styles.searchTitle}>{action.title}</Text>
-                    <Text style={styles.searchDescription}>{action.description}</Text>
-                  </View>
-                  <View style={styles.searchArrow}>
-                    <Text style={styles.searchArrowText}>→</Text>
-                  </View>
-                </TouchableOpacity>
-              </Reanimated.View>
+                <View style={styles.searchContent}>
+                  <Text style={styles.searchTitle}>{action.title}</Text>
+                  <Text style={styles.searchDescription}>{action.description}</Text>
+                </View>
+                <View style={styles.searchArrow}>
+                  <Text style={styles.searchArrowText}>→</Text>
+                </View>
+              </TouchableOpacity>
             ))}
           </View>
 
@@ -344,10 +329,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               Authorized Personnel Only • {new Date().getFullYear()}
             </Text>
           </View>
-          
-          {/* Spacer for bottom tab bar - 8pt grid system */}
-          <View style={{ height: 96 }} />
-        </RNAnimated.View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -356,7 +338,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.background.secondary,
   },
   backgroundGradient: {
     ...StyleSheet.absoluteFillObject,
@@ -386,8 +368,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
+    padding: spacing.md,
+    paddingBottom: spacing.xxl,
   },
   officerCard: {
     marginBottom: spacing.lg,
@@ -517,65 +499,47 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: spacing.md,
   },
   statCard: {
-    width: (width - spacing.md * 3) / 2,
-    padding: spacing.xl,
-    backgroundColor: "#FFFFFF",
-    borderRadius: borderRadius.xxl,
-    borderWidth: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#64748B",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: "0 4px 16px rgba(100, 116, 139, 0.06)",
-      },
-    }),
+    flex: 1,
+    padding: spacing.lg,
+    backgroundColor: colors.white,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary[600],
   },
   statIconContainer: {
     position: "relative",
-    width: 56,
-    height: 56,
+    width: 50,
+    height: 50,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: spacing.md,
-    borderRadius: 16,
-    backgroundColor: colors.background.secondary,
+    marginBottom: spacing.sm,
   },
   statIconGlow: {
     position: "absolute",
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: colors.primary[100],
-    opacity: 0.3,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.primary[500],
+    opacity: 0.15,
   },
   statIcon: {
     fontSize: 28,
   },
   statValue: {
     ...typography.display,
-    fontSize: 48,
-    color: colors.text.primary,
-    fontWeight: "800",
-    marginBottom: spacing.xs,
-    letterSpacing: -1.5,
-    lineHeight: 52,
+    fontSize: 36,
+    color: colors.primary[700],
+    fontWeight: "900",
+    marginBottom: 2,
+    letterSpacing: -1,
   },
   statLabel: {
-    ...typography.bodySmall,
+    ...typography.captionMedium,
     color: colors.text.secondary,
-    fontWeight: "600",
-    letterSpacing: 0,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
     marginBottom: spacing.sm,
   },
   statProgress: {
@@ -622,10 +586,13 @@ const styles = StyleSheet.create({
   actionIconContainer: {
     width: 56,
     height: 56,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.primary[50],
     borderRadius: borderRadius.lg,
     justifyContent: "center",
     alignItems: "center",
+  },
+  actionIcon: {
+    fontSize: 32,
   },
   actionTitle: {
     ...typography.bodyMedium,
@@ -669,6 +636,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: spacing.md,
+  },
+  searchIcon: {
+    fontSize: 24,
   },
   searchContent: {
     flex: 1,

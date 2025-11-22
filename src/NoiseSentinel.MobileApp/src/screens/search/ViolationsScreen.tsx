@@ -165,13 +165,13 @@ export const ViolationsScreen: React.FC<ViolationsScreenProps> = ({ navigation }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   filterContainer: {
     flexDirection: 'row',
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.border.default,
   },
   filterTab: {
     flex: 1,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   filterTabActive: {
-    borderBottomColor: colors.primary,
+    borderBottomColor: colors.primary[600],
   },
   filterText: {
     ...typography.body,
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   filterTextActive: {
-    color: colors.primary,
+    color: colors.primary[600],
   },
   listContent: {
     padding: spacing.md,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cognizableBadge: {
-    backgroundColor: colors.warning + '20',
+    backgroundColor: colors.warning[500] + '20',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   cognizableText: {
     ...typography.caption,
-    color: colors.warning,
+    color: colors.warning[600],
     fontWeight: '700',
   },
   description: {
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.border.default,
     marginVertical: spacing.sm,
   },
   violationFooter: {
@@ -244,10 +244,10 @@ const styles = StyleSheet.create({
   },
   penaltyAmount: {
     ...typography.h3,
-    color: colors.error,
+    color: colors.error[600],
   },
   statsContainer: {
-    backgroundColor: colors.gray100,
+    backgroundColor: colors.neutral[100],
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
   },
@@ -257,12 +257,13 @@ const styles = StyleSheet.create({
   },
   cognizableInfo: {
     marginTop: spacing.sm,
-    backgroundColor: colors.info + '10',
+    backgroundColor: colors.info[500] + '10',
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
   },
   cognizableInfoText: {
     ...typography.caption,
-    color: colors.info,
+    color: colors.info[600],
   },
 });
+

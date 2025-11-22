@@ -253,7 +253,7 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.secondary,
   },
   content: {
     flex: 1,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     paddingBottom: spacing.lg,
     borderBottomWidth: 2,
-    borderBottomColor: colors.secondary,
+    borderBottomColor: colors.secondary[500],
   },
   lockIcon: {
     fontSize: 56,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.primary,
+    color: colors.primary[500],
     fontWeight: "700",
     marginBottom: spacing.xs,
     textAlign: "center",
@@ -287,16 +287,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   requirementsSection: {
-    backgroundColor: colors.primary + "08",
+    backgroundColor: colors.primary[500] + "08",
     padding: spacing.md,
     borderRadius: borderRadius.md,
     marginBottom: spacing.xl,
     borderLeftWidth: 4,
-    borderLeftColor: colors.primary,
+    borderLeftColor: colors.primary[600],
   },
   requirementsTitle: {
     ...typography.bodySemibold,
-    color: colors.primary,
+    color: colors.primary[500],
     marginBottom: spacing.sm,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   requirementBullet: {
     ...typography.bodySmall,
-    color: colors.primary,
+    color: colors.primary[500],
     marginRight: spacing.sm,
     fontWeight: "700",
   },
@@ -322,3 +322,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
 });
+
+
