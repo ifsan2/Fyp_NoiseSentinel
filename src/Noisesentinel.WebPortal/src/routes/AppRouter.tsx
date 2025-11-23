@@ -1,24 +1,27 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Loading } from '@/components/common/Loading';
-import { PrivateRoute } from './PrivateRoute';
-import { AdminLayout } from '@/components/layout/AdminLayout';
-import { StationRoutes } from './StationRoutes'; // ✅ ADD
-import { ROUTES, ROLES } from '@/utils/constants';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loading } from "@/components/common/Loading";
+import { PrivateRoute } from "./PrivateRoute";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import { StationRoutes } from "./StationRoutes"; // ✅ ADD
+import { ROUTES, ROLES } from "@/utils/constants";
 
 // Auth Pages
-import { LoginPage } from '@/pages/auth/LoginPage';
-import { RegisterAdminPage } from '@/pages/auth/RegisterAdminPage';
+import { LoginPage } from "@/pages/auth/LoginPage";
+import { RegisterAdminPage } from "@/pages/auth/RegisterAdminPage";
+
+// Public Pages
+import { PublicChallanSearchPage } from "@/pages/public/PublicChallanSearchPage";
 
 // Admin Pages
-import { DashboardPage } from '@/pages/admin/DashboardPage';
-import { CreateCourtAuthorityPage } from '@/pages/admin/CreateCourtAuthorityPage';
-import { CreateStationAuthorityPage } from '@/pages/admin/CreateStationAuthorityPage';
-import { CreateAdminPage } from '@/pages/admin/CreateAdminPage';
-import { ViewUsersPage } from '@/pages/admin/ViewUsersPage';
-import { ProfilePage } from '@/pages/admin/ProfilePage';
-import { ChangePasswordPage } from '@/pages/admin/ChangePasswordPage';
+import { DashboardPage } from "@/pages/admin/DashboardPage";
+import { CreateCourtAuthorityPage } from "@/pages/admin/CreateCourtAuthorityPage";
+import { CreateStationAuthorityPage } from "@/pages/admin/CreateStationAuthorityPage";
+import { CreateAdminPage } from "@/pages/admin/CreateAdminPage";
+import { ViewUsersPage } from "@/pages/admin/ViewUsersPage";
+import { ProfilePage } from "@/pages/admin/ProfilePage";
+import { ChangePasswordPage } from "@/pages/admin/ChangePasswordPage";
 
 // ✅ Role-Based Redirect Component
 const RoleBasedRedirect: React.FC = () => {
@@ -89,6 +92,9 @@ export const AppRouter: React.FC = () => {
           }
         />
 
+        {/* Public Challan Search - No Authentication Required */}
+        <Route path="/search-challans" element={<PublicChallanSearchPage />} />
+
         {/* Root Route - Role-Based Redirect */}
         <Route
           path="/"
@@ -111,8 +117,14 @@ export const AppRouter: React.FC = () => {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="view-users" element={<ViewUsersPage />} />
-          <Route path="create-court-authority" element={<CreateCourtAuthorityPage />} />
-          <Route path="create-station-authority" element={<CreateStationAuthorityPage />} />
+          <Route
+            path="create-court-authority"
+            element={<CreateCourtAuthorityPage />}
+          />
+          <Route
+            path="create-station-authority"
+            element={<CreateStationAuthorityPage />}
+          />
           <Route path="create-admin" element={<CreateAdminPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="change-password" element={<ChangePasswordPage />} />
@@ -164,7 +176,7 @@ export const AppRouter: React.FC = () => {
 // ✅ Placeholder components (temporary)
 const CourtAuthorityPlaceholder: React.FC = () => {
   return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
+    <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>🏛️ Court Authority Portal</h1>
       <p>Coming Soon...</p>
     </div>
@@ -174,7 +186,7 @@ const CourtAuthorityPlaceholder: React.FC = () => {
 const CourtDashboardPlaceholder: React.FC = () => {
   const { user, logout } = useAuth();
   return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
+    <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>🏛️ Court Authority Dashboard</h1>
       <p>Welcome, {user?.fullName}!</p>
       <p>Role: {user?.role}</p>
@@ -186,7 +198,7 @@ const CourtDashboardPlaceholder: React.FC = () => {
 
 const JudgePlaceholder: React.FC = () => {
   return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
+    <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>⚖️ Judge Portal</h1>
       <p>Coming Soon...</p>
     </div>
@@ -196,7 +208,7 @@ const JudgePlaceholder: React.FC = () => {
 const JudgeDashboardPlaceholder: React.FC = () => {
   const { user, logout } = useAuth();
   return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
+    <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>⚖️ Judge Dashboard</h1>
       <p>Welcome, {user?.fullName}!</p>
       <p>Role: {user?.role}</p>

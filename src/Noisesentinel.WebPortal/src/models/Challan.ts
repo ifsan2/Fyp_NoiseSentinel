@@ -4,7 +4,7 @@ export interface ChallanDto {
   challanId: number;
 
   // Officer Info
-  officerId: number;
+  officerId?: number;
   officerName?: string;
   badgeNumber?: string;
   officerBadgeNumber?: string;
@@ -15,6 +15,9 @@ export interface ChallanDto {
   accusedName?: string;
   accusedCnic?: string;
   accusedContact?: string;
+  accusedAddress?: string;
+  accusedCity?: string;
+  accusedProvince?: string;
 
   // Vehicle Info
   vehicleId: number;
@@ -22,6 +25,7 @@ export interface ChallanDto {
   vehiclePlateNumber?: string; // Backend uses this property name
   vehicleMake?: string;
   vehicleColor?: string;
+  vehicleMakeYear?: string;
 
   // Violation Info
   violationId: number;
