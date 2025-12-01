@@ -421,21 +421,38 @@ public class ChallanService : IChallanService
         return new ChallanListItemDto
         {
             ChallanId = challan.ChallanId,
+            OfficerId = challan.OfficerId,
             OfficerName = challan.Officer?.User?.FullName ?? string.Empty,
             OfficerBadgeNumber = challan.Officer?.BadgeNumber,
             OfficerRank = challan.Officer?.Rank,
             AccusedName = challan.Accused?.FullName ?? string.Empty,
             AccusedCnic = challan.Accused?.Cnic ?? string.Empty,
+            AccusedContact = challan.Accused?.Contact,
+            AccusedAddress = challan.Accused?.Address,
+            AccusedCity = challan.Accused?.City,
+            AccusedProvince = challan.Accused?.Province,
             VehiclePlateNumber = challan.Vehicle?.PlateNumber ?? string.Empty,
+            VehicleMake = challan.Vehicle?.Make,
+            VehicleColor = challan.Vehicle?.Color,
+            VehicleMakeYear = challan.Vehicle?.VehRegYear,
             ViolationType = challan.Violation?.ViolationType ?? string.Empty,
             PenaltyAmount = challan.Violation?.PenaltyAmount ?? 0,
+            IsCognizable = challan.Violation?.IsCognizable ?? false,
             IssueDateTime = challan.IssueDateTime ?? DateTime.MinValue,
             DueDateTime = challan.DueDateTime ?? DateTime.MinValue,
             Status = challan.Status ?? string.Empty,
+            StationId = challan.Officer?.StationId,
             StationName = challan.Officer?.Station?.StationName ?? string.Empty,
             EvidencePath = DecompressEvidenceImage(challan.EvidencePath),
             IsOverdue = isOverdue,
-            HasFir = challan.Firs?.Any() ?? false
+            HasFir = challan.Firs?.Any() ?? false,
+            
+            // Emission Report fields
+            EmissionReportId = challan.EmissionReportId,
+            DeviceName = challan.EmissionReport?.Device?.DeviceName,
+            SoundLevelDBa = challan.EmissionReport?.SoundLevelDBa,
+            MlClassification = challan.EmissionReport?.MlClassification,
+            EmissionTestDateTime = challan.EmissionReport?.TestDateTime
         };
     }
 

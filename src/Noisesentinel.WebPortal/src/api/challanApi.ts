@@ -1,6 +1,6 @@
-import apiClient from './axios.config';
-import { ChallanDto } from '@/models/Challan';
-import { ApiResponse } from '@/models/ApiResponse';
+import apiClient from "./axios.config";
+import { ChallanDto } from "@/models/Challan";
+import { ApiResponse } from "@/models/ApiResponse";
 
 class ChallanApi {
   /**
@@ -8,7 +8,7 @@ class ChallanApi {
    */
   async getAllChallans(): Promise<ChallanDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      '/Challan/list'
+      "/Challan/list"
     );
     return response.data.data || [];
   }
@@ -48,7 +48,7 @@ class ChallanApi {
    */
   async getOverdueChallans(): Promise<ChallanDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      '/Challan/overdue'
+      "/Challan/overdue"
     );
     return response.data.data || [];
   }
@@ -69,6 +69,24 @@ class ChallanApi {
   async getChallansByAccused(accusedId: number): Promise<ChallanDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
       `/Challan/accused/${accusedId}`
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Public search: Search challans by vehicle plate number and CNIC
+   * No authentication required
+   */
+  async searchChallansByPlateAndCnic(
+    plateNumber: string,
+    cnic: string
+  ): Promise<ChallanDto[]> {
+    const response = await apiClient.post<ApiResponse<ChallanDto[]>>(
+      "/Challan/public/search",
+      {
+        plateNumber,
+        cnic,
+      }
     );
     return response.data.data || [];
   }
