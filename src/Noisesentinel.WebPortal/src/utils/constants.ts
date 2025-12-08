@@ -49,21 +49,24 @@ export const ROUTES = {
   PROFILE: "/admin/profile",
   CHANGE_PASSWORD: "/admin/change-password",
 
-  // ✅ ADD: Court Authority Routes
+  // ✅ Court Authority Routes
   COURT_DASHBOARD: "/court/dashboard",
   COURT_PROFILE: "/court/profile",
   COURT_CHANGE_PASSWORD: "/court/change-password",
 
-  // ✅ ADD: Station Authority Routes
+  // ✅ Station Authority Routes
   STATION_DASHBOARD: "/station/dashboard",
   STATION_PROFILE: "/station/profile",
   STATION_CHANGE_PASSWORD: "/station/change-password",
 
-  // ✅ ADD: Judge Routes
+  // ✅ Judge Routes
   JUDGE_DASHBOARD: "/judge/dashboard",
   JUDGE_PROFILE: "/judge/profile",
   JUDGE_CHANGE_PASSWORD: "/judge/change-password",
 };
+
+// ✅ Court Routes - Re-export for convenience
+export { COURT_ROUTES } from "./courtConstants";
 
 // ✅ Station Routes
 export const STATION_ROUTES = {
