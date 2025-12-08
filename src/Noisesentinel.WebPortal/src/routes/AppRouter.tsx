@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loading } from "@/components/common/Loading";
 import { PrivateRoute } from "./PrivateRoute";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { StationRoutes } from "./StationRoutes"; // ✅ ADD
+import { StationRoutes } from "./StationRoutes";
+import { CourtRoutes } from "./CourtRoutes";
 import { ROUTES, ROLES } from "@/utils/constants";
 
 // Auth Pages
@@ -132,16 +133,13 @@ export const AppRouter: React.FC = () => {
 
         {/* ========== COURT AUTHORITY ROUTES ========== */}
         <Route
-          path="/court"
+          path="/court/*"
           element={
             <PrivateRoute requiredRole={ROLES.COURT_AUTHORITY}>
-              <CourtAuthorityPlaceholder />
+              <CourtRoutes />
             </PrivateRoute>
           }
-        >
-          <Route index element={<Navigate to="/court/dashboard" replace />} />
-          <Route path="dashboard" element={<CourtDashboardPlaceholder />} />
-        </Route>
+        />
 
         {/* ========== STATION AUTHORITY ROUTES ========== */}
         <Route
@@ -173,29 +171,7 @@ export const AppRouter: React.FC = () => {
   );
 };
 
-// ✅ Placeholder components (temporary)
-const CourtAuthorityPlaceholder: React.FC = () => {
-  return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>🏛️ Court Authority Portal</h1>
-      <p>Coming Soon...</p>
-    </div>
-  );
-};
-
-const CourtDashboardPlaceholder: React.FC = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>🏛️ Court Authority Dashboard</h1>
-      <p>Welcome, {user?.fullName}!</p>
-      <p>Role: {user?.role}</p>
-      <p>This dashboard is under construction.</p>
-      <button onClick={logout}>Logout</button>
-    </div>
-  );
-};
-
+// ✅ Placeholder components (temporary - for Judge)
 const JudgePlaceholder: React.FC = () => {
   return (
     <div style={{ padding: "40px", textAlign: "center" }}>
