@@ -62,6 +62,16 @@ class CaseApi {
   }
 
   /**
+   * Get my assigned cases (Judge only)
+   */
+  async getMyCases(): Promise<CaseListItem[]> {
+    const response = await apiClient.get<ApiResponse<CaseListItem[]>>(
+      "/Case/my-cases"
+    );
+    return response.data.data || [];
+  }
+
+  /**
    * Get cases by status
    */
   async getCasesByStatus(status: string): Promise<CaseListItem[]> {
