@@ -20,6 +20,8 @@ import { ViewFirsPage } from "@/pages/court/firs/ViewFirsPage";
 
 // Cases
 import { ViewCasesPage } from "@/pages/court/cases/ViewCasesPage";
+import { CreateCasePage } from "@/pages/court/cases/CreateCasePage";
+import { CaseDetailPage } from "@/pages/court/cases/CaseDetailPage";
 
 // Case Statements
 import { ViewCaseStatementsPage } from "@/pages/court/statements/ViewCaseStatementsPage";
@@ -52,7 +54,8 @@ export const CourtRoutes: React.FC = () => {
 
         {/* Cases */}
         <Route path="cases" element={<ViewCasesPage />} />
-        <Route path="cases/create" element={<div>Create Case - TODO</div>} />
+        <Route path="cases/create" element={<CreateCasePage />} />
+        <Route path="cases/detail/:id" element={<CaseDetailPage />} />
 
         {/* Case Statements */}
         <Route

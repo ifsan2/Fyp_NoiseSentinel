@@ -6,6 +6,7 @@ import { PrivateRoute } from "./PrivateRoute";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { StationRoutes } from "./StationRoutes";
 import { CourtRoutes } from "./CourtRoutes";
+import { JudgeRoutes } from "./JudgeRoutes";
 import { ROUTES, ROLES } from "@/utils/constants";
 
 // Auth Pages
@@ -153,43 +154,17 @@ export const AppRouter: React.FC = () => {
 
         {/* ========== JUDGE ROUTES ========== */}
         <Route
-          path="/judge"
+          path="/judge/*"
           element={
             <PrivateRoute requiredRole={ROLES.JUDGE}>
-              <JudgePlaceholder />
+              <JudgeRoutes />
             </PrivateRoute>
           }
-        >
-          <Route index element={<Navigate to="/judge/dashboard" replace />} />
-          <Route path="dashboard" element={<JudgeDashboardPlaceholder />} />
-        </Route>
+        />
 
         {/* Fallback Route */}
         <Route path="*" element={<RoleBasedRedirect />} />
       </Routes>
     </BrowserRouter>
-  );
-};
-
-// ✅ Placeholder components (temporary - for Judge)
-const JudgePlaceholder: React.FC = () => {
-  return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>⚖️ Judge Portal</h1>
-      <p>Coming Soon...</p>
-    </div>
-  );
-};
-
-const JudgeDashboardPlaceholder: React.FC = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>⚖️ Judge Dashboard</h1>
-      <p>Welcome, {user?.fullName}!</p>
-      <p>Role: {user?.role}</p>
-      <p>This dashboard is under construction.</p>
-      <button onClick={logout}>Logout</button>
-    </div>
   );
 };
