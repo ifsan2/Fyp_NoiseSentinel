@@ -68,6 +68,9 @@ export const ROUTES = {
 // ✅ Court Routes - Re-export for convenience
 export { COURT_ROUTES } from "./courtConstants";
 
+// ✅ Judge Routes - Re-export for convenience
+export { JUDGE_ROUTES } from "./judgeConstants";
+
 // ✅ Station Routes
 export const STATION_ROUTES = {
   DASHBOARD: "/station/dashboard",
