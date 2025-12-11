@@ -70,10 +70,16 @@ export const CreateJudgePage: React.FC = () => {
     setLoading(true);
 
     try {
-      await judgeApi.createJudge(formData);
-      enqueueSnackbar("Judge created successfully", { variant: "success" });
+      console.log("Creating judge with data:", formData);
+      const result = await judgeApi.createJudge(formData);
+      console.log("Judge created successfully, response:", result);
+      enqueueSnackbar(`Judge created successfully! User ID: ${result?.userId || 'N/A'}`, { 
+        variant: "success" 
+      });
       navigate(COURT_ROUTES.JUDGES);
     } catch (error: any) {
+      console.error("Create judge error:", error);
+      console.error("Error response:", error.response);
       enqueueSnackbar(
         error.response?.data?.message || "Failed to create judge",
         { variant: "error" }
