@@ -362,4 +362,31 @@ public class FirService : IFirService
             HasCase = fir.Cases?.Any() ?? false
         };
     }
+
+    public async Task<ServiceResult<IEnumerable<FirListItemDto>>> SearchFirsAsync(FirSearchDto searchDto)
+    {
+        var firs = await _firRepository.SearchFirsAsync(
+            firNo: searchDto.FirNo,
+            challanId: searchDto.ChallanId,
+            vehiclePlateNumber: searchDto.VehiclePlateNumber,
+            accusedCnic: searchDto.AccusedCnic,
+            accusedName: searchDto.AccusedName,
+            firStatus: searchDto.FirStatus,
+            stationId: searchDto.StationId,
+            dateFiledFrom: searchDto.DateFiledFrom,
+            dateFiledTo: searchDto.DateFiledTo,
+            hasCase: searchDto.HasCase);
+
+        if (!firs.Any())
+        {
+            return ServiceResult<IEnumerable<FirListItemDto>>.FailureResult(
+                "No FIRs found matching the search criteria.");
+        }
+
+        var response = firs.Select(MapToFirListItemDto).ToList();
+
+        return ServiceResult<IEnumerable<FirListItemDto>>.SuccessResult(
+            response,
+            $"Found {response.Count} FIR(s) matching the criteria.");
+    }
 }

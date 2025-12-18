@@ -192,4 +192,101 @@ public class FirRepository : IFirRepository
 
         return count + 1;
     }
+
+    public async Task<IEnumerable<Fir>> SearchFirsAsync(
+        string? firNo = null,
+        int? challanId = null,
+        string? vehiclePlateNumber = null,
+        string? accusedCnic = null,
+        string? accusedName = null,
+        string? firStatus = null,
+        int? stationId = null,
+        DateTime? dateFiledFrom = null,
+        DateTime? dateFiledTo = null,
+        bool? hasCase = null)
+    {
+        var query = _context.Firs
+            .Include(f => f.Station)
+            .Include(f => f.Challan)
+                .ThenInclude(c => c!.Accused)
+            .Include(f => f.Challan)
+                .ThenInclude(c => c!.Vehicle)
+            .Include(f => f.Challan)
+                .ThenInclude(c => c!.Violation)
+            .Include(f => f.Challan)
+                .ThenInclude(c => c!.Officer)
+                    .ThenInclude(o => o!.User)
+            .Include(f => f.Challan)
+                .ThenInclude(c => c!.EmissionReport)
+            .Include(f => f.Informant)
+                .ThenInclude(i => i!.User)
+            .Include(f => f.Cases)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(firNo))
+        {
+            query = query.Where(f => f.Firno != null && f.Firno.Contains(firNo));
+        }
+
+        if (challanId.HasValue)
+        {
+            query = query.Where(f => f.ChallanId == challanId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(vehiclePlateNumber))
+        {
+            query = query.Where(f => f.Challan != null && 
+                f.Challan.Vehicle != null && 
+                f.Challan.Vehicle.PlateNumber == vehiclePlateNumber);
+        }
+
+        if (!string.IsNullOrWhiteSpace(accusedCnic))
+        {
+            query = query.Where(f => f.Challan != null && 
+                f.Challan.Accused != null && 
+                f.Challan.Accused.Cnic == accusedCnic);
+        }
+
+        if (!string.IsNullOrWhiteSpace(accusedName))
+        {
+            query = query.Where(f => f.Challan != null && 
+                f.Challan.Accused != null && 
+                f.Challan.Accused.FullName != null &&
+                f.Challan.Accused.FullName.Contains(accusedName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(firStatus))
+        {
+            query = query.Where(f => f.Firstatus != null && f.Firstatus == firStatus);
+        }
+
+        if (stationId.HasValue)
+        {
+            query = query.Where(f => f.StationId == stationId.Value);
+        }
+
+        if (dateFiledFrom.HasValue)
+        {
+            query = query.Where(f => f.DateFiled >= dateFiledFrom.Value);
+        }
+
+        if (dateFiledTo.HasValue)
+        {
+            query = query.Where(f => f.DateFiled <= dateFiledTo.Value);
+        }
+
+        if (hasCase.HasValue)
+        {
+            if (hasCase.Value)
+            {
+                query = query.Where(f => f.Cases.Any());
+            }
+            else
+            {
+                query = query.Where(f => !f.Cases.Any());
+            }
+        }
+
+        return await query.OrderByDescending(f => f.DateFiled).ToListAsync();
+    }
 }

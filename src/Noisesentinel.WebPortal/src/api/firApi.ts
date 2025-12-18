@@ -85,6 +85,29 @@ class FirApi {
     );
     return response.data.data || [];
   }
+
+  /**
+   * Search FIRs by multiple criteria
+   */
+  async searchFirs(searchDto: {
+    firNo?: string;
+    challanId?: number;
+    vehiclePlateNumber?: string;
+    accusedCnic?: string;
+    accusedName?: string;
+    firStatus?: string;
+    stationId?: number;
+    dateFiledFrom?: string;
+    dateFiledTo?: string;
+    hasCase?: boolean;
+  }): Promise<{ message: string; count: number; data: FirListItemDto[] }> {
+    const response = await apiClient.post<{
+      message: string;
+      count: number;
+      data: FirListItemDto[];
+    }>("/Fir/search", searchDto);
+    return response.data;
+  }
 }
 
 export default new FirApi();

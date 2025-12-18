@@ -116,9 +116,10 @@ public class CaseController : ControllerBase
     /// Get case by ID.
     /// </summary>
     /// <remarks>
-    /// **Authorization Required:** Court Authority, Judge
+    /// **Authorization Required:** Court Authority, Judge, Station Authority
     /// 
     /// Returns complete case details with full evidence chain.
+    /// Station Authority can view cases related to their FIRs.
     /// </remarks>
     /// <param name="id">Case ID</param>
     /// <returns>Case details with evidence</returns>
@@ -126,7 +127,7 @@ public class CaseController : ControllerBase
     /// <response code="404">Case not found</response>
     /// <response code="401">Unauthorized</response>
     [HttpGet("{id}")]
-    [Authorize(Policy = "CourtRoles")]
+    [Authorize]
     [ProducesResponseType(typeof(CaseResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -377,6 +378,60 @@ public class CaseController : ControllerBase
             count = result.Data?.Count() ?? 0,
             data = result.Data,
             instruction = "These FIRs are eligible for case creation"
+        });
+    }
+
+    /// <summary>
+    /// Search cases with multiple criteria.
+    /// </summary>
+    /// <remarks>
+    /// **Authorization Required:** Court Authority or Judge
+    /// 
+    /// Search cases by any combination of:
+    /// - Case number
+    /// - FIR number
+    /// - Vehicle plate number
+    /// - Accused CNIC
+    /// - Accused name
+    /// - Case status
+    /// - Case type
+    /// - Judge ID
+    /// - Hearing date range
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/case/search
+    ///     Authorization: Bearer {token}
+    ///     {
+    ///         "vehiclePlateNumber": "ABC-123",
+    ///         "accusedCnic": "12345-1234567-1",
+    ///         "caseStatus": "Pending"
+    ///     }
+    /// 
+    /// **Returns:** List of matching cases
+    /// </remarks>
+    /// <param name="searchDto">Search criteria</param>
+    [HttpPost("search")]
+    [Authorize(Policy = "CourtOrJudgeOnly")]
+    [ProducesResponseType(typeof(CaseListItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SearchCases([FromBody] CaseSearchDto searchDto)
+    {
+        _logger.LogInformation("Case search requested");
+
+        var result = await _caseService.SearchCasesAsync(searchDto);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new
+        {
+            message = result.Message,
+            count = result.Data?.Count() ?? 0,
+            data = result.Data
         });
     }
 

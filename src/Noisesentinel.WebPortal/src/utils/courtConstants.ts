@@ -56,15 +56,25 @@ export const COURT_TYPES = [
 ];
 
 export const CASE_STATUSES = [
-  "Filed",
+  "Pending",
   "Under Review",
   "Hearing Scheduled",
-  "Under Trial",
-  "Pending Judgment",
-  "Closed",
-  "Dismissed",
+  "Awaiting Verdict",
   "Convicted",
   "Acquitted",
+  "Closed",
+  "Dismissed",
+  "Appealed",
+];
+
+export const CASE_TYPES = [
+  "Traffic Violation - Noise Pollution",
+  "Environmental Offense",
+  "Public Nuisance",
+  "Modified Vehicle",
+  "Illegal Exhaust System",
+  "Repeat Offense",
+  "Other",
 ];
 
 export const FIR_STATUSES = [

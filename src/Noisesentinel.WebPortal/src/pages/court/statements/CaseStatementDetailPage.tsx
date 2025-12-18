@@ -45,6 +45,8 @@ export const CaseStatementDetailPage: React.FC = () => {
     setLoading(true);
     try {
       const data = await caseStatementApi.getCaseStatementById(statementId);
+      console.log("Case statement loaded:", data);
+      console.log("Violation Type:", data.violationType);
       setStatement(data);
     } catch (error: any) {
       enqueueSnackbar(
@@ -172,7 +174,14 @@ export const CaseStatementDetailPage: React.FC = () => {
                 <Typography variant="caption" color="text.secondary">
                   Judge
                 </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mt: 0.5,
+                  }}
+                >
                   <Gavel fontSize="small" color="action" />
                   <Typography variant="body1" fontWeight={600}>
                     {statement.judgeName}
@@ -183,7 +192,14 @@ export const CaseStatementDetailPage: React.FC = () => {
                 <Typography variant="caption" color="text.secondary">
                   Court
                 </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mt: 0.5,
+                  }}
+                >
                   <AccountBalance fontSize="small" color="action" />
                   <Typography variant="body1">{statement.courtName}</Typography>
                 </Box>
@@ -192,7 +208,14 @@ export const CaseStatementDetailPage: React.FC = () => {
                 <Typography variant="caption" color="text.secondary">
                   Statement Date
                 </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mt: 0.5,
+                  }}
+                >
                   <CalendarToday fontSize="small" color="action" />
                   <Typography variant="body1">
                     {formatDate(statement.statementDate)}
@@ -215,7 +238,9 @@ export const CaseStatementDetailPage: React.FC = () => {
             <Typography variant="caption" color="text.secondary">
               Accused Name
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
+            >
               <Person fontSize="small" color="action" />
               <Typography variant="body1" fontWeight={600}>
                 {statement.accusedName}
@@ -226,7 +251,9 @@ export const CaseStatementDetailPage: React.FC = () => {
             <Typography variant="caption" color="text.secondary">
               Vehicle Plate Number
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
+            >
               <DirectionsCar fontSize="small" color="action" />
               <Typography variant="body1" fontWeight={600}>
                 {statement.vehiclePlateNumber}
@@ -237,10 +264,12 @@ export const CaseStatementDetailPage: React.FC = () => {
             <Typography variant="caption" color="text.secondary">
               Violation Type
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
+            >
               <Warning fontSize="small" color="error" />
               <Typography variant="body1" fontWeight={600}>
-                {statement.violationType}
+                {statement.violationType || "N/A"}
               </Typography>
             </Box>
           </Grid>
@@ -266,7 +295,13 @@ export const CaseStatementDetailPage: React.FC = () => {
           {statement.statementText}
         </Typography>
         <Divider sx={{ my: 3 }} />
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Typography variant="caption" color="text.secondary">
             Statement recorded {statement.daysSinceStatement} days ago
           </Typography>

@@ -91,7 +91,7 @@ export const LoginScreen: React.FC = () => {
     const newErrors = { username: "", password: "" };
 
     if (!username.trim()) {
-      newErrors.username = "Username is required";
+      newErrors.username = "Username or Email is required";
       isValid = false;
     }
 
@@ -252,8 +252,8 @@ export const LoginScreen: React.FC = () => {
                 </View>
 
                 <Input
-                  label="Username"
-                  placeholder="Enter username"
+                  label="Username or Email"
+                  placeholder="Enter username or email"
                   value={username}
                   onChangeText={(text) => {
                     setUsername(text);
@@ -301,7 +301,9 @@ export const LoginScreen: React.FC = () => {
 
             {/* Footer */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>🔒 Authorized Personnel Only</Text>
+              <Text style={styles.footerText}>
+                🔒 Authorized Personnel Only
+              </Text>
               <Text style={styles.versionText}>
                 v1.0.0 • Traffic Police Department • {new Date().getFullYear()}
               </Text>
@@ -540,5 +542,3 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 });
-
-

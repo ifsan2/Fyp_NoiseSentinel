@@ -199,4 +199,95 @@ public class ChallanRepository : IChallanRepository
             .OrderByDescending(c => c.IssueDateTime)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Challan>> SearchChallansAsync(
+        string? vehiclePlateNumber = null,
+        string? accusedCnic = null,
+        string? accusedName = null,
+        string? vehicleMake = null,
+        int? vehicleMakeYear = null,
+        string? status = null,
+        string? violationType = null,
+        int? stationId = null,
+        int? officerId = null,
+        DateTime? issueDateFrom = null,
+        DateTime? issueDateTo = null)
+    {
+        var query = _context.Challans
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
+            .Include(c => c.Accused)
+            .Include(c => c.Vehicle)
+            .Include(c => c.Violation)
+            .Include(c => c.EmissionReport)
+                .ThenInclude(e => e!.Device)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(vehiclePlateNumber))
+        {
+            query = query.Where(c => c.Vehicle != null && c.Vehicle.PlateNumber == vehiclePlateNumber);
+        }
+
+        if (!string.IsNullOrWhiteSpace(accusedCnic))
+        {
+            query = query.Where(c => c.Accused != null && c.Accused.Cnic == accusedCnic);
+        }
+
+        if (!string.IsNullOrWhiteSpace(accusedName))
+        {
+            query = query.Where(c => c.Accused != null && 
+                c.Accused.FullName != null &&
+                c.Accused.FullName.Contains(accusedName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(vehicleMake))
+        {
+            query = query.Where(c => c.Vehicle != null && 
+                c.Vehicle.Make != null &&
+                c.Vehicle.Make.Contains(vehicleMake));
+        }
+
+        if (vehicleMakeYear.HasValue)
+        {
+            query = query.Where(c => c.Vehicle != null && 
+                c.Vehicle.VehRegYear != null &&
+                c.Vehicle.VehRegYear.Value.Year == vehicleMakeYear.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(c => c.Status != null && c.Status == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(violationType))
+        {
+            query = query.Where(c => c.Violation != null && 
+                c.Violation.ViolationType != null &&
+                c.Violation.ViolationType == violationType);
+        }
+
+        if (stationId.HasValue)
+        {
+            query = query.Where(c => c.Officer != null && c.Officer.StationId == stationId.Value);
+        }
+
+        if (officerId.HasValue)
+        {
+            query = query.Where(c => c.OfficerId == officerId.Value);
+        }
+
+        if (issueDateFrom.HasValue)
+        {
+            query = query.Where(c => c.IssueDateTime >= issueDateFrom.Value);
+        }
+
+        if (issueDateTo.HasValue)
+        {
+            query = query.Where(c => c.IssueDateTime <= issueDateTo.Value);
+        }
+
+        return await query.OrderByDescending(c => c.IssueDateTime).ToListAsync();
+    }
 }

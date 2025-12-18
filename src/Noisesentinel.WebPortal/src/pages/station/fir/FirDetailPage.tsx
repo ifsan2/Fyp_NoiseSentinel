@@ -25,9 +25,12 @@ import {
   Edit as EditIcon,
   Gavel as GavelIcon,
   CheckCircle as CheckCircleIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import firApi from "@/api/firApi";
+import caseApi from "@/api/caseApi";
 import { FirResponseDto, UpdateFirDto } from "@/models/Fir";
+import { CaseResponse } from "@/models/Case";
 
 export default function FirDetailPage() {
   const { firId } = useParams<{ firId: string }>();
@@ -41,6 +44,11 @@ export default function FirDetailPage() {
   const [updateStatus, setUpdateStatus] = useState("");
   const [updateInvestigation, setUpdateInvestigation] = useState("");
   const [updating, setUpdating] = useState(false);
+
+  // Case dialog state
+  const [caseDialogOpen, setCaseDialogOpen] = useState(false);
+  const [caseDetails, setCaseDetails] = useState<CaseResponse | null>(null);
+  const [loadingCase, setLoadingCase] = useState(false);
 
   useEffect(() => {
     if (firId) {
@@ -89,6 +97,48 @@ export default function FirDetailPage() {
       );
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleViewCase = async () => {
+    if (!fir?.caseId) return;
+
+    try {
+      setLoadingCase(true);
+      setCaseDialogOpen(true);
+      const caseData = await caseApi.getCaseById(fir.caseId);
+      setCaseDetails(caseData);
+    } catch (err: any) {
+      console.error("Failed to load case:", err);
+      alert(
+        err.response?.data?.message ||
+          "Failed to load case details. Please try again."
+      );
+      setCaseDialogOpen(false);
+    } finally {
+      setLoadingCase(false);
+    }
+  };
+
+  const getCaseStatusColor = (status: string) => {
+    switch (status) {
+      case "Pending":
+      case "Filed":
+        return "info";
+      case "Under Review":
+      case "Hearing Scheduled":
+        return "warning";
+      case "Awaiting Verdict":
+        return "warning";
+      case "Convicted":
+        return "error";
+      case "Acquitted":
+      case "Dismissed":
+        return "success";
+      case "Closed":
+        return "default";
+      default:
+        return "default";
     }
   };
 
@@ -172,7 +222,7 @@ export default function FirDetailPage() {
               variant="contained"
               color="success"
               startIcon={<GavelIcon />}
-              onClick={() => navigate(`/station/cases/${fir.caseId}`)}
+              onClick={handleViewCase}
             >
               View Case
             </Button>
@@ -430,7 +480,7 @@ export default function FirDetailPage() {
                   <Button
                     variant="contained"
                     color="success"
-                    onClick={() => navigate(`/station/cases/${fir.caseId}`)}
+                    onClick={handleViewCase}
                   >
                     View Case Details
                   </Button>
@@ -494,6 +544,230 @@ export default function FirDetailPage() {
             {updating ? "Updating..." : "Update FIR"}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Case Details Dialog */}
+      <Dialog
+        open={caseDialogOpen}
+        onClose={() => setCaseDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="h6">Case Details</Typography>
+            <Button
+              onClick={() => setCaseDialogOpen(false)}
+              startIcon={<CloseIcon />}
+              size="small"
+            >
+              Close
+            </Button>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          {loadingCase ? (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <CircularProgress />
+              <Typography variant="body2" sx={{ mt: 2 }}>
+                Loading case details...
+              </Typography>
+            </Box>
+          ) : caseDetails ? (
+            <Grid container spacing={3}>
+              {/* Case Number and Status */}
+              <Grid item xs={12}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h5" color="primary" fontWeight="bold">
+                    {caseDetails.caseNo}
+                  </Typography>
+                  <Box sx={{ mt: 1 }}>
+                    <Chip
+                      label={caseDetails.caseStatus}
+                      color={getCaseStatusColor(caseDetails.caseStatus)}
+                      sx={{ mr: 1 }}
+                    />
+                    <Chip label={caseDetails.caseType} variant="outlined" />
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Court Information */}
+              <Grid item xs={12} md={6}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Court Information
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {caseDetails.courtName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Type: {caseDetails.courtType}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Judge Information */}
+              <Grid item xs={12} md={6}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Assigned Judge
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {caseDetails.judgeName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Designation: {caseDetails.judgeDesignation}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Accused Information */}
+              <Grid item xs={12} md={6}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Accused Details
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {caseDetails.accusedName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      CNIC: {caseDetails.accusedCnic}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Vehicle: {caseDetails.vehiclePlateNumber}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* FIR Information */}
+              <Grid item xs={12} md={6}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      FIR Reference
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {caseDetails.firNo}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Station: {caseDetails.stationName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Filed:{" "}
+                      {new Date(caseDetails.firDateFiled).toLocaleDateString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Case Timeline */}
+              <Grid item xs={12}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Case Timeline
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="caption" color="text.secondary">
+                          FIR Filed Date
+                        </Typography>
+                        <Typography variant="body2">
+                          {new Date(
+                            caseDetails.firDateFiled
+                          ).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                      {caseDetails.hearingDate && (
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="caption" color="text.secondary">
+                            Next Hearing
+                          </Typography>
+                          <Typography variant="body2">
+                            {new Date(
+                              caseDetails.hearingDate
+                            ).toLocaleDateString()}
+                          </Typography>
+                          {caseDetails.daysUntilHearing !== null && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              (
+                              {caseDetails.daysUntilHearing > 0
+                                ? `in ${caseDetails.daysUntilHearing} days`
+                                : caseDetails.daysUntilHearing === 0
+                                ? "Today"
+                                : `${Math.abs(
+                                    caseDetails.daysUntilHearing
+                                  )} days ago`}
+                              )
+                            </Typography>
+                          )}
+                        </Grid>
+                      )}
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Verdict */}
+              {caseDetails.verdict && (
+                <Grid item xs={12}>
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography
+                        variant="subtitle2"
+                        color="text.secondary"
+                        gutterBottom
+                      >
+                        Verdict
+                      </Typography>
+                      <Typography variant="body1">
+                        {caseDetails.verdict}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+            </Grid>
+          ) : (
+            <Alert severity="error">Failed to load case details</Alert>
+          )}
+        </DialogContent>
       </Dialog>
     </Container>
   );

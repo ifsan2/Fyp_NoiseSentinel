@@ -73,4 +73,19 @@ public interface IFirRepository
     /// Get next FIR number for station (auto-increment).
     /// </summary>
     Task<int> GetNextFirNumberForStationAsync(int stationId, int year);
+
+    /// <summary>
+    /// Search FIRs with multiple criteria.
+    /// </summary>
+    Task<IEnumerable<Fir>> SearchFirsAsync(
+        string? firNo = null,
+        int? challanId = null,
+        string? vehiclePlateNumber = null,
+        string? accusedCnic = null,
+        string? accusedName = null,
+        string? firStatus = null,
+        int? stationId = null,
+        DateTime? dateFiledFrom = null,
+        DateTime? dateFiledTo = null,
+        bool? hasCase = null);
 }

@@ -15,6 +15,8 @@ import {
   CircularProgress,
   Typography,
   Tooltip,
+  Collapse,
+  Chip,
 } from "@mui/material";
 import {
   Visibility,
@@ -24,6 +26,9 @@ import {
   Description,
   Edit,
   Delete,
+  ExpandMore,
+  ExpandLess,
+  Gavel,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
@@ -33,13 +38,21 @@ import caseStatementApi from "@/api/caseStatementApi";
 import caseApi from "@/api/caseApi";
 import { CaseStatementListItem } from "@/models/CaseStatement";
 
+// Group statements by case
+interface CaseGroup {
+  caseNo: string;
+  courtName: string;
+  statementCount: number;
+  statements: CaseStatementListItem[];
+}
+
 export const ViewCaseStatementsPage: React.FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [statements, setStatements] = useState<CaseStatementListItem[]>([]);
-  const [filteredStatements, setFilteredStatements] = useState<
-    CaseStatementListItem[]
-  >([]);
+  const [groupedCases, setGroupedCases] = useState<CaseGroup[]>([]);
+  const [filteredCases, setFilteredCases] = useState<CaseGroup[]>([]);
+  const [expandedCases, setExpandedCases] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -48,7 +61,7 @@ export const ViewCaseStatementsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    filterStatements();
+    groupAndFilterStatements();
   }, [searchQuery, statements]);
 
   const loadStatements = async () => {
@@ -56,22 +69,23 @@ export const ViewCaseStatementsPage: React.FC = () => {
     try {
       // Fetch all judge's assigned cases
       const myCases = await caseApi.getMyCases();
-      
+
       // Fetch statements for all assigned cases
       const allStatements: CaseStatementListItem[] = [];
-      
+
       for (const caseItem of myCases) {
         try {
-          const caseStatements = await caseStatementApi.getStatementsByCase(caseItem.caseId);
+          const caseStatements = await caseStatementApi.getStatementsByCase(
+            caseItem.caseId
+          );
           allStatements.push(...caseStatements);
         } catch (error) {
           // If no statements for this case, continue
           console.log(`No statements for case ${caseItem.caseId}`);
         }
       }
-      
+
       setStatements(allStatements);
-      setFilteredStatements(allStatements);
     } catch (error: any) {
       enqueueSnackbar(
         error.response?.data?.message || "Failed to load case statements",
@@ -82,18 +96,71 @@ export const ViewCaseStatementsPage: React.FC = () => {
     }
   };
 
-  const filterStatements = () => {
+  const groupAndFilterStatements = () => {
+    // First filter statements if there's a search query
     let filtered = [...statements];
 
     if (searchQuery) {
       filtered = filtered.filter(
         (stmt) =>
           stmt.caseNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          stmt.statementBy.toLowerCase().includes(searchQuery.toLowerCase())
+          stmt.statementBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          stmt.courtName.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    setFilteredStatements(filtered);
+    // Group statements by case number
+    const grouped: Map<string, CaseGroup> = new Map();
+
+    filtered.forEach((stmt) => {
+      if (!grouped.has(stmt.caseNo)) {
+        grouped.set(stmt.caseNo, {
+          caseNo: stmt.caseNo,
+          courtName: stmt.courtName,
+          statementCount: 0,
+          statements: [],
+        });
+      }
+
+      const group = grouped.get(stmt.caseNo)!;
+      group.statements.push(stmt);
+      group.statementCount = group.statements.length;
+    });
+
+    // Sort statements within each group by date (newest first)
+    grouped.forEach((group) => {
+      group.statements.sort(
+        (a, b) =>
+          new Date(b.statementDate).getTime() -
+          new Date(a.statementDate).getTime()
+      );
+    });
+
+    // Convert to array and sort by case number
+    const groupedArray = Array.from(grouped.values()).sort((a, b) =>
+      a.caseNo.localeCompare(b.caseNo)
+    );
+
+    setGroupedCases(groupedArray);
+    setFilteredCases(groupedArray);
+  };
+
+  const toggleCase = (caseNo: string) => {
+    const newExpanded = new Set(expandedCases);
+    if (newExpanded.has(caseNo)) {
+      newExpanded.delete(caseNo);
+    } else {
+      newExpanded.add(caseNo);
+    }
+    setExpandedCases(newExpanded);
+  };
+
+  const expandAll = () => {
+    setExpandedCases(new Set(filteredCases.map((c) => c.caseNo)));
+  };
+
+  const collapseAll = () => {
+    setExpandedCases(new Set());
   };
 
   const handleDelete = async (statementId: number) => {
@@ -182,30 +249,45 @@ export const ViewCaseStatementsPage: React.FC = () => {
         />
       </Paper>
 
-      {/* Results count */}
-      <Box sx={{ mb: 2 }}>
+      {/* Results count and expand/collapse actions */}
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="body2" color="text.secondary">
-          Showing {filteredStatements.length} of {statements.length} statements
+          Showing {filteredCases.length} case(s) with {statements.length} total
+          statement(s)
         </Typography>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button size="small" onClick={expandAll}>
+            Expand All
+          </Button>
+          <Button size="small" onClick={collapseAll}>
+            Collapse All
+          </Button>
+        </Box>
       </Box>
 
-      {/* Statements Table */}
+      {/* Grouped Cases Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell width={50}></TableCell>
               <TableCell>Case No.</TableCell>
-              <TableCell>Statement By</TableCell>
               <TableCell>Court</TableCell>
-              <TableCell>Statement Date</TableCell>
-              <TableCell>Preview</TableCell>
+              <TableCell>Statements</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredStatements.length === 0 ? (
+            {filteredCases.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={5} align="center">
                   <Box sx={{ py: 8, textAlign: "center" }}>
                     <Description
                       sx={{
@@ -214,7 +296,11 @@ export const ViewCaseStatementsPage: React.FC = () => {
                         mb: 2,
                       }}
                     />
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="h6"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       No Case Statements Found
                     </Typography>
                     <Typography variant="body2" color="text.disabled">
@@ -226,84 +312,168 @@ export const ViewCaseStatementsPage: React.FC = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredStatements.map((statement) => (
-                <TableRow key={statement.statementId} hover>
-                  <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Description fontSize="small" color="action" />
-                      <Typography variant="body2" fontWeight={600}>
-                        {statement.caseNo}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" fontWeight={500}>
-                      {statement.statementBy}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {statement.courtName}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {formatDate(statement.statementDate)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ maxWidth: 300 }}>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                      }}
-                    >
-                      {statement.statementPreview ||
-                        "No preview available..."}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="View Full Statement">
+              filteredCases.map((caseGroup) => (
+                <React.Fragment key={caseGroup.caseNo}>
+                  {/* Case Header Row */}
+                  <TableRow hover sx={{ bgcolor: "action.hover" }}>
+                    <TableCell>
                       <IconButton
                         size="small"
-                        onClick={() =>
-                          navigate(
-                            `${JUDGE_ROUTES.STATEMENT_DETAIL}/${statement.statementId}`
-                          )
-                        }
+                        onClick={() => toggleCase(caseGroup.caseNo)}
                       >
-                        <Visibility fontSize="small" />
+                        {expandedCases.has(caseGroup.caseNo) ? (
+                          <ExpandLess />
+                        ) : (
+                          <ExpandMore />
+                        )}
                       </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Edit Statement">
-                      <IconButton
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Gavel fontSize="small" color="primary" />
+                        <Typography variant="body2" fontWeight={600}>
+                          {caseGroup.caseNo}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={500}>
+                        {caseGroup.courtName}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={`${caseGroup.statementCount} Statement${
+                          caseGroup.statementCount > 1 ? "s" : ""
+                        }`}
                         size="small"
                         color="primary"
-                        onClick={() =>
-                          navigate(
-                            `${JUDGE_ROUTES.EDIT_STATEMENT}/${statement.statementId}`
-                          )
-                        }
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="View Case Details">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            navigate(
+                              `${JUDGE_ROUTES.CASE_DETAIL}/${caseGroup.statements[0].caseId}`
+                            )
+                          }
+                        >
+                          <Visibility fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Expanded Statements Rows */}
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      sx={{
+                        p: 0,
+                        borderBottom: expandedCases.has(caseGroup.caseNo)
+                          ? 1
+                          : 0,
+                      }}
+                    >
+                      <Collapse
+                        in={expandedCases.has(caseGroup.caseNo)}
+                        timeout="auto"
+                        unmountOnExit
                       >
-                        <Edit fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete Statement">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDelete(statement.statementId)}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
+                        <Box sx={{ bgcolor: "background.default", p: 2 }}>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Statement By</TableCell>
+                                <TableCell>Statement Date</TableCell>
+                                <TableCell>Preview</TableCell>
+                                <TableCell align="right">Actions</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {caseGroup.statements.map((statement) => (
+                                <TableRow key={statement.statementId} hover>
+                                  <TableCell>
+                                    <Typography
+                                      variant="body2"
+                                      fontWeight={500}
+                                    >
+                                      {statement.statementBy}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="body2">
+                                      {formatDate(statement.statementDate)}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell sx={{ maxWidth: 400 }}>
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                      sx={{
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: "vertical",
+                                      }}
+                                    >
+                                      {statement.statementPreview ||
+                                        "No preview available..."}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    <Tooltip title="View Full Statement">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() =>
+                                          navigate(
+                                            `${JUDGE_ROUTES.STATEMENT_DETAIL}/${statement.statementId}`
+                                          )
+                                        }
+                                      >
+                                        <Visibility fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Edit Statement">
+                                      <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() =>
+                                          navigate(
+                                            `${JUDGE_ROUTES.EDIT_STATEMENT}/${statement.statementId}`
+                                          )
+                                        }
+                                      >
+                                        <Edit fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete Statement">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() =>
+                                          handleDelete(statement.statementId)
+                                        }
+                                      >
+                                        <Delete fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
               ))
             )}
           </TableBody>

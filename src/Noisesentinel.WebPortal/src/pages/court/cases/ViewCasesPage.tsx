@@ -22,10 +22,12 @@ import {
   Search,
   Refresh,
   Add,
+  FilterList,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
+import { SearchCasesDialog } from "@/components/court/SearchCasesDialog";
 import { COURT_ROUTES } from "@/utils/courtConstants";
 import caseApi from "@/api/caseApi";
 import { CaseListItem } from "@/models/Case";
@@ -37,6 +39,7 @@ export const ViewCasesPage: React.FC = () => {
   const [filteredCases, setFilteredCases] = useState<CaseListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
   useEffect(() => {
     loadCases();
@@ -53,10 +56,9 @@ export const ViewCasesPage: React.FC = () => {
       setCases(data);
       setFilteredCases(data);
     } catch (error: any) {
-      enqueueSnackbar(
-        error.response?.data?.message || "Failed to load cases",
-        { variant: "error" }
-      );
+      enqueueSnackbar(error.response?.data?.message || "Failed to load cases", {
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -75,6 +77,11 @@ export const ViewCasesPage: React.FC = () => {
     }
 
     setFilteredCases(filtered);
+  };
+
+  const handleSearchResults = (results: CaseListItem[]) => {
+    setFilteredCases(results);
+    enqueueSnackbar(`Found ${results.length} case(s)`, { variant: "success" });
   };
 
   const getCaseStatusColor = (status: string) => {
@@ -118,6 +125,13 @@ export const ViewCasesPage: React.FC = () => {
           <Box sx={{ display: "flex", gap: 2 }}>
             <Button
               variant="outlined"
+              startIcon={<FilterList />}
+              onClick={() => setSearchDialogOpen(true)}
+            >
+              Advanced Search
+            </Button>
+            <Button
+              variant="outlined"
               startIcon={<Refresh />}
               onClick={loadCases}
             >
@@ -132,6 +146,12 @@ export const ViewCasesPage: React.FC = () => {
             </Button>
           </Box>
         }
+      />
+
+      <SearchCasesDialog
+        open={searchDialogOpen}
+        onClose={() => setSearchDialogOpen(false)}
+        onResults={handleSearchResults}
       />
 
       {/* Filters */}

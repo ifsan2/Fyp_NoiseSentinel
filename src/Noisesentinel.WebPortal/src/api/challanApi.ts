@@ -90,6 +90,30 @@ class ChallanApi {
     );
     return response.data.data || [];
   }
+
+  /**
+   * Advanced search: Search challans by multiple criteria (Station Authority only)
+   */
+  async searchChallans(searchDto: {
+    vehiclePlateNumber?: string;
+    accusedCnic?: string;
+    accusedName?: string;
+    vehicleMake?: string;
+    vehicleMakeYear?: number;
+    status?: string;
+    violationType?: string;
+    stationId?: number;
+    officerId?: number;
+    issueDateFrom?: string;
+    issueDateTo?: string;
+  }): Promise<{ message: string; count: number; data: ChallanDto[] }> {
+    const response = await apiClient.post<{
+      message: string;
+      count: number;
+      data: ChallanDto[];
+    }>("/Challan/search", searchDto);
+    return response.data;
+  }
 }
 
 export default new ChallanApi();

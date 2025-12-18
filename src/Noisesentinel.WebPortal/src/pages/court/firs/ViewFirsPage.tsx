@@ -17,12 +17,7 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
-import {
-  Visibility,
-  Search,
-  Refresh,
-  Assignment,
-} from "@mui/icons-material";
+import { Visibility, Search, Refresh, Assignment } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -52,10 +47,9 @@ export const ViewFirsPage: React.FC = () => {
       setFirs(data);
       setFilteredFirs(data);
     } catch (error: any) {
-      enqueueSnackbar(
-        error.response?.data?.message || "Failed to load FIRs",
-        { variant: "error" }
-      );
+      enqueueSnackbar(error.response?.data?.message || "Failed to load FIRs", {
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -68,7 +62,13 @@ export const ViewFirsPage: React.FC = () => {
       filtered = filtered.filter(
         (fir: any) =>
           fir.firNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          fir.stationName.toLowerCase().includes(searchQuery.toLowerCase())
+          fir.stationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          fir.accusedName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          fir.accusedCnic?.includes(searchQuery) ||
+          fir.vehiclePlateNumber
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          fir.violationType?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -111,11 +111,7 @@ export const ViewFirsPage: React.FC = () => {
         title="FIRs (First Information Reports)"
         subtitle="View FIRs filed by police stations"
         actions={
-          <Button
-            variant="outlined"
-            startIcon={<Refresh />}
-            onClick={loadFirs}
-          >
+          <Button variant="outlined" startIcon={<Refresh />} onClick={loadFirs}>
             Refresh
           </Button>
         }
@@ -154,7 +150,9 @@ export const ViewFirsPage: React.FC = () => {
               <TableCell>FIR No.</TableCell>
               <TableCell>Station</TableCell>
               <TableCell>Filed Date</TableCell>
-              <TableCell>Challan ID</TableCell>
+              <TableCell>Accused Name</TableCell>
+              <TableCell>Vehicle Reg.</TableCell>
+              <TableCell>Violation</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Case Status</TableCell>
               <TableCell align="right">Actions</TableCell>
@@ -163,7 +161,7 @@ export const ViewFirsPage: React.FC = () => {
           <TableBody>
             {filteredFirs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={9} align="center">
                   <Typography variant="body2" color="text.secondary" py={3}>
                     No FIRs found
                   </Typography>
@@ -179,9 +177,33 @@ export const ViewFirsPage: React.FC = () => {
                   </TableCell>
                   <TableCell>{fir.stationName}</TableCell>
                   <TableCell>
-                    {new Date(fir.filedDateTime).toLocaleDateString()}
+                    {fir.dateFiled
+                      ? new Date(fir.dateFiled).toLocaleDateString()
+                      : "Invalid Date"}
                   </TableCell>
-                  <TableCell>{fir.challanId}</TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {fir.accusedName || "N/A"}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {fir.accusedCnic || ""}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight={500}>
+                      {fir.vehiclePlateNumber || "N/A"}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="caption" display="block">
+                      {fir.violationType || "N/A"}
+                    </Typography>
+                    {fir.soundLevelDBa && (
+                      <Typography variant="caption" color="text.secondary">
+                        {fir.soundLevelDBa} dBa
+                      </Typography>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={fir.firStatus || "Filed"}
@@ -190,7 +212,7 @@ export const ViewFirsPage: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    {fir.caseId ? (
+                    {fir.hasCase ? (
                       <Chip label="Has Case" size="small" color="success" />
                     ) : (
                       <Chip label="No Case" size="small" color="warning" />
@@ -207,7 +229,7 @@ export const ViewFirsPage: React.FC = () => {
                         <Visibility fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    {!fir.caseId && (
+                    {!fir.hasCase && (
                       <Tooltip title="Create Case">
                         <IconButton
                           size="small"

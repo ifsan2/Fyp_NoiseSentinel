@@ -45,6 +45,10 @@ public class CasestatementRepository : ICasestatementRepository
                 .ThenInclude(c => c!.Fir)
                     .ThenInclude(f => f!.Challan)
                         .ThenInclude(ch => ch!.Vehicle)
+            .Include(cs => cs.Case)
+                .ThenInclude(c => c!.Fir)
+                    .ThenInclude(f => f!.Challan)
+                        .ThenInclude(ch => ch!.Violation)
             .FirstOrDefaultAsync(cs => cs.StatementId == statementId);
     }
 
@@ -54,6 +58,9 @@ public class CasestatementRepository : ICasestatementRepository
             .Include(cs => cs.Case)
                 .ThenInclude(c => c!.Judge)
                     .ThenInclude(j => j!.User)
+            .Include(cs => cs.Case)
+                .ThenInclude(c => c!.Judge)
+                    .ThenInclude(j => j!.Court)
             .Where(cs => cs.CaseId == caseId)
             .OrderByDescending(cs => cs.StatementDate)
             .ToListAsync();

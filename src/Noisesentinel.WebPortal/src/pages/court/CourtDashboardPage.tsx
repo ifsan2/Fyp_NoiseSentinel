@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Grid,
-  Typography,
-  Button,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Grid, Typography, Button, CircularProgress } from "@mui/material";
 import {
   AccountBalance,
   Gavel,
@@ -58,40 +52,83 @@ export const CourtDashboardPage: React.FC = () => {
       thisMonth.setDate(1);
       thisMonth.setHours(0, 0, 0, 0);
 
-      // Filter FIRs without cases (forwarded to court)
-      const firsWithoutCases = firs.filter(
-        (f: any) => f.caseStatus === "Forwarded to Court" || !f.caseId
+      // Filter FIRs without cases
+      console.log("All FIRs:", firs);
+      const firsWithoutCases = firs.filter((f: any) => !f.hasCase);
+      console.log(
+        `FIR Counts - Total: ${firs.length}, Without Cases: ${firsWithoutCases.length}`
       );
 
       // Filter this month's cases
       const thisMonthCases = cases.filter((c: any) => {
-        const caseDate = new Date(c.hearingDate || c.createdAt);
+        if (!c.hearingDate) return false;
+        const caseDate = new Date(c.hearingDate);
         return caseDate >= thisMonth;
       });
 
       // Count cases by status
+      console.log("All Cases:", cases);
       const underReviewCases = cases.filter(
-        (c: any) => c.caseStatus === "Under Review"
+        (c: any) =>
+          c.caseStatus === "Under Review" || c.caseStatus === "Pending"
       ).length;
       const closedCases = cases.filter(
-        (c: any) => c.caseStatus === "Closed"
+        (c: any) =>
+          c.caseStatus === "Closed" ||
+          c.caseStatus === "Convicted" ||
+          c.caseStatus === "Acquitted"
       ).length;
+      console.log(
+        `Case Counts - Total: ${cases.length}, Under Review: ${underReviewCases}, Closed: ${closedCases}`
+      );
 
-      // Count judges by status
+      // Count judges by status (serviceStatus is boolean)
+      console.log("All Judges:", judges);
       const activeJudges = judges.filter(
-        (j: any) => j.isActive && j.serviceStatus
+        (j: any) => j.isActive && j.serviceStatus === true
       ).length;
+      console.log(
+        `Judge Counts - Total: ${judges.length}, Active: ${activeJudges}`
+      );
 
-      // Count courts by type
+      // Count courts by type (with mapping: Civil=District, Sessions=High)
+      console.log("All Courts:", courts);
       const supremeCourts = courts.filter(
         (c: any) => c.courtTypeName === "Supreme Court"
       ).length;
+
+      // High Courts includes Sessions Court
       const highCourts = courts.filter(
-        (c: any) => c.courtTypeName === "High Court"
+        (c: any) =>
+          c.courtTypeName === "High Court" ||
+          c.courtTypeName === "Sessions Court"
       ).length;
+
+      // District Courts includes Civil Court
       const districtCourts = courts.filter(
-        (c: any) => c.courtTypeName === "District Court"
+        (c: any) =>
+          c.courtTypeName === "District Court" ||
+          c.courtTypeName === "Civil Court"
       ).length;
+
+      // Other court types (if any)
+      const otherCourts = courts.filter(
+        (c: any) =>
+          c.courtTypeName !== "Supreme Court" &&
+          c.courtTypeName !== "High Court" &&
+          c.courtTypeName !== "Sessions Court" &&
+          c.courtTypeName !== "District Court" &&
+          c.courtTypeName !== "Civil Court"
+      ).length;
+
+      // Create breakdown string
+      const courtBreakdown = `${supremeCourts} Supreme, ${highCourts} High, ${districtCourts} District${
+        otherCourts > 0 ? `, ${otherCourts} Other` : ""
+      }`;
+
+      console.log(
+        `Court Counts - Supreme: ${supremeCourts}, High: ${highCourts} (incl. Sessions), District: ${districtCourts} (incl. Civil), Other: ${otherCourts}`
+      );
 
       // Calculate upcoming hearings
       const upcomingHearings = cases.filter((c: any) => {
@@ -102,9 +139,11 @@ export const CourtDashboardPage: React.FC = () => {
 
       setStats({
         totalCourts: courts.length,
+        courtBreakdown,
         supremeCourts,
         highCourts,
         districtCourts,
+        otherCourts,
         totalJudges: judges.length,
         activeJudges,
         totalCases: cases.length,
@@ -165,9 +204,7 @@ export const CourtDashboardPage: React.FC = () => {
           <StatsCard
             title="Total Courts"
             value={stats?.totalCourts || 0}
-            subtitle={`${stats?.supremeCourts || 0} Supreme, ${
-              stats?.highCourts || 0
-            } High, ${stats?.districtCourts || 0} District`}
+            subtitle={stats?.courtBreakdown || "No courts registered"}
             icon={AccountBalance}
             color="primary"
           />

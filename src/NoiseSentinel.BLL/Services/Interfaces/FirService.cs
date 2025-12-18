@@ -59,4 +59,9 @@ public interface IFirService
     /// Update FIR status and investigation report (Station Authority only).
     /// </summary>
     Task<ServiceResult<FirResponseDto>> UpdateFirAsync(UpdateFirDto dto, int updaterUserId);
+
+    /// <summary>
+    /// Search FIRs by multiple criteria.
+    /// </summary>
+    Task<ServiceResult<IEnumerable<FirListItemDto>>> SearchFirsAsync(FirSearchDto searchDto);
 }

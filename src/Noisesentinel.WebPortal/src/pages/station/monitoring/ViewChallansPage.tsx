@@ -27,11 +27,13 @@ import {
   FileDownload,
   Warning,
   Assignment,
+  ManageSearch,
 } from "@mui/icons-material";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ChallanTable } from "@/components/station/tables/ChallanTable";
+import { SearchChallansDialog } from "@/components/station/SearchChallansDialog";
 import { STATION_ROUTES, CHALLAN_STATUSES } from "@/utils/stationConstants";
 import stationApi from "@/api/stationApi";
 import challanApi from "@/api/challanApi";
@@ -69,6 +71,9 @@ export const ViewChallansPage: React.FC = () => {
     open: boolean;
     challan: ChallanDto | null;
   }>({ open: false, challan: null });
+
+  // Search Dialog
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -123,6 +128,21 @@ export const ViewChallansPage: React.FC = () => {
     const filteredData = getFilteredChallans();
     stationExport.exportChallans(filteredData);
     enqueueSnackbar("Challans exported successfully", { variant: "success" });
+  };
+
+  const handleSearchResults = (results: ChallanDto[]) => {
+    // Add daysOverdue calculation to search results
+    const resultsWithOverdue = results.map((challan) => ({
+      ...challan,
+      daysOverdue:
+        challan.status === "Unpaid"
+          ? dateHelpers.getDaysOverdue(challan.dueDateTime)
+          : 0,
+    }));
+    setChallans(resultsWithOverdue);
+    enqueueSnackbar(`Found ${results.length} challan(s)`, {
+      variant: "success",
+    });
   };
 
   const getFilteredChallans = () => {
@@ -184,6 +204,14 @@ export const ViewChallansPage: React.FC = () => {
           <>
             <Button
               variant="outlined"
+              startIcon={<ManageSearch />}
+              onClick={() => setSearchDialogOpen(true)}
+              sx={{ mr: 1 }}
+            >
+              Advanced Search
+            </Button>
+            <Button
+              variant="outlined"
               startIcon={<Refresh />}
               onClick={loadData}
               sx={{ mr: 1 }}
@@ -199,6 +227,12 @@ export const ViewChallansPage: React.FC = () => {
             </Button>
           </>
         }
+      />
+
+      <SearchChallansDialog
+        open={searchDialogOpen}
+        onClose={() => setSearchDialogOpen(false)}
+        onResults={handleSearchResults}
       />
 
       {/* Advanced Filters */}

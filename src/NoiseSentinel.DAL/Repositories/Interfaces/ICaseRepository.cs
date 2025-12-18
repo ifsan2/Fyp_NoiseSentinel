@@ -78,4 +78,19 @@ public interface ICaseRepository
     /// Get next case number for court (auto-increment).
     /// </summary>
     Task<int> GetNextCaseNumberForCourtAsync(int courtId, int year);
+
+    /// <summary>
+    /// Search cases with multiple criteria.
+    /// </summary>
+    Task<IEnumerable<Case>> SearchCasesAsync(
+        string? caseNo = null,
+        string? firNo = null,
+        string? vehiclePlateNumber = null,
+        string? accusedCnic = null,
+        string? accusedName = null,
+        string? caseStatus = null,
+        string? caseType = null,
+        int? judgeId = null,
+        DateTime? hearingDateFrom = null,
+        DateTime? hearingDateTo = null);
 }

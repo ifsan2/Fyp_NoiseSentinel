@@ -578,16 +578,19 @@ public class AuthService : IAuthService
 
     public async Task<ServiceResult<AuthResponseDto>> LoginAsync(LoginDto dto)
     {
-        var normalizedUsername = dto.Username.ToUpperInvariant();
+        var normalizedInput = dto.Username.ToUpperInvariant();
 
         // ✅ Load user with Role navigation property
+        // Check if input is username or email
         var user = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUsername);
+            .FirstOrDefaultAsync(u => 
+                u.NormalizedUserName == normalizedInput || 
+                u.NormalizedEmail == normalizedInput);
 
         if (user == null)
         {
-            return ServiceResult<AuthResponseDto>.FailureResult("Invalid username or password.");
+            return ServiceResult<AuthResponseDto>.FailureResult("Invalid username/email or password.");
         }
 
         if (user.IsActive == false)
@@ -598,7 +601,7 @@ public class AuthService : IAuthService
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!isPasswordValid)
         {
-            return ServiceResult<AuthResponseDto>.FailureResult("Invalid username or password.");
+            return ServiceResult<AuthResponseDto>.FailureResult("Invalid username/email or password.");
         }
 
         // ✅ Get role from loaded navigation property

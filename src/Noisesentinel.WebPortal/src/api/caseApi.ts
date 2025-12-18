@@ -119,6 +119,29 @@ class CaseApi {
   async deleteCase(caseId: number): Promise<void> {
     await apiClient.delete(`/Case/delete/${caseId}`);
   }
+
+  /**
+   * Search cases by multiple criteria (Court & Judge)
+   */
+  async searchCases(searchDto: {
+    caseNo?: string;
+    firNo?: string;
+    vehiclePlateNumber?: string;
+    accusedCnic?: string;
+    accusedName?: string;
+    caseStatus?: string;
+    caseType?: string;
+    judgeId?: number;
+    hearingDateFrom?: string;
+    hearingDateTo?: string;
+  }): Promise<{ message: string; count: number; data: CaseListItem[] }> {
+    const response = await apiClient.post<{
+      message: string;
+      count: number;
+      data: CaseListItem[];
+    }>("/Case/search", searchDto);
+    return response.data;
+  }
 }
 
 const caseApi = new CaseApi();

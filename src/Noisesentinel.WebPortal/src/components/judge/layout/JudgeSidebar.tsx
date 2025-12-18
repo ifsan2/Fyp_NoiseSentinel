@@ -63,50 +63,53 @@ export const JudgeSidebar: React.FC = () => {
           px: 2,
           py: 1.5,
           borderRadius: "12px",
-          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           backgroundColor: isActive
             ? alpha(theme.palette.primary.main, 0.12)
             : "transparent",
+          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
             backgroundColor: isActive
               ? alpha(theme.palette.primary.main, 0.16)
               : alpha(theme.palette.primary.main, 0.08),
             transform: "translateX(4px)",
           },
+          "&::before": isActive
+            ? {
+                content: '""',
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "4px",
+                height: "24px",
+                borderRadius: "0 4px 4px 0",
+                backgroundColor: theme.palette.primary.main,
+              }
+            : undefined,
         }}
       >
         <ListItemIcon
           sx={{
             minWidth: 40,
-            color: isActive ? theme.palette.primary.main : "text.secondary",
+            color: isActive
+              ? theme.palette.primary.main
+              : theme.palette.mode === "dark"
+              ? theme.palette.text.secondary
+              : "rgba(0, 0, 0, 0.65)",
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 32,
-              height: 32,
-              borderRadius: "8px",
-              backgroundColor: isActive
-                ? theme.palette.primary.main
-                : "transparent",
-              color: isActive ? "white" : "inherit",
-              transition: "all 0.2s",
-            }}
-          >
-            {item.icon}
-          </Box>
+          {item.icon}
         </ListItemIcon>
         <ListItemText
           primary={item.label}
           primaryTypographyProps={{
-            fontSize: "0.925rem",
+            fontSize: "0.9375rem",
             fontWeight: isActive ? 600 : 500,
             color: isActive
               ? theme.palette.primary.main
-              : theme.palette.text.primary,
+              : theme.palette.mode === "dark"
+              ? theme.palette.text.primary
+              : "rgba(0, 0, 0, 0.87)",
           }}
         />
       </ListItemButton>
@@ -131,7 +134,7 @@ export const JudgeSidebar: React.FC = () => {
         background:
           theme.palette.mode === "dark"
             ? alpha(theme.palette.background.paper, 0.6)
-            : alpha(theme.palette.background.paper, 0.8),
+            : alpha(theme.palette.background.paper, 0.98),
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderRight: `1px solid ${
@@ -141,58 +144,30 @@ export const JudgeSidebar: React.FC = () => {
         }`,
       }}
     >
-      {/* Logo Section */}
-      <Box
-        sx={{
-          p: 3,
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          borderBottom: `1px solid ${
-            theme.palette.mode === "dark"
-              ? alpha(theme.palette.common.white, 0.08)
-              : alpha(theme.palette.common.black, 0.08)
-          }`,
-        }}
-      >
-        <BrandLogo size="large" />
-        <Box>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 700,
-              fontSize: "1.125rem",
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            NoiseSentinel
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Judge Portal
-          </Typography>
+      {/* Logo & User Section */}
+      <Box sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}>
+        <Box sx={{ mb: 3 }}>
+          <BrandLogo size="medium" showText />
         </Box>
-      </Box>
 
-      {/* User Profile Section */}
-      <Box
-        sx={{
-          p: 2,
-          mx: 1,
-          my: 2,
-          borderRadius: "12px",
-          backgroundColor: alpha(theme.palette.primary.main, 0.06),
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {/* User Info */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            p: 2,
+            borderRadius: "12px",
+            backgroundColor: alpha(theme.palette.primary.main, 0.06),
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+          }}
+        >
           <Avatar
             sx={{
               width: 40,
               height: 40,
               bgcolor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
               fontSize: "0.875rem",
               fontWeight: 600,
             }}
@@ -202,16 +177,25 @@ export const JudgeSidebar: React.FC = () => {
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               variant="body2"
-              fontWeight={600}
-              noWrap
-              sx={{ color: "text.primary" }}
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
             >
               {user?.fullName || "Judge"}
             </Typography>
             <Typography
               variant="caption"
-              noWrap
-              sx={{ color: "text.secondary" }}
+              sx={{
+                color: theme.palette.text.secondary,
+                display: "block",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
             >
               {user?.role || "Judge"}
             </Typography>
@@ -220,8 +204,8 @@ export const JudgeSidebar: React.FC = () => {
       </Box>
 
       {/* Navigation Menu */}
-      <Box sx={{ flex: 1, overflowY: "auto", py: 1 }}>
-        <List component="nav" sx={{ px: 0 }}>
+      <Box sx={{ flex: 1, overflowY: "auto", py: 2 }}>
+        <List component="nav" disablePadding>
           {menuItems.map((item, index) => renderMenuItem(item, index))}
         </List>
       </Box>
@@ -230,11 +214,7 @@ export const JudgeSidebar: React.FC = () => {
       <Box
         sx={{
           p: 2,
-          borderTop: `1px solid ${
-            theme.palette.mode === "dark"
-              ? alpha(theme.palette.common.white, 0.08)
-              : alpha(theme.palette.common.black, 0.08)
-          }`,
+          borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Typography
@@ -242,10 +222,21 @@ export const JudgeSidebar: React.FC = () => {
           sx={{
             display: "block",
             textAlign: "center",
-            color: "text.disabled",
+            color: theme.palette.text.secondary,
           }}
         >
-          Judge Authority Portal v1.0
+          NoiseSentinel v1.0.0
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            textAlign: "center",
+            color: theme.palette.text.disabled,
+            mt: 0.5,
+          }}
+        >
+          Judge Authority Portal
         </Typography>
       </Box>
     </Box>

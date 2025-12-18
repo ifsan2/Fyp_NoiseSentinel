@@ -280,7 +280,33 @@ public class CaseService : ICaseService
             existingCase.HearingDate = dto.HearingDate;
 
         if (!string.IsNullOrEmpty(dto.Verdict))
+        {
             existingCase.Verdict = dto.Verdict;
+            
+            // Auto-update case status based on verdict if status not explicitly provided
+            if (string.IsNullOrEmpty(dto.CaseStatus))
+            {
+                var verdictLower = dto.Verdict.ToLower();
+                
+                if (verdictLower.Contains("convicted") || verdictLower.Contains("guilty"))
+                {
+                    existingCase.CaseStatus = "Convicted";
+                }
+                else if (verdictLower.Contains("acquitted") || verdictLower.Contains("not guilty"))
+                {
+                    existingCase.CaseStatus = "Acquitted";
+                }
+                else if (verdictLower.Contains("dismissed"))
+                {
+                    existingCase.CaseStatus = "Dismissed";
+                }
+                else
+                {
+                    // If verdict is provided but doesn't match specific keywords, mark as Closed
+                    existingCase.CaseStatus = "Closed";
+                }
+            }
+        }
 
         await _caseRepository.UpdateAsync(existingCase);
 
@@ -435,5 +461,32 @@ public class CaseService : ICaseService
             var c when c.Contains("quetta") => "QTA",
             _ => city.Length >= 3 ? city.Substring(0, 3).ToUpper() : city.ToUpper()
         };
+    }
+
+    public async Task<ServiceResult<IEnumerable<CaseListItemDto>>> SearchCasesAsync(CaseSearchDto searchDto)
+    {
+        var cases = await _caseRepository.SearchCasesAsync(
+            caseNo: searchDto.CaseNo,
+            firNo: searchDto.FirNo,
+            vehiclePlateNumber: searchDto.VehiclePlateNumber,
+            accusedCnic: searchDto.AccusedCnic,
+            accusedName: searchDto.AccusedName,
+            caseStatus: searchDto.CaseStatus,
+            caseType: searchDto.CaseType,
+            judgeId: searchDto.JudgeId,
+            hearingDateFrom: searchDto.HearingDateFrom,
+            hearingDateTo: searchDto.HearingDateTo);
+
+        if (!cases.Any())
+        {
+            return ServiceResult<IEnumerable<CaseListItemDto>>.FailureResult(
+                "No cases found matching the search criteria.");
+        }
+
+        var response = cases.Select(MapToCaseListItemDto).ToList();
+
+        return ServiceResult<IEnumerable<CaseListItemDto>>.SuccessResult(
+            response,
+            $"Found {response.Count} case(s) matching the criteria.");
     }
 }

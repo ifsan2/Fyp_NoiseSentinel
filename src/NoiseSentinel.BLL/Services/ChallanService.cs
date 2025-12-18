@@ -475,4 +475,32 @@ public class ChallanService : IChallanService
             return compressedEvidencePath;
         }
     }
+
+    public async Task<ServiceResult<IEnumerable<ChallanListItemDto>>> SearchChallansAsync(ChallanSearchDto searchDto)
+    {
+        var challans = await _challanRepository.SearchChallansAsync(
+            vehiclePlateNumber: searchDto.VehiclePlateNumber,
+            accusedCnic: searchDto.AccusedCnic,
+            accusedName: searchDto.AccusedName,
+            vehicleMake: searchDto.VehicleMake,
+            vehicleMakeYear: searchDto.VehicleMakeYear,
+            status: searchDto.Status,
+            violationType: searchDto.ViolationType,
+            stationId: searchDto.StationId,
+            officerId: searchDto.OfficerId,
+            issueDateFrom: searchDto.IssueDateFrom,
+            issueDateTo: searchDto.IssueDateTo);
+
+        if (!challans.Any())
+        {
+            return ServiceResult<IEnumerable<ChallanListItemDto>>.FailureResult(
+                "No challans found matching the search criteria.");
+        }
+
+        var response = challans.Select(MapToChallanListItemDto).ToList();
+
+        return ServiceResult<IEnumerable<ChallanListItemDto>>.SuccessResult(
+            response,
+            $"Found {response.Count} challan(s) matching the criteria.");
+    }
 }

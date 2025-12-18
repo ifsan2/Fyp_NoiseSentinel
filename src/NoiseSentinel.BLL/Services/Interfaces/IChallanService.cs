@@ -66,4 +66,9 @@ public interface IChallanService
     /// Public search: Get challans by vehicle plate number and accused CNIC.
     /// </summary>
     Task<ServiceResult<IEnumerable<ChallanListItemDto>>> SearchChallansByPlateAndCnicAsync(string plateNumber, string cnic);
+
+    /// <summary>
+    /// Advanced search: Search challans by multiple criteria (Station Authority only).
+    /// </summary>
+    Task<ServiceResult<IEnumerable<ChallanListItemDto>>> SearchChallansAsync(ChallanSearchDto searchDto);
 }

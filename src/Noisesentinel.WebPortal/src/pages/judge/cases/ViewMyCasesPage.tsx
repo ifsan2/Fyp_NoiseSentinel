@@ -27,10 +27,12 @@ import {
   Gavel,
   CalendarToday,
   FilterList,
+  ManageSearch,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
+import { SearchCasesDialog } from "@/components/judge/SearchCasesDialog";
 import { JUDGE_ROUTES } from "@/utils/judgeConstants";
 import { CASE_STATUSES } from "@/utils/judgeConstants";
 import caseApi from "@/api/caseApi";
@@ -44,6 +46,7 @@ export const ViewMyCasesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
   useEffect(() => {
     loadCases();
@@ -60,10 +63,9 @@ export const ViewMyCasesPage: React.FC = () => {
       setCases(data);
       setFilteredCases(data);
     } catch (error: any) {
-      enqueueSnackbar(
-        error.response?.data?.message || "Failed to load cases",
-        { variant: "error" }
-      );
+      enqueueSnackbar(error.response?.data?.message || "Failed to load cases", {
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -88,6 +90,11 @@ export const ViewMyCasesPage: React.FC = () => {
     }
 
     setFilteredCases(filtered);
+  };
+
+  const handleSearchResults = (results: CaseListItem[]) => {
+    setFilteredCases(results);
+    enqueueSnackbar(`Found ${results.length} case(s)`, { variant: "success" });
   };
 
   const getCaseStatusColor = (status: string) => {
@@ -127,9 +134,12 @@ export const ViewMyCasesPage: React.FC = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) return null;
-    if (diffDays === 0) return <Chip label="Today" color="error" size="small" />;
-    if (diffDays === 1) return <Chip label="Tomorrow" color="warning" size="small" />;
-    if (diffDays <= 7) return <Chip label={`${diffDays} days`} color="info" size="small" />;
+    if (diffDays === 0)
+      return <Chip label="Today" color="error" size="small" />;
+    if (diffDays === 1)
+      return <Chip label="Tomorrow" color="warning" size="small" />;
+    if (diffDays <= 7)
+      return <Chip label={`${diffDays} days`} color="info" size="small" />;
     return null;
   };
 
@@ -157,6 +167,13 @@ export const ViewMyCasesPage: React.FC = () => {
           <Box sx={{ display: "flex", gap: 2 }}>
             <Button
               variant="outlined"
+              startIcon={<ManageSearch />}
+              onClick={() => setSearchDialogOpen(true)}
+            >
+              Advanced Search
+            </Button>
+            <Button
+              variant="outlined"
               startIcon={<Refresh />}
               onClick={loadCases}
             >
@@ -171,6 +188,12 @@ export const ViewMyCasesPage: React.FC = () => {
             </Button>
           </Box>
         }
+      />
+
+      <SearchCasesDialog
+        open={searchDialogOpen}
+        onClose={() => setSearchDialogOpen(false)}
+        onResults={handleSearchResults}
       />
 
       {/* Filters */}
@@ -247,7 +270,11 @@ export const ViewMyCasesPage: React.FC = () => {
                         mb: 2,
                       }}
                     />
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="h6"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       No Cases Found
                     </Typography>
                     <Typography variant="body2" color="text.disabled">
@@ -286,14 +313,32 @@ export const ViewMyCasesPage: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
                         <CalendarToday fontSize="small" color="action" />
                         <Typography variant="body2">
-                          {caseItem.hearingDate ? formatDate(caseItem.hearingDate) : "Not Set"}
+                          {[
+                            "Closed",
+                            "Convicted",
+                            "Acquitted",
+                            "Dismissed",
+                          ].includes(caseItem.caseStatus)
+                            ? "N/A"
+                            : caseItem.hearingDate
+                            ? formatDate(caseItem.hearingDate)
+                            : "Not Set"}
                         </Typography>
                       </Box>
                       <Box sx={{ mt: 0.5 }}>
-                        {caseItem.hearingDate && getUpcomingIndicator(caseItem.hearingDate)}
+                        {caseItem.hearingDate &&
+                          ![
+                            "Closed",
+                            "Convicted",
+                            "Acquitted",
+                            "Dismissed",
+                          ].includes(caseItem.caseStatus) &&
+                          getUpcomingIndicator(caseItem.hearingDate)}
                       </Box>
                     </Box>
                   </TableCell>

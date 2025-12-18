@@ -14,10 +14,12 @@ import {
   TableRow,
   CircularProgress,
   Alert,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowBack, Visibility } from "@mui/icons-material";
 import { PageHeader } from "@/components/common/PageHeader";
 import { COURT_ROUTES } from "@/utils/courtConstants";
 import caseApi from "@/api/caseApi";
@@ -42,13 +44,31 @@ export const CaseDetailPage: React.FC = () => {
   const loadCaseDetails = async (caseId: number) => {
     setLoading(true);
     try {
-      const [caseResponse, statementsResponse] = await Promise.all([
-        caseApi.getCaseById(caseId),
-        caseStatementApi.getCaseStatementsByCaseId(caseId),
-      ]);
+      console.log("Loading case details for ID:", caseId);
+
+      // Load case data
+      const caseResponse = await caseApi.getCaseById(caseId);
+      console.log("Case data loaded:", caseResponse);
       setCaseData(caseResponse);
-      setStatements(statementsResponse);
+
+      // Load case statements (non-blocking)
+      try {
+        const statementsResponse = await caseStatementApi.getStatementsByCase(
+          caseId
+        );
+        console.log("Case statements loaded:", statementsResponse);
+        console.log(
+          "First statement courtName:",
+          statementsResponse[0]?.courtName
+        );
+        setStatements(statementsResponse);
+      } catch (stmtError: any) {
+        console.warn("Failed to load case statements:", stmtError);
+        // Don't fail the whole page if statements fail to load
+        setStatements([]);
+      }
     } catch (error: any) {
+      console.error("Failed to load case details:", error);
       enqueueSnackbar(
         error.response?.data?.message || "Failed to load case details",
         { variant: "error" }
@@ -75,7 +95,7 @@ export const CaseDetailPage: React.FC = () => {
       "default" | "primary" | "secondary" | "success" | "warning" | "error"
     > = {
       "Under Review": "warning",
-      "Hearing Scheduled": "info",
+      "Hearing Scheduled": "warning",
       "In Progress": "primary",
       "Verdict Announced": "success",
       Closed: "default",
@@ -116,15 +136,11 @@ export const CaseDetailPage: React.FC = () => {
           { label: "Cases", path: COURT_ROUTES.CASES },
           { label: caseData.caseNo },
         ]}
-        action={{
-          label: "Back to Cases",
-          icon: <ArrowBack />,
-          onClick: () => navigate(COURT_ROUTES.CASES),
-        }}
       />
 
       <Alert severity="info" sx={{ mb: 3 }}>
-        This is a read-only view. Only the assigned judge can update case status, hearing dates, and record statements.
+        This is a read-only view. Only the assigned judge can update case
+        status, hearing dates, and record statements.
       </Alert>
 
       {/* Case Information */}
@@ -175,7 +191,9 @@ export const CaseDetailPage: React.FC = () => {
               Hearing Date
             </Typography>
             <Typography variant="body1">
-              {caseData.hearingDate ? formatDate(caseData.hearingDate) : "Not Scheduled"}
+              {caseData.hearingDate
+                ? formatDate(caseData.hearingDate)
+                : "Not Scheduled"}
             </Typography>
           </Grid>
           {caseData.verdict && (
@@ -212,45 +230,67 @@ export const CaseDetailPage: React.FC = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <Typography variant="body2" color="text.secondary">
-              Contact
+              Vehicle Plate Number
             </Typography>
-            <Typography variant="body1">{caseData.accusedContact}</Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary">
-              Address
+            <Typography variant="body1" fontWeight={600}>
+              {caseData.vehiclePlateNumber}
             </Typography>
-            <Typography variant="body1">{caseData.accusedAddress}</Typography>
           </Grid>
         </Grid>
       </Paper>
 
-      {/* Vehicle Details */}
+      {/* Evidence & FIR Details */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Vehicle Details
+          Evidence & FIR Details
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={4}>
             <Typography variant="body2" color="text.secondary">
-              Registration Number
+              FIR Number
+            </Typography>
+            <Typography variant="body1" fontWeight={600}>
+              {caseData.firNo}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              Police Station
+            </Typography>
+            <Typography variant="body1">{caseData.stationName}</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              FIR Filed Date
             </Typography>
             <Typography variant="body1">
-              {caseData.vehicleRegistrationNo}
+              {formatDate(caseData.firDateFiled)}
             </Typography>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <Typography variant="body2" color="text.secondary">
-              Model
+              Sound Level (dBa)
             </Typography>
-            <Typography variant="body1">{caseData.vehicleModel}</Typography>
+            <Typography variant="body1" fontWeight={600}>
+              {caseData.soundLevelDBa} dBa
+            </Typography>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <Typography variant="body2" color="text.secondary">
-              Violation Type
+              ML Classification
             </Typography>
-            <Typography variant="body1">{caseData.violationType}</Typography>
+            <Typography variant="body1">
+              {caseData.mlClassification || "N/A"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              Digital Signature
+            </Typography>
+            <Typography variant="caption" sx={{ wordBreak: "break-all" }}>
+              {caseData.digitalSignatureValue.substring(0, 20)}...
+            </Typography>
           </Grid>
         </Grid>
       </Paper>
@@ -271,21 +311,28 @@ export const CaseDetailPage: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>Date</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Recorded By</TableCell>
-                  <TableCell>Statement</TableCell>
+                  <TableCell>Statement By</TableCell>
+                  <TableCell>Judge Name</TableCell>
+                  <TableCell>Court</TableCell>
+                  <TableCell>Preview</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {statements.map((statement) => (
                   <TableRow key={statement.statementId}>
+                    <TableCell>{formatDate(statement.statementDate)}</TableCell>
                     <TableCell>
-                      {formatDate(statement.statementDate)}
+                      <Chip label={statement.statementBy} size="small" />
                     </TableCell>
+                    <TableCell>{statement.judgeName}</TableCell>
                     <TableCell>
-                      <Chip label={statement.statementType} size="small" />
+                      {statement.courtName || (
+                        <Typography variant="body2" color="text.secondary">
+                          N/A
+                        </Typography>
+                      )}
                     </TableCell>
-                    <TableCell>{statement.recordedByName}</TableCell>
                     <TableCell>
                       <Typography
                         variant="body2"
@@ -296,8 +343,27 @@ export const CaseDetailPage: React.FC = () => {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {statement.statementText}
+                        {statement.statementPreview}
                       </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="View Case Statement">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => {
+                            console.log(
+                              "Navigating to statement:",
+                              statement.statementId
+                            );
+                            navigate(
+                              `${COURT_ROUTES.STATEMENT_DETAIL}/${statement.statementId}`
+                            );
+                          }}
+                        >
+                          <Visibility fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}

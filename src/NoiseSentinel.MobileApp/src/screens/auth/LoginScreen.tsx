@@ -92,7 +92,7 @@ export const LoginScreen: React.FC = () => {
     const newErrors = { username: "", password: "" };
 
     if (!username.trim()) {
-      newErrors.username = "Username is required";
+      newErrors.username = "Username or Email is required";
       isValid = false;
     }
 
@@ -223,7 +223,11 @@ export const LoginScreen: React.FC = () => {
                 ]}
               >
                 <View style={styles.logoInner}>
-                  <Shield size={56} color={colors.accent[600]} strokeWidth={2.5} />
+                  <Shield
+                    size={56}
+                    color={colors.accent[600]}
+                    strokeWidth={2.5}
+                  />
                 </View>
                 {/* Glow effect rings */}
                 <View style={[styles.glowRing, styles.glowRing1]} />
@@ -253,8 +257,8 @@ export const LoginScreen: React.FC = () => {
                 </View>
 
                 <Input
-                  label="Username"
-                  placeholder="Enter username"
+                  label="Username or Email"
+                  placeholder="Enter username or email"
                   value={username}
                   onChangeText={(text) => {
                     setUsername(text);
@@ -292,7 +296,11 @@ export const LoginScreen: React.FC = () => {
 
                 {/* Security badge */}
                 <View style={styles.securityBadge}>
-                  <Shield size={16} color={colors.accent[600]} strokeWidth={2} />
+                  <Shield
+                    size={16}
+                    color={colors.accent[600]}
+                    strokeWidth={2}
+                  />
                   <Text style={styles.securityText}>
                     256-bit encrypted connection
                   </Text>
@@ -549,5 +557,3 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
 });
-
-

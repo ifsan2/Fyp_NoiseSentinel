@@ -345,12 +345,12 @@ export const LoginPage: React.FC = () => {
             <Controller
               name="username"
               control={control}
-              rules={{ required: "Username is required" }}
+              rules={{ required: "Username or Email is required" }}
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Username"
-                  placeholder="Enter your username"
+                  label="Username or Email"
+                  placeholder="Enter your username or email"
                   error={!!errors.username}
                   helperText={errors.username?.message}
                   fullWidth

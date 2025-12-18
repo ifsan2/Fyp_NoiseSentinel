@@ -485,4 +485,68 @@ public class ChallanController : ControllerBase
             data = result.Data ?? new List<ChallanListItemDto>()
         });
     }
+
+    /// <summary>
+    /// Advanced Search: Search challans by multiple criteria (Station Authority only).
+    /// </summary>
+    /// <remarks>
+    /// Station Authority can search challans using any combination of:
+    /// - Vehicle plate number
+    /// - Accused CNIC
+    /// - Accused name
+    /// - Vehicle make
+    /// - Vehicle make year
+    /// - Challan status
+    /// - Violation type
+    /// - Station ID
+    /// - Officer ID
+    /// - Issue date range
+    /// 
+    /// All parameters are optional - provide only those you want to filter by.
+    /// 
+    /// **Sample Request:**
+    /// 
+    ///     POST /api/challan/search
+    ///     {
+    ///         "vehiclePlateNumber": "PK-ABC",
+    ///         "status": "Unpaid",
+    ///         "issueDateFrom": "2024-01-01",
+    ///         "issueDateTo": "2024-12-31"
+    ///     }
+    /// 
+    /// **Response:** Returns list of all challans matching the criteria.
+    /// </remarks>
+    /// <param name="searchDto">Search criteria with multiple optional filters</param>
+    /// <returns>List of matching challans</returns>
+    /// <response code="200">Returns challans or empty list if none found</response>
+    /// <response code="400">Search failed</response>
+    /// <response code="401">Unauthorized - requires Station Authority role</response>
+    [HttpPost("search")]
+    [Authorize(Policy = "StationAuthorityOnly")]
+    [ProducesResponseType(typeof(IEnumerable<ChallanListItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SearchChallans([FromBody] ChallanSearchDto searchDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        _logger.LogInformation("Advanced challan search by Station Authority: {@SearchCriteria}", searchDto);
+
+        var result = await _challanService.SearchChallansAsync(searchDto);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new
+        {
+            message = result.Message ?? $"Found {result.Data?.Count() ?? 0} challan(s) matching criteria",
+            count = result.Data?.Count() ?? 0,
+            data = result.Data ?? new List<ChallanListItemDto>()
+        });
+    }
 }

@@ -73,4 +73,20 @@ public interface IChallanRepository
     /// Get challans by vehicle plate number and accused CNIC (public search).
     /// </summary>
     Task<IEnumerable<Challan>> GetByVehiclePlateAndCnicAsync(string plateNumber, string cnic);
+
+    /// <summary>
+    /// Search challans with multiple criteria.
+    /// </summary>
+    Task<IEnumerable<Challan>> SearchChallansAsync(
+        string? vehiclePlateNumber = null,
+        string? accusedCnic = null,
+        string? accusedName = null,
+        string? vehicleMake = null,
+        int? vehicleMakeYear = null,
+        string? status = null,
+        string? violationType = null,
+        int? stationId = null,
+        int? officerId = null,
+        DateTime? issueDateFrom = null,
+        DateTime? issueDateTo = null);
 }

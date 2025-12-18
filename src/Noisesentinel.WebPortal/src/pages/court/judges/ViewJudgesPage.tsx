@@ -252,7 +252,7 @@ export const ViewJudgesPage: React.FC = () => {
                         size="small"
                         onClick={() =>
                           navigate(
-                            `${COURT_ROUTES.JUDGE_DETAIL}/${judge.userId}`
+                            `${COURT_ROUTES.JUDGE_DETAIL}/${judge.judgeId}`
                           )
                         }
                       >
@@ -271,9 +271,7 @@ export const ViewJudgesPage: React.FC = () => {
                         <Edit fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip
-                      title={judge.isActive ? "Deactivate" : "Activate"}
-                    >
+                    <Tooltip title={judge.isActive ? "Deactivate" : "Activate"}>
                       <IconButton
                         size="small"
                         color={judge.isActive ? "error" : "success"}

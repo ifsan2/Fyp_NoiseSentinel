@@ -79,31 +79,31 @@ export const StationDashboardPage: React.FC = () => {
 
       // Filter today's FIRs
       const todayFirs = firs.filter((f: any) => {
-        const filedDate = new Date(f.filedDateTime);
+        const filedDate = new Date(f.dateFiled);
         filedDate.setHours(0, 0, 0, 0);
         return filedDate.getTime() === today.getTime();
       });
 
       // Filter this month's FIRs
       const thisMonthFirs = firs.filter((f: any) => {
-        const filedDate = new Date(f.filedDateTime);
+        const filedDate = new Date(f.dateFiled);
         return filedDate >= thisMonth;
       });
 
       // Count active and investigation officers
       const activeOfficers = officers.filter(
-        (o: any) => o.status === "Active"
+        (o: any) => o.isActive === true
       ).length;
       const investigationOfficers = officers.filter(
-        (o: any) => o.rank === "Investigation Officer"
+        (o: any) => o.isInvestigationOfficer === true
       ).length;
 
       // Count devices in use and available
       const devicesInUse = devices.filter(
-        (d: any) => d.status === "In Use"
+        (d: any) => d.isPaired === true
       ).length;
       const availableDevices = devices.filter(
-        (d: any) => d.status === "Available"
+        (d: any) => d.isPaired === false && d.isActive === true
       ).length;
 
       // Count unpaid and overdue challans
@@ -117,7 +117,7 @@ export const StationDashboardPage: React.FC = () => {
 
       // Count FIRs under investigation
       const underInvestigation = firs.filter(
-        (f: any) => f.status === "Under Investigation"
+        (f: any) => f.firStatus === "Under Investigation"
       ).length;
 
       // Calculate cognizable violations

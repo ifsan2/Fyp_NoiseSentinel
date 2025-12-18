@@ -65,4 +65,9 @@ public interface ICaseService
     /// Assign/Reassign judge to case (Court Authority only).
     /// </summary>
     Task<ServiceResult<CaseResponseDto>> AssignJudgeAsync(AssignJudgeDto dto, int assignerUserId);
+
+    /// <summary>
+    /// Search cases with multiple criteria.
+    /// </summary>
+    Task<ServiceResult<IEnumerable<CaseListItemDto>>> SearchCasesAsync(CaseSearchDto searchDto);
 }

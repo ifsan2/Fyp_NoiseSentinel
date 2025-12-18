@@ -219,4 +219,94 @@ public class CaseRepository : ICaseRepository
         // For now, simple increment
         return count + 1;
     }
+
+    public async Task<IEnumerable<Case>> SearchCasesAsync(
+        string? caseNo = null,
+        string? firNo = null,
+        string? vehiclePlateNumber = null,
+        string? accusedCnic = null,
+        string? accusedName = null,
+        string? caseStatus = null,
+        string? caseType = null,
+        int? judgeId = null,
+        DateTime? hearingDateFrom = null,
+        DateTime? hearingDateTo = null)
+    {
+        var query = _context.Cases
+            .Include(c => c.Fir)
+                .ThenInclude(f => f!.Challan)
+                    .ThenInclude(ch => ch!.Vehicle)
+            .Include(c => c.Fir)
+                .ThenInclude(f => f!.Challan)
+                    .ThenInclude(ch => ch!.Accused)
+            .Include(c => c.Fir)
+                .ThenInclude(f => f!.Challan)
+                    .ThenInclude(ch => ch!.Violation)
+            .Include(c => c.Fir)
+                .ThenInclude(f => f!.Station)
+            .Include(c => c.Judge)
+                .ThenInclude(j => j!.User)
+            .Include(c => c.Judge)
+                .ThenInclude(j => j!.Court)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(caseNo))
+        {
+            query = query.Where(c => c.CaseNo != null && c.CaseNo.Contains(caseNo));
+        }
+
+        if (!string.IsNullOrWhiteSpace(firNo))
+        {
+            query = query.Where(c => c.Fir != null && c.Fir.Firno != null && c.Fir.Firno.Contains(firNo));
+        }
+
+        if (!string.IsNullOrWhiteSpace(vehiclePlateNumber))
+        {
+            query = query.Where(c => c.Fir != null && c.Fir.Challan != null && 
+                c.Fir.Challan.Vehicle != null && 
+                c.Fir.Challan.Vehicle.PlateNumber == vehiclePlateNumber);
+        }
+
+        if (!string.IsNullOrWhiteSpace(accusedCnic))
+        {
+            query = query.Where(c => c.Fir != null && c.Fir.Challan != null && 
+                c.Fir.Challan.Accused != null && 
+                c.Fir.Challan.Accused.Cnic == accusedCnic);
+        }
+
+        if (!string.IsNullOrWhiteSpace(accusedName))
+        {
+            query = query.Where(c => c.Fir != null && c.Fir.Challan != null && 
+                c.Fir.Challan.Accused != null && 
+                c.Fir.Challan.Accused.FullName != null &&
+                c.Fir.Challan.Accused.FullName.Contains(accusedName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(caseStatus))
+        {
+            query = query.Where(c => c.CaseStatus != null && c.CaseStatus == caseStatus);
+        }
+
+        if (!string.IsNullOrWhiteSpace(caseType))
+        {
+            query = query.Where(c => c.CaseType != null && c.CaseType == caseType);
+        }
+
+        if (judgeId.HasValue)
+        {
+            query = query.Where(c => c.JudgeId == judgeId.Value);
+        }
+
+        if (hearingDateFrom.HasValue)
+        {
+            query = query.Where(c => c.HearingDate >= hearingDateFrom.Value);
+        }
+
+        if (hearingDateTo.HasValue)
+        {
+            query = query.Where(c => c.HearingDate <= hearingDateTo.Value);
+        }
+
+        return await query.OrderByDescending(c => c.HearingDate).ToListAsync();
+    }
 }

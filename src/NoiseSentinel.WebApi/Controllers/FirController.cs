@@ -365,6 +365,60 @@ public class FirController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Search FIRs with multiple criteria.
+    /// </summary>
+    /// <remarks>
+    /// **Authorization Required:** Station Authority, Court Authority, or Judge
+    /// 
+    /// Search FIRs by any combination of:
+    /// - FIR number
+    /// - Challan ID
+    /// - Vehicle plate number
+    /// - Accused CNIC
+    /// - Accused name
+    /// - FIR status
+    /// - Station ID
+    /// - Date filed range
+    /// - Has/doesn't have case
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/fir/search
+    ///     Authorization: Bearer {token}
+    ///     {
+    ///         "vehiclePlateNumber": "ABC-123",
+    ///         "accusedCnic": "12345-1234567-1",
+    ///         "hasCase": false
+    ///     }
+    /// 
+    /// **Returns:** List of matching FIRs
+    /// </remarks>
+    /// <param name="searchDto">Search criteria</param>
+    [HttpPost("search")]
+    [Authorize]
+    [ProducesResponseType(typeof(FirListItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SearchFirs([FromBody] FirSearchDto searchDto)
+    {
+        _logger.LogInformation("FIR search requested");
+
+        var result = await _firService.SearchFirsAsync(searchDto);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new
+        {
+            message = result.Message,
+            count = result.Data?.Count() ?? 0,
+            data = result.Data
+        });
+    }
+
     // ========================================================================
     // FIR UPDATE
     // ========================================================================

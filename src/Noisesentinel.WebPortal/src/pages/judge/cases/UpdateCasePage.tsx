@@ -10,11 +10,7 @@ import {
   CircularProgress,
   Chip,
 } from "@mui/material";
-import {
-  ArrowBack,
-  Save,
-  Gavel,
-} from "@mui/icons-material";
+import { ArrowBack, Save, Gavel } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -55,10 +51,9 @@ export const UpdateCasePage: React.FC = () => {
         verdict: data.verdict || "",
       });
     } catch (error: any) {
-      enqueueSnackbar(
-        error.response?.data?.message || "Failed to load case",
-        { variant: "error" }
-      );
+      enqueueSnackbar(error.response?.data?.message || "Failed to load case", {
+        variant: "error",
+      });
       navigate(JUDGE_ROUTES.MY_CASES);
     } finally {
       setLoading(false);
@@ -129,7 +124,9 @@ export const UpdateCasePage: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<ArrowBack />}
-            onClick={() => navigate(`${JUDGE_ROUTES.CASE_DETAIL}/${caseData.caseId}`)}
+            onClick={() =>
+              navigate(`${JUDGE_ROUTES.CASE_DETAIL}/${caseData.caseId}`)
+            }
           >
             Back to Case
           </Button>
@@ -192,7 +189,9 @@ export const UpdateCasePage: React.FC = () => {
                 }
                 required
                 InputProps={{
-                  startAdornment: <Gavel sx={{ mr: 1, color: "action.active" }} />,
+                  startAdornment: (
+                    <Gavel sx={{ mr: 1, color: "action.active" }} />
+                  ),
                 }}
               >
                 {CASE_STATUSES.map((status) => (
@@ -245,15 +244,21 @@ export const UpdateCasePage: React.FC = () => {
 
             <Grid item xs={12}>
               <Typography variant="caption" color="text.secondary">
-                Note: Recording a verdict will automatically update the case status to "Verdict Given"
+                Note: Recording a verdict will automatically update the case
+                status based on the verdict (Convicted, Acquitted, Dismissed, or
+                Closed). You can also manually select a case status above.
               </Typography>
             </Grid>
           </Grid>
 
-          <Box sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}>
+          <Box
+            sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}
+          >
             <Button
               variant="outlined"
-              onClick={() => navigate(`${JUDGE_ROUTES.CASE_DETAIL}/${caseData.caseId}`)}
+              onClick={() =>
+                navigate(`${JUDGE_ROUTES.CASE_DETAIL}/${caseData.caseId}`)
+              }
               disabled={submitting}
             >
               Cancel

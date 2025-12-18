@@ -61,16 +61,26 @@ export const JudgeDashboardPage: React.FC = () => {
 
       // Calculate stats
       const pending = casesData.filter(
-        (c: CaseListItem) => c.caseStatus === "Pending" || c.caseStatus === "Under Review"
+        (c: CaseListItem) =>
+          c.caseStatus === "Pending" || c.caseStatus === "Under Review"
       ).length;
       const verdicts = casesData.filter(
-        (c: CaseListItem) => c.caseStatus === "Verdict Given" || c.caseStatus === "Closed"
+        (c: CaseListItem) =>
+          c.caseStatus === "Verdict Given" || c.caseStatus === "Closed"
       ).length;
 
-      // Count upcoming hearings (next 7 days)
+      // Count upcoming hearings (next 7 days) - exclude closed cases
       const now = new Date();
       const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       const upcoming = casesData.filter((c: CaseListItem) => {
+        // Exclude closed/completed cases
+        if (
+          ["Closed", "Convicted", "Acquitted", "Dismissed"].includes(
+            c.caseStatus
+          )
+        ) {
+          return false;
+        }
         if (!c.hearingDate) return false;
         try {
           const hearingDate = new Date(c.hearingDate);
@@ -249,10 +259,7 @@ export const JudgeDashboardPage: React.FC = () => {
           <Typography variant="h6" fontWeight={600}>
             Recent Assigned Cases
           </Typography>
-          <Button
-            size="small"
-            onClick={() => navigate(JUDGE_ROUTES.MY_CASES)}
-          >
+          <Button size="small" onClick={() => navigate(JUDGE_ROUTES.MY_CASES)}>
             View All
           </Button>
         </Box>
@@ -292,7 +299,18 @@ export const JudgeDashboardPage: React.FC = () => {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>{caseItem.hearingDate ? formatDate(caseItem.hearingDate) : "Not Set"}</TableCell>
+                    <TableCell>
+                      {[
+                        "Closed",
+                        "Convicted",
+                        "Acquitted",
+                        "Dismissed",
+                      ].includes(caseItem.caseStatus)
+                        ? "N/A"
+                        : caseItem.hearingDate
+                        ? formatDate(caseItem.hearingDate)
+                        : "Not Set"}
+                    </TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton

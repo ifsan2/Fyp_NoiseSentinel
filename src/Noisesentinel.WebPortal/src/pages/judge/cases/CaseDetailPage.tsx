@@ -150,7 +150,9 @@ export const CaseDetailPage: React.FC = () => {
               color="secondary"
               startIcon={<Add />}
               onClick={() =>
-                navigate(`${JUDGE_ROUTES.CREATE_STATEMENT}?caseId=${caseData.caseId}`)
+                navigate(
+                  `${JUDGE_ROUTES.CREATE_STATEMENT}?caseId=${caseData.caseId}`
+                )
               }
             >
               Record Statement
@@ -195,10 +197,18 @@ export const CaseDetailPage: React.FC = () => {
               <Typography variant="caption" color="text.secondary">
                 Hearing Date
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
+              >
                 <CalendarToday fontSize="small" color="action" />
                 <Typography variant="body1">
-                  {caseData.hearingDate ? formatDate(caseData.hearingDate) : "Not Set"}
+                  {["Closed", "Convicted", "Acquitted", "Dismissed"].includes(
+                    caseData.caseStatus
+                  )
+                    ? "N/A"
+                    : caseData.hearingDate
+                    ? formatDate(caseData.hearingDate)
+                    : "Not Set"}
                 </Typography>
               </Box>
             </Box>
@@ -224,7 +234,9 @@ export const CaseDetailPage: React.FC = () => {
               <Typography variant="caption" color="text.secondary">
                 Accused Name
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
+              >
                 <Person fontSize="small" color="action" />
                 <Typography variant="body1" fontWeight={600}>
                   {caseData.accusedName}
@@ -243,7 +255,9 @@ export const CaseDetailPage: React.FC = () => {
               <Typography variant="caption" color="text.secondary">
                 Vehicle Plate Number
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
+              >
                 <DirectionsCar fontSize="small" color="action" />
                 <Typography variant="body1" fontWeight={600}>
                   {caseData.vehiclePlateNumber}
@@ -263,7 +277,12 @@ export const CaseDetailPage: React.FC = () => {
       {/* Verdict Section */}
       {caseData.verdict && (
         <Paper sx={{ p: 3, mb: 3, bgcolor: "success.50" }}>
-          <Typography variant="h6" fontWeight={600} gutterBottom color="success.main">
+          <Typography
+            variant="h6"
+            fontWeight={600}
+            gutterBottom
+            color="success.main"
+          >
             Final Verdict
           </Typography>
           <Typography variant="body1">{caseData.verdict}</Typography>
@@ -287,7 +306,9 @@ export const CaseDetailPage: React.FC = () => {
             variant="contained"
             startIcon={<Add />}
             onClick={() =>
-              navigate(`${JUDGE_ROUTES.CREATE_STATEMENT}?caseId=${caseData.caseId}`)
+              navigate(
+                `${JUDGE_ROUTES.CREATE_STATEMENT}?caseId=${caseData.caseId}`
+              )
             }
           >
             Add Statement

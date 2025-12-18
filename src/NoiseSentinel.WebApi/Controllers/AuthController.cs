@@ -426,8 +426,16 @@ public class AuthController : ControllerBase
     ///         "password": "Admin@1234"
     ///     }
     /// 
+    /// Or using email:
+    /// 
+    ///     POST /api/auth/login
+    ///     {
+    ///         "username": "admin@noisesentinel.com",
+    ///         "password": "Admin@1234"
+    ///     }
+    /// 
     /// </remarks>
-    /// <param name="dto">Login credentials (username and password)</param>
+    /// <param name="dto">Login credentials (username/email and password)</param>
     /// <returns>Authentication response with JWT token</returns>
     /// <response code="200">Login successful, returns user info and JWT token</response>
     /// <response code="400">Invalid credentials or account inactive</response>
@@ -437,7 +445,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
-        _logger.LogInformation("Login attempt for username: {Username}", dto.Username);
+        _logger.LogInformation("Login attempt for username/email: {Username}", dto.Username);
 
         if (!ModelState.IsValid)
         {
