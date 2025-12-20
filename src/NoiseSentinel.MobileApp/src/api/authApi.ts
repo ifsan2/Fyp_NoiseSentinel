@@ -78,6 +78,51 @@ class AuthApi {
     );
     return response.data.message || "OTP sent successfully";
   }
+
+  // ========================================================================
+  // FORGOT PASSWORD
+  // ========================================================================
+
+  /**
+   * Request password reset OTP
+   */
+  async forgotPassword(email: string): Promise<string> {
+    console.log("🔐 Requesting password reset for:", email);
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/forgot-password",
+      { email }
+    );
+    return response.data.message || "OTP sent successfully";
+  }
+
+  /**
+   * Verify password reset OTP
+   */
+  async verifyResetOtp(email: string, otp: string): Promise<string> {
+    console.log("🔢 Verifying reset OTP for:", email);
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/verify-reset-otp",
+      { email, otp }
+    );
+    return response.data.message || "OTP verified successfully";
+  }
+
+  /**
+   * Reset password with OTP
+   */
+  async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<string> {
+    console.log("🔄 Resetting password for:", email);
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/reset-password",
+      { email, otp, newPassword, confirmPassword }
+    );
+    return response.data.message || "Password reset successfully";
+  }
 }
 
 export default new AuthApi();

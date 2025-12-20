@@ -681,4 +681,148 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = "User profile retrieved successfully", data = result.Data });
     }
+
+    // ========================================================================
+    // FORGOT PASSWORD ENDPOINTS (Public)
+    // ========================================================================
+
+    /// <summary>
+    /// Request password reset OTP.
+    /// </summary>
+    /// <remarks>
+    /// **Public Endpoint - No Authorization Required**
+    /// 
+    /// Sends a password reset OTP to the user's registered email address.
+    /// For security, always returns success even if email doesn't exist.
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/auth/forgot-password
+    ///     {
+    ///         "email": "user@example.com"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="dto">Email address</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">OTP sent successfully (or email not found - same response for security)</response>
+    /// <response code="400">Validation failed</response>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
+    {
+        _logger.LogInformation("Forgot password request for email: {Email}", dto.Email);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        var result = await _authService.ForgotPasswordAsync(dto);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Forgot password failed for {Email}: {Message}", dto.Email, result.Message);
+            return BadRequest(new { message = result.Message, errors = result.Errors });
+        }
+
+        _logger.LogInformation("Password reset OTP sent for: {Email}", dto.Email);
+        return Ok(new { message = result.Data });
+    }
+
+    /// <summary>
+    /// Verify password reset OTP.
+    /// </summary>
+    /// <remarks>
+    /// **Public Endpoint - No Authorization Required**
+    /// 
+    /// Verifies the OTP sent to user's email for password reset.
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/auth/verify-reset-otp
+    ///     {
+    ///         "email": "user@example.com",
+    ///         "otp": "123456"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="dto">Email and OTP</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">OTP verified successfully</response>
+    /// <response code="400">Invalid or expired OTP</response>
+    [HttpPost("verify-reset-otp")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyPasswordResetOtpDto dto)
+    {
+        _logger.LogInformation("Verify reset OTP request for email: {Email}", dto.Email);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        var result = await _authService.VerifyPasswordResetOtpAsync(dto);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Verify reset OTP failed for {Email}: {Message}", dto.Email, result.Message);
+            return BadRequest(new { message = result.Message, errors = result.Errors });
+        }
+
+        _logger.LogInformation("Reset OTP verified for: {Email}", dto.Email);
+        return Ok(new { message = result.Data });
+    }
+
+    /// <summary>
+    /// Reset password with OTP.
+    /// </summary>
+    /// <remarks>
+    /// **Public Endpoint - No Authorization Required**
+    /// 
+    /// Resets user password using the verified OTP.
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/auth/reset-password
+    ///     {
+    ///         "email": "user@example.com",
+    ///         "otp": "123456",
+    ///         "newPassword": "NewPassword123!",
+    ///         "confirmPassword": "NewPassword123!"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="dto">Email, OTP, and new password</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">Password reset successfully</response>
+    /// <response code="400">Invalid OTP or password validation failed</response>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordWithOtpDto dto)
+    {
+        _logger.LogInformation("Reset password request for email: {Email}", dto.Email);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        var result = await _authService.ResetPasswordWithOtpAsync(dto);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Reset password failed for {Email}: {Message}", dto.Email, result.Message);
+            return BadRequest(new { message = result.Message, errors = result.Errors });
+        }
+
+        _logger.LogInformation("Password reset successfully for: {Email}", dto.Email);
+        return Ok(new { message = result.Data });
+    }
 }

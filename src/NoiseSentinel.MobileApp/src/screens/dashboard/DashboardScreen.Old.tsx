@@ -124,7 +124,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       <Header
         title="NoiseSentinel"
         subtitle="Traffic Police Portal"
-        variant="elevated"
+        variant="primary"
         rightComponent={
           <ProfileMenu
             userName={user?.fullName}
@@ -476,5 +476,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
-

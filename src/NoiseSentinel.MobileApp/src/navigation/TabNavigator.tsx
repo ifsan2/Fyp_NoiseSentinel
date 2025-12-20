@@ -14,32 +14,26 @@ export const TabNavigator: React.FC = () => {
       tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          position: "absolute", // Required for the transparent background effect
-          backgroundColor: "transparent",
-          borderTopWidth: 0,
-          elevation: 0,
-        },
       }}
     >
-      <Tab.Screen 
-        name="Dashboard" 
-        component={DashboardScreen} 
+      <Tab.Screen
+        name="Dashboard"
+        component={DashboardScreen}
         options={{ title: "Home" }}
       />
-      <Tab.Screen 
-        name="History" 
-        component={MyChallansScreen} 
+      <Tab.Screen
+        name="History"
+        component={MyChallansScreen}
         options={{ title: "History" }}
       />
-      <Tab.Screen 
-        name="Scan" 
-        component={CreateChallanScreen} 
+      <Tab.Screen
+        name="Scan"
+        component={CreateChallanScreen}
         options={{ title: "Scan" }}
       />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen} 
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
         options={{ title: "Profile" }}
       />
     </Tab.Navigator>

@@ -27,6 +27,7 @@ public partial class NoiseSentinelDbContext : IdentityDbContext<User, Applicatio
     public virtual DbSet<Role> BusinessRoles { get; set; }
     public virtual DbSet<Vehicle> Vehicles { get; set; }
     public virtual DbSet<Violation> Violations { get; set; }
+    public virtual DbSet<PublicStatusOtp> PublicStatusOtps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -192,6 +193,15 @@ public partial class NoiseSentinelDbContext : IdentityDbContext<User, Applicatio
         {
             entity.HasKey(e => e.ViolationId);
             entity.ToTable("VIOLATION");
+        });
+
+        modelBuilder.Entity<PublicStatusOtp>(entity =>
+        {
+            entity.HasKey(e => e.OtpId);
+            entity.ToTable("PUBLIC_STATUS_OTP");
+            entity.HasIndex(e => new { e.VehicleNo, e.Cnic, e.Email }).HasDatabaseName("IX_PublicStatusOtp_Search");
+            entity.HasIndex(e => e.OtpCode);
+            entity.HasIndex(e => e.AccessToken);
         });
 
         OnModelCreatingPartial(modelBuilder);

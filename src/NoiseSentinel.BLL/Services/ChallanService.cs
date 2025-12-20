@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.DTOs.Challan;
 using NoiseSentinel.BLL.Helpers;
@@ -26,6 +27,8 @@ public class ChallanService : IChallanService
     private readonly IAccusedService _accusedService;
     private readonly IPoliceofficerRepository _policeofficerRepository;
     private readonly NoiseSentinelDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<ChallanService> _logger;
 
     public ChallanService(
         IChallanRepository challanRepository,
@@ -34,7 +37,9 @@ public class ChallanService : IChallanService
         IVehicleService vehicleService,
         IAccusedService accusedService,
         IPoliceofficerRepository policeofficerRepository,
-        NoiseSentinelDbContext context)
+        NoiseSentinelDbContext context,
+        IEmailService emailService,
+        ILogger<ChallanService> logger)
     {
         _challanRepository = challanRepository;
         _violationRepository = violationRepository;
@@ -43,6 +48,8 @@ public class ChallanService : IChallanService
         _accusedService = accusedService;
         _policeofficerRepository = policeofficerRepository;
         _context = context;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<ChallanResponseDto>> CreateChallanAsync(
@@ -243,6 +250,36 @@ public class ChallanService : IChallanService
         var createdChallan = await _challanRepository.GetByIdAsync(challanId);
 
         var response = MapToChallanResponseDto(createdChallan!);
+
+        // ========================================================================
+        // STEP 10: SEND EMAIL NOTIFICATION TO ACCUSED (IF EMAIL EXISTS)
+        // ========================================================================
+
+        try
+        {
+            var accusedEmail = createdChallan!.Accused?.Email;
+            if (!string.IsNullOrEmpty(accusedEmail))
+            {
+                await _emailService.SendChallanCreatedEmailAsync(
+                    toEmail: accusedEmail,
+                    accusedName: createdChallan.Accused?.FullName ?? "Sir/Madam",
+                    challanId: challanId.ToString(),
+                    vehiclePlateNo: createdChallan.Vehicle?.PlateNumber ?? "N/A",
+                    violationType: violation.ViolationType ?? "Violation",
+                    penaltyAmount: violation.PenaltyAmount ?? 0,
+                    issueDate: issueDateTime,
+                    dueDate: dueDateTime,
+                    officerName: createdChallan.Officer?.User?.FullName ?? "Officer",
+                    stationName: createdChallan.Officer?.Station?.StationName ?? "Police Station"
+                );
+                _logger.LogInformation("Challan email notification sent to {Email} for Challan #{ChallanId}", accusedEmail, challanId);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the challan creation
+            _logger.LogWarning(ex, "Failed to send challan email notification for Challan #{ChallanId}", challanId);
+        }
 
         var message = violation.IsCognizable == true
             ? $"⚠️ COGNIZABLE VIOLATION - Challan #{challanId} created successfully. " +

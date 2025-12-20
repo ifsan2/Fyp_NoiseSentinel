@@ -1,13 +1,14 @@
 import React from "react";
 import {
   Platform,
-  SafeAreaView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { BlurView } from "expo-blur";
+import { ChevronLeft } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../styles/colors";
 import { spacing } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
@@ -18,7 +19,7 @@ interface HeaderProps {
   showBack?: boolean;
   onBackPress?: () => void;
   rightComponent?: React.ReactNode;
-  variant?: "default" | "elevated";
+  variant?: "default" | "primary";
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,117 +30,119 @@ export const Header: React.FC<HeaderProps> = ({
   rightComponent,
   variant = "default",
 }) => {
+  const insets = useSafeAreaInsets();
+  const isPrimary = variant === "primary";
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.wrapper}>
-        <BlurView intensity={40} tint="light" style={styles.blur}>
-          <View
-            style={[
-              styles.container,
-              variant === "elevated" && styles.containerElevated,
-            ]}
+    <View
+      style={[
+        styles.container,
+        isPrimary && styles.containerPrimary,
+        { paddingTop: insets.top + 8 },
+      ]}
+    >
+      <StatusBar
+        barStyle={isPrimary ? "light-content" : "dark-content"}
+        backgroundColor={isPrimary ? colors.primary[700] : colors.white}
+      />
+      <View style={styles.content}>
+        <View style={styles.leftContainer}>
+          {showBack && (
+            <TouchableOpacity
+              onPress={onBackPress}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <ChevronLeft
+                size={28}
+                color={isPrimary ? colors.white : colors.text.primary}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.centerContainer}>
+          <Text
+            style={[styles.title, isPrimary && styles.titlePrimary]}
+            numberOfLines={1}
           >
-            <View style={styles.leftContainer}>
-              {showBack && (
-                <TouchableOpacity
-                  onPress={onBackPress}
-                  style={styles.backButton}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.backIcon}>←</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            {title}
+          </Text>
+          {subtitle && (
+            <Text
+              style={[styles.subtitle, isPrimary && styles.subtitlePrimary]}
+              numberOfLines={1}
+            >
+              {subtitle}
+            </Text>
+          )}
+        </View>
 
-            <View style={styles.centerContainer}>
-              <Text style={styles.title} numberOfLines={1}>
-                {title}
-              </Text>
-              {subtitle && (
-                <Text style={styles.subtitle} numberOfLines={1}>
-                  {subtitle}
-                </Text>
-              )}
-            </View>
-
-            <View style={styles.rightContainer}>{rightComponent}</View>
-          </View>
-        </BlurView>
+        <View style={styles.rightContainer}>{rightComponent}</View>
       </View>
-      {variant === "elevated" && <View style={styles.borderAccent} />}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: "transparent",
-  },
-  wrapper: {
-    backgroundColor: "transparent",
-  },
-  blur: {
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.06)",
-  },
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "rgba(255,255,255,0.6)",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    minHeight: 64,
-  },
-  containerElevated: {
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
     ...Platform.select({
       ios: {
         shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 8,
+        elevation: 2,
       },
     }),
   },
-  borderAccent: {
-    height: 2,
-    backgroundColor: colors.accent[400],
+  containerPrimary: {
+    backgroundColor: colors.primary[700],
+    borderBottomWidth: 0,
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    minHeight: 56,
   },
   leftContainer: {
-    flex: 1,
+    width: 48,
     alignItems: "flex-start",
   },
   centerContainer: {
-    flex: 2,
+    flex: 1,
     alignItems: "center",
   },
   rightContainer: {
-    flex: 1,
+    width: 48,
     alignItems: "flex-end",
   },
   backButton: {
-    padding: spacing.sm,
-    marginLeft: -spacing.sm,
-  },
-  backIcon: {
-    fontSize: 28,
-    color: colors.text.primary,
-    fontWeight: "600",
+    padding: 4,
+    marginLeft: -8,
   },
   title: {
-    ...typography.h3,
+    fontSize: 18,
     color: colors.text.primary,
-    fontWeight: "800",
-    letterSpacing: -0.3,
+    fontWeight: "700",
+  },
+  titlePrimary: {
+    color: colors.white,
   },
   subtitle: {
     ...typography.caption,
     color: colors.text.secondary,
     marginTop: 2,
-    fontWeight: "600",
+  },
+  subtitlePrimary: {
+    color: "rgba(255,255,255,0.8)",
   },
 });
-

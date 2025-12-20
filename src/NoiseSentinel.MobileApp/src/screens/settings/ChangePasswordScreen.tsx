@@ -172,7 +172,6 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
         title="Change Password"
         showBack={!fromLogin}
         onBackPress={() => navigation.goBack()}
-        variant="elevated"
       />
 
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">

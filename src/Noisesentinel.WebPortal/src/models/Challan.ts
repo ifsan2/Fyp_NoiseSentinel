@@ -18,6 +18,7 @@ export interface ChallanDto {
   accusedAddress?: string;
   accusedCity?: string;
   accusedProvince?: string;
+  accusedEmail?: string;
 
   // Vehicle Info
   vehicleId: number;

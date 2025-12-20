@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -14,6 +14,7 @@ import {
   Alert,
   IconButton,
   InputAdornment,
+  Link,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -25,10 +26,12 @@ import {
   AttachMoney as MoneyIcon,
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
+  AssignmentOutlined as CaseIcon,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import { useForm, Controller } from "react-hook-form";
 import { useSnackbar } from "notistack";
+import { useNavigate } from "react-router-dom";
 import challanApi from "@/api/challanApi";
 import { ChallanDto } from "@/models/Challan";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -41,6 +44,7 @@ interface SearchFormData {
 
 export const PublicChallanSearchPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [challans, setChallans] = useState<ChallanDto[]>([]);
@@ -50,12 +54,76 @@ export const PublicChallanSearchPage: React.FC = () => {
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
+    getValues,
   } = useForm<SearchFormData>({
     defaultValues: {
       plateNumber: "",
       cnic: "",
     },
   });
+
+  // Check for passed data from case-status page
+  useEffect(() => {
+    const storedData = sessionStorage.getItem("challan_search_data");
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        if (data.plateNumber && data.cnic) {
+          // Set form values
+          setValue("plateNumber", data.plateNumber);
+          setValue("cnic", data.cnic);
+
+          // Clear the stored data
+          sessionStorage.removeItem("challan_search_data");
+
+          // Auto-submit after a brief delay to allow form to update
+          setTimeout(() => {
+            handleAutoSearch(data.plateNumber, data.cnic);
+          }, 100);
+        }
+      } catch (error) {
+        console.error("Error parsing stored search data:", error);
+        sessionStorage.removeItem("challan_search_data");
+      }
+    }
+  }, [setValue]);
+
+  // Auto search function for when data is passed from case-status
+  const handleAutoSearch = async (plateNumber: string, cnic: string) => {
+    try {
+      setLoading(true);
+      setHasSearched(false);
+
+      const results = await challanApi.searchChallansByPlateAndCnic(
+        plateNumber,
+        cnic
+      );
+
+      setChallans(results);
+      setHasSearched(true);
+
+      if (results.length === 0) {
+        enqueueSnackbar("No challans found for the provided details", {
+          variant: "info",
+        });
+      } else {
+        enqueueSnackbar(`Found ${results.length} challan(s)`, {
+          variant: "success",
+        });
+      }
+    } catch (error: any) {
+      console.error("Search error:", error);
+      enqueueSnackbar(
+        error.response?.data?.message || "Failed to search challans",
+        { variant: "error" }
+      );
+      setHasSearched(true);
+      setChallans([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onSubmit = async (data: SearchFormData) => {
     try {
@@ -825,28 +893,70 @@ export const PublicChallanSearchPage: React.FC = () => {
           theme.palette.mode === "dark"
             ? "linear-gradient(135deg, #0A0A0A 0%, #1a1a1a 100%)"
             : "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-        py: 6,
+        py: { xs: 3, sm: 6 },
       }}
     >
       <Container maxWidth="lg">
         {/* Header */}
-        <Box
+        <Paper
+          elevation={2}
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 4,
+            p: { xs: 2, sm: 3 },
+            mb: { xs: 2, sm: 4 },
+            borderRadius: 3,
           }}
         >
-          <BrandLogo size="large" />
-          <ThemeToggleButton />
-        </Box>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            flexWrap="wrap"
+            gap={2}
+          >
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={2}
+              sx={{ cursor: "pointer" }}
+              onClick={() => navigate("/search-challans")}
+            >
+              <BrandLogo size="large" />
+              <Box>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem" } }}
+                >
+                  NoiseSentinel
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Public Challan Search
+                </Typography>
+              </Box>
+            </Box>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<CaseIcon />}
+                onClick={() => navigate("/case-status")}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 2,
+                }}
+              >
+                Case Status
+              </Button>
+              <ThemeToggleButton />
+            </Box>
+          </Box>
+        </Paper>
 
         {/* Title Section */}
         <Paper
           elevation={0}
           sx={{
-            p: 4,
+            p: { xs: 3, sm: 4 },
             mb: 4,
             background:
               theme.palette.mode === "dark"
@@ -857,8 +967,12 @@ export const PublicChallanSearchPage: React.FC = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-            <ReceiptIcon sx={{ fontSize: 40 }} />
-            <Typography variant="h3" fontWeight={700}>
+            <ReceiptIcon sx={{ fontSize: { xs: 32, sm: 40 } }} />
+            <Typography
+              variant="h3"
+              fontWeight={700}
+              sx={{ fontSize: { xs: "1.5rem", sm: "2.5rem" } }}
+            >
               Search Your Challans
             </Typography>
           </Box>
@@ -1462,20 +1576,22 @@ export const PublicChallanSearchPage: React.FC = () => {
                                     border: `2px solid ${theme.palette.divider}`,
                                   }}
                                 >
-                                  <img
+                                  <Box
+                                    component="img"
                                     src={challan.evidencePath}
                                     alt={`Evidence for Challan #${challan.challanId}`}
-                                    style={{
+                                    sx={{
                                       width: "100%",
-                                      maxHeight: "250px",
+                                      maxHeight: 250,
                                       height: "auto",
                                       objectFit: "contain",
                                       display: "block",
-                                      backgroundColor: "#f5f5f5",
+                                      bgcolor: "#f5f5f5",
                                     }}
-                                    onError={(e) => {
-                                      const target =
-                                        e.target as HTMLImageElement;
+                                    onError={(
+                                      e: React.SyntheticEvent<HTMLImageElement>
+                                    ) => {
+                                      const target = e.currentTarget;
                                       target.style.display = "none";
                                       const parent = target.parentElement;
                                       if (parent) {
@@ -1576,12 +1692,32 @@ export const PublicChallanSearchPage: React.FC = () => {
 
         {/* Footer */}
         <Box sx={{ mt: 6, textAlign: "center" }}>
-          <Typography variant="body2" color="text.secondary">
-            © {new Date().getFullYear()} Noise Sentinel. All rights reserved.
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            © {new Date().getFullYear()} NoiseSentinel. Your trusted traffic
+            violation management system.
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            For queries, please contact your local police station.
-          </Typography>
+          <Box display="flex" justifyContent="center" gap={2} flexWrap="wrap">
+            <Link
+              component="button"
+              onClick={() => navigate("/case-status")}
+              color="primary"
+              underline="hover"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                fontSize: "0.875rem",
+              }}
+            >
+              <CaseIcon fontSize="small" /> Check Case Status
+            </Link>
+            <Typography variant="body2" color="text.secondary">
+              •
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              For queries, contact your local police station
+            </Typography>
+          </Box>
         </Box>
       </Container>
     </Box>

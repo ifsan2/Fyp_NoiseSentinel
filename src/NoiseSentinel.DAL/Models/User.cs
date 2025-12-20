@@ -54,6 +54,13 @@ public partial class User : IdentityUser<int>
 
     public bool MustChangePassword { get; set; } = false;
 
+    // Password Reset Fields
+    [StringLength(6)]
+    public string? PasswordResetOtp { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? PasswordResetOtpExpiresAt { get; set; }
+
     [InverseProperty("User")]
     public virtual ICollection<Judge> Judges { get; set; } = new List<Judge>();
 

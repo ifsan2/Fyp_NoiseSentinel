@@ -55,6 +55,7 @@ public class AccusedService : IAccusedService
         {
             FullName = dto.FullName,
             Cnic = dto.Cnic,
+            Email = dto.Email,
             City = dto.City,
             Province = dto.Province,
             Address = dto.Address,
@@ -71,6 +72,7 @@ public class AccusedService : IAccusedService
             AccusedId = createdAccused!.AccusedId,
             FullName = createdAccused.FullName ?? string.Empty,
             Cnic = createdAccused.Cnic ?? string.Empty,
+            Email = createdAccused.Email,
             City = createdAccused.City,
             Province = createdAccused.Province,
             Address = createdAccused.Address,
@@ -106,6 +108,7 @@ public class AccusedService : IAccusedService
             AccusedId = accused.AccusedId,
             FullName = accused.FullName ?? string.Empty,
             Cnic = accused.Cnic ?? string.Empty,
+            Email = accused.Email,
             City = accused.City,
             Province = accused.Province,
             Address = accused.Address,
@@ -139,6 +142,7 @@ public class AccusedService : IAccusedService
             AccusedId = accused.AccusedId,
             FullName = accused.FullName ?? string.Empty,
             Cnic = accused.Cnic ?? string.Empty,
+            Email = accused.Email,
             City = accused.City,
             Province = accused.Province,
             Address = accused.Address,
@@ -166,6 +170,7 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            Email = a.Email,
             ContactNo = a.Contact,
             Address = a.Address,
             City = a.City,
@@ -188,6 +193,7 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            Email = a.Email,
             ContactNo = a.Contact,
             Address = a.Address,
             City = a.City,
@@ -210,6 +216,7 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            Email = a.Email,
             ContactNo = a.Contact,
             Address = a.Address,
             City = a.City,
@@ -232,6 +239,7 @@ public class AccusedService : IAccusedService
             AccusedId = a.AccusedId,
             FullName = a.FullName ?? string.Empty,
             Cnic = a.Cnic ?? string.Empty,
+            Email = a.Email,
             ContactNo = a.Contact,
             Address = a.Address,
             City = a.City,
@@ -279,6 +287,7 @@ public class AccusedService : IAccusedService
         // Update accused
         existingAccused.FullName = dto.FullName;
         existingAccused.Cnic = dto.Cnic;
+        existingAccused.Email = dto.Email;
         existingAccused.City = dto.City;
         existingAccused.Province = dto.Province;
         existingAccused.Address = dto.Address;
@@ -294,6 +303,7 @@ public class AccusedService : IAccusedService
             AccusedId = updatedAccused!.AccusedId,
             FullName = updatedAccused.FullName ?? string.Empty,
             Cnic = updatedAccused.Cnic ?? string.Empty,
+            Email = updatedAccused.Email,
             City = updatedAccused.City,
             Province = updatedAccused.Province,
             Address = updatedAccused.Address,
@@ -385,6 +395,13 @@ public class AccusedService : IAccusedService
                 needsUpdate = true;
             }
 
+            // Update email if provided and different
+            if (!string.IsNullOrEmpty(dto.Email) && existingAccused.Email != dto.Email)
+            {
+                existingAccused.Email = dto.Email;
+                needsUpdate = true;
+            }
+
             if (needsUpdate)
             {
                 await _accusedRepository.UpdateAsync(existingAccused);
@@ -398,6 +415,7 @@ public class AccusedService : IAccusedService
         {
             FullName = dto.FullName,
             Cnic = dto.Cnic,
+            Email = dto.Email,
             City = dto.City,
             Province = dto.Province,
             Address = dto.Address,

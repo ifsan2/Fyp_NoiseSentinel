@@ -13,9 +13,11 @@ import { ROUTES, ROLES } from "@/utils/constants";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterAdminPage } from "@/pages/auth/RegisterAdminPage";
 import { VerifyEmailPage } from "@/pages/auth/VerifyEmailPage";
+import { ForgotPasswordPage } from "@/pages/auth/ForgotPasswordPage";
 
 // Public Pages
 import { PublicChallanSearchPage } from "@/pages/public/PublicChallanSearchPage";
+import { PublicCaseStatusPage } from "@/pages/public/PublicCaseStatusPage";
 
 // Admin Pages
 import { DashboardPage } from "@/pages/admin/DashboardPage";
@@ -98,8 +100,14 @@ export const AppRouter: React.FC = () => {
         {/* Email Verification Route */}
         <Route path="/verify-email" element={<VerifyEmailPage />} />
 
+        {/* Forgot Password Route */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
         {/* Public Challan Search - No Authentication Required */}
         <Route path="/search-challans" element={<PublicChallanSearchPage />} />
+
+        {/* Public Case Status - No Authentication Required (OTP Verification) */}
+        <Route path="/case-status" element={<PublicCaseStatusPage />} />
 
         {/* Root Route - Role-Based Redirect */}
         <Route

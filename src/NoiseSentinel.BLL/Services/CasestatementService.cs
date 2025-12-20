@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.DTOs.CaseStatement;
 using NoiseSentinel.BLL.Services.Interfaces;
@@ -20,15 +21,21 @@ public class CasestatementService : ICasestatementService
     private readonly ICasestatementRepository _casestatementRepository;
     private readonly ICaseRepository _caseRepository;
     private readonly NoiseSentinelDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<CasestatementService> _logger;
 
     public CasestatementService(
         ICasestatementRepository casestatementRepository,
         ICaseRepository caseRepository,
-        NoiseSentinelDbContext context)
+        NoiseSentinelDbContext context,
+        IEmailService emailService,
+        ILogger<CasestatementService> logger)
     {
         _casestatementRepository = casestatementRepository;
         _caseRepository = caseRepository;
         _context = context;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<CaseStatementResponseDto>> CreateCaseStatementAsync(
@@ -101,6 +108,46 @@ public class CasestatementService : ICasestatementService
         var createdStatement = await _casestatementRepository.GetByIdAsync(statementId);
 
         var response = MapToCaseStatementResponseDto(createdStatement!);
+
+        // ========================================================================
+        // STEP 6: SEND EMAIL NOTIFICATION TO ACCUSED (IF EMAIL EXISTS)
+        // ========================================================================
+
+        try
+        {
+            // Get accused email from case -> fir -> challan -> accused
+            var accusedEmail = await _context.Cases
+                .Where(c => c.CaseId == dto.CaseId)
+                .Select(c => c.Fir!.Challan!.Accused!.Email)
+                .FirstOrDefaultAsync();
+
+            var accusedName = await _context.Cases
+                .Where(c => c.CaseId == dto.CaseId)
+                .Select(c => c.Fir!.Challan!.Accused!.FullName)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrEmpty(accusedEmail))
+            {
+                // Get summary (first 200 chars of statement)
+                var statementSummary = dto.StatementText.Length > 200 
+                    ? dto.StatementText.Substring(0, 200) + "..." 
+                    : dto.StatementText;
+
+                await _emailService.SendCaseStatementAddedEmailAsync(
+                    toEmail: accusedEmail,
+                    accusedName: accusedName ?? "Sir/Madam",
+                    caseNo: caseEntity.CaseNo ?? "N/A",
+                    statementBy: statementBy,
+                    statementSummary: statementSummary,
+                    statementDate: casestatement.StatementDate ?? DateTime.UtcNow
+                );
+                _logger.LogInformation("Case statement email notification sent to {Email} for Case {CaseNo}", accusedEmail, caseEntity.CaseNo);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send case statement email notification for Case {CaseNo}", caseEntity.CaseNo);
+        }
 
         return ServiceResult<CaseStatementResponseDto>.SuccessResult(
             response,

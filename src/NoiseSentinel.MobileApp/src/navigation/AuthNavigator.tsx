@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { LoginScreen } from "../screens/auth/LoginScreen";
+import { ForgotPasswordScreen } from "../screens/auth/ForgotPasswordScreen";
 import VerifyEmailScreen from "../screens/auth/VerifyEmailScreen";
 import { ChangePasswordScreen } from "../screens/settings/ChangePasswordScreen";
 
@@ -11,6 +12,7 @@ export const AuthNavigator: React.FC = () => {
     // @ts-ignore - Stack.Navigator does have children, this is a TypeScript false positive
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     </Stack.Navigator>

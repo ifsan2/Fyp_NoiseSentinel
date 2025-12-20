@@ -5,6 +5,7 @@ export interface AccusedInputDto {
   province: string;
   address: string;
   contact: string;
+  email?: string;
 }
 
 export interface AccusedVehicleSummaryDto {
@@ -22,6 +23,7 @@ export interface AccusedResponseDto {
   province?: string;
   address?: string;
   contact?: string;
+  email?: string;
   totalViolations: number;
   totalVehicles: number;
   vehicles: AccusedVehicleSummaryDto[];
@@ -34,6 +36,7 @@ export interface AccusedListItemDto {
   city?: string;
   province?: string;
   contact?: string;
+  email?: string;
   totalViolations: number;
   totalVehicles: number;
 }

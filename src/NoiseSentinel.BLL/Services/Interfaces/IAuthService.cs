@@ -83,4 +83,23 @@ public interface IAuthService
     /// Initialize system roles.
     /// </summary>
     Task InitializeRolesAsync();
+
+    // ========================================================================
+    // PASSWORD RESET (FORGOT PASSWORD)
+    // ========================================================================
+
+    /// <summary>
+    /// Initiate forgot password flow - sends OTP to user email.
+    /// </summary>
+    Task<ServiceResult<string>> ForgotPasswordAsync(ForgotPasswordRequestDto dto);
+
+    /// <summary>
+    /// Verify password reset OTP.
+    /// </summary>
+    Task<ServiceResult<string>> VerifyPasswordResetOtpAsync(VerifyPasswordResetOtpDto dto);
+
+    /// <summary>
+    /// Reset password with OTP verification.
+    /// </summary>
+    Task<ServiceResult<string>> ResetPasswordWithOtpAsync(ResetPasswordWithOtpDto dto);
 }

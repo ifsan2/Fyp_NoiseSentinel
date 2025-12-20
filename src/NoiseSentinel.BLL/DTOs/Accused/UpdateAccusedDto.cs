@@ -19,6 +19,10 @@ public class UpdateAccusedDto
     [RegularExpression(@"^[0-9]{5}-[0-9]{7}-[0-9]$", ErrorMessage = "CNIC format must be: 12345-1234567-1")]
     public string Cnic { get; set; } = string.Empty;
 
+    [StringLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    public string? Email { get; set; }
+
     [StringLength(100, ErrorMessage = "City cannot exceed 100 characters")]
     public string? City { get; set; }
 

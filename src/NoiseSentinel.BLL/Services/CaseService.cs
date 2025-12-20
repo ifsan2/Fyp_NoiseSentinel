@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.DTOs.Case;
 using NoiseSentinel.BLL.Services.Interfaces;
@@ -20,15 +21,21 @@ public class CaseService : ICaseService
     private readonly ICaseRepository _caseRepository;
     private readonly IFirRepository _firRepository;
     private readonly NoiseSentinelDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<CaseService> _logger;
 
     public CaseService(
         ICaseRepository caseRepository,
         IFirRepository firRepository,
-        NoiseSentinelDbContext context)
+        NoiseSentinelDbContext context,
+        IEmailService emailService,
+        ILogger<CaseService> logger)
     {
         _caseRepository = caseRepository;
         _firRepository = firRepository;
         _context = context;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<CaseResponseDto>> CreateCaseAsync(CreateCaseDto dto, int creatorUserId)
@@ -134,6 +141,33 @@ public class CaseService : ICaseService
         var createdCase = await _caseRepository.GetByIdAsync(caseId);
 
         var response = MapToCaseResponseDto(createdCase!);
+
+        // ========================================================================
+        // STEP 9: SEND EMAIL NOTIFICATION TO ACCUSED (IF EMAIL EXISTS)
+        // ========================================================================
+
+        try
+        {
+            var accusedEmail = fir.Challan?.Accused?.Email;
+            if (!string.IsNullOrEmpty(accusedEmail))
+            {
+                await _emailService.SendCaseCreatedEmailAsync(
+                    toEmail: accusedEmail,
+                    accusedName: fir.Challan?.Accused?.FullName ?? "Sir/Madam",
+                    caseNo: caseNo,
+                    firNo: fir.Firno ?? "N/A",
+                    courtName: court.CourtName ?? "Court",
+                    judgeName: judge.User?.FullName ?? "Judge",
+                    hearingDate: hearingDate
+                );
+                _logger.LogInformation("Case email notification sent to {Email} for Case {CaseNo}", accusedEmail, caseNo);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the case creation
+            _logger.LogWarning(ex, "Failed to send case email notification for Case {CaseNo}", caseNo);
+        }
 
         return ServiceResult<CaseResponseDto>.SuccessResult(
             response,
@@ -264,13 +298,26 @@ public class CaseService : ICaseService
                 "Only Court Authority or Judge can update cases.");
         }
 
-        // Get existing case
-        var existingCase = await _caseRepository.GetByIdAsync(dto.CaseId);
+        // Get existing case with all related data for email
+        var existingCase = await _context.Cases
+            .Include(c => c.Fir)
+                .ThenInclude(f => f!.Challan)
+                    .ThenInclude(ch => ch!.Accused)
+            .Include(c => c.Judge)
+                .ThenInclude(j => j!.User)
+            .Include(c => c.Judge)
+                .ThenInclude(j => j!.Court)
+            .FirstOrDefaultAsync(c => c.CaseId == dto.CaseId);
+
         if (existingCase == null)
         {
             return ServiceResult<CaseResponseDto>.FailureResult(
                 $"Case with ID {dto.CaseId} not found.");
         }
+
+        // Track what's being changed for email
+        var previousHearingDate = existingCase.HearingDate;
+        var previousVerdict = existingCase.Verdict;
 
         // Update case
         if (!string.IsNullOrEmpty(dto.CaseStatus))
@@ -314,6 +361,49 @@ public class CaseService : ICaseService
         var updatedCase = await _caseRepository.GetByIdAsync(dto.CaseId);
 
         var response = MapToCaseResponseDto(updatedCase!);
+
+        // ========================================================================
+        // SEND EMAIL NOTIFICATIONS FOR HEARING/VERDICT CHANGES
+        // ========================================================================
+
+        var accusedEmail = existingCase.Fir?.Challan?.Accused?.Email;
+        if (!string.IsNullOrEmpty(accusedEmail))
+        {
+            try
+            {
+                // Send verdict notification if verdict was just added/changed
+                if (!string.IsNullOrEmpty(dto.Verdict) && dto.Verdict != previousVerdict)
+                {
+                    await _emailService.SendVerdictAnnouncedEmailAsync(
+                        toEmail: accusedEmail,
+                        accusedName: existingCase.Fir?.Challan?.Accused?.FullName ?? "Sir/Madam",
+                        caseNo: existingCase.CaseNo ?? "N/A",
+                        verdict: dto.Verdict,
+                        caseStatus: existingCase.CaseStatus ?? "Closed",
+                        courtName: existingCase.Judge?.Court?.CourtName ?? "Court",
+                        judgeName: existingCase.Judge?.User?.FullName ?? "Judge"
+                    );
+                    _logger.LogInformation("Verdict email notification sent to {Email} for Case {CaseNo}", accusedEmail, existingCase.CaseNo);
+                }
+                // Send hearing notification if hearing date was changed (and no verdict added)
+                else if (dto.HearingDate.HasValue && dto.HearingDate != previousHearingDate)
+                {
+                    await _emailService.SendHearingScheduledEmailAsync(
+                        toEmail: accusedEmail,
+                        accusedName: existingCase.Fir?.Challan?.Accused?.FullName ?? "Sir/Madam",
+                        caseNo: existingCase.CaseNo ?? "N/A",
+                        hearingDate: dto.HearingDate.Value,
+                        courtName: existingCase.Judge?.Court?.CourtName ?? "Court",
+                        judgeName: existingCase.Judge?.User?.FullName ?? "Judge"
+                    );
+                    _logger.LogInformation("Hearing email notification sent to {Email} for Case {CaseNo}", accusedEmail, existingCase.CaseNo);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send case update email notification for Case {CaseNo}", existingCase.CaseNo);
+            }
+        }
 
         return ServiceResult<CaseResponseDto>.SuccessResult(
             response,

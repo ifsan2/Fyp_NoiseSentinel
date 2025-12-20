@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Animated as RNAnimated,
   Platform,
   RefreshControl,
   ScrollView,
@@ -10,26 +9,20 @@ import {
   View,
   Dimensions,
 } from "react-native";
-import Reanimated, { FadeInUp, Layout } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
 import {
   Link,
   BarChart3,
   FileText,
   History,
-  Search,
   User as UserIcon,
   Car,
   AlertTriangle,
+  ChevronRight,
+  Shield,
 } from "lucide-react-native";
 import challanApi from "../../api/challanApi";
-import {
-  SkeletonCard,
-  SkeletonStat,
-  SkeletonList,
-} from "../../components/common/Skeleton";
-import { Card } from "../../components/common/Card";
-import { Header } from "../../components/common/Header";
+import { SkeletonStat } from "../../components/common/Skeleton";
 import { ProfileMenu } from "../../components/common/ProfileMenu";
 import { useAuth } from "../../contexts/AuthContext";
 import { colors } from "../../styles/colors";
@@ -38,9 +31,8 @@ import { typography } from "../../styles/typography";
 
 const { width } = Dimensions.get("window");
 
-// PREMIUM DASHBOARD SCREEN
-// Features: Animated cards, Glassmorphism, Micro-interactions, Premium layouts
-// Inspired by: Linear, Vercel, Arc Browser - Award-winning dashboard design worth $50000+
+// NoiseSentinel Dashboard
+// Clean, professional design for traffic police enforcement
 
 interface DashboardScreenProps {
   navigation: any;
@@ -57,27 +49,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     todayChallans: 0,
   });
 
-  // Animation values
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-  const slideAnim = useRef(new RNAnimated.Value(30)).current;
-
   useEffect(() => {
     loadDashboardData();
-
-    // Entrance animation
-    RNAnimated.parallel([
-      RNAnimated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      RNAnimated.spring(slideAnim, {
-        toValue: 0,
-        speed: 12,
-        bounciness: 6,
-        useNativeDriver: true,
-      }),
-    ]).start();
   }, []);
 
   const loadDashboardData = async () => {
@@ -122,25 +95,25 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     {
       title: "Pair Device",
       IconComponent: Link,
-      gradient: [colors.primary[600], colors.primary[700]],
+      color: colors.primary[600],
       onPress: () => navigation.navigate("PairDevice"),
     },
     {
       title: "Generate Report",
       IconComponent: BarChart3,
-      gradient: [colors.accent[500], colors.accent[600]],
+      color: colors.accent[600],
       onPress: () => navigation.navigate("CreateEmissionReport"),
     },
     {
       title: "Create Challan",
       IconComponent: FileText,
-      gradient: [colors.primary[500], colors.primary[600]],
+      color: colors.success[600],
       onPress: () => navigation.navigate("CreateChallan"),
     },
     {
       title: "My Challans",
       IconComponent: History,
-      gradient: [colors.accent[600], colors.accent[700]],
+      color: colors.warning[600],
       onPress: () => navigation.navigate("MyChallans"),
     },
   ];
@@ -148,48 +121,52 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const searchActions = [
     {
       title: "Search Vehicle",
-      description: "Find vehicle records",
+      description: "Find vehicle by plate number",
       IconComponent: Car,
       color: colors.primary[600],
+      bgColor: colors.primary[50],
       onPress: () => navigation.navigate("SearchVehicle"),
     },
     {
       title: "Search Accused",
-      description: "Find accused records",
+      description: "Find by name or CNIC",
       IconComponent: UserIcon,
       color: colors.accent[600],
+      bgColor: colors.accent[50],
       onPress: () => navigation.navigate("SearchAccused"),
     },
     {
       title: "Violations List",
-      description: "View all violations",
+      description: "View violation types & penalties",
       IconComponent: AlertTriangle,
-      color: colors.warning[500],
+      color: colors.warning[600],
+      bgColor: colors.warning[50],
       onPress: () => navigation.navigate("Violations"),
     },
   ];
 
   return (
     <View style={styles.container}>
-      {/* Subtle gradient background */}
-      <View style={styles.backgroundGradient}>
-        <View style={styles.gradientCircle1} />
-        <View style={styles.gradientCircle2} />
-      </View>
-
-      <Header
-        title="NoiseSentinel"
-        subtitle="Traffic Police Portal"
-        variant="elevated"
-        rightComponent={
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <View style={styles.logoContainer}>
+              <Shield size={24} color={colors.white} strokeWidth={2.5} />
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>NoiseSentinel</Text>
+              <Text style={styles.headerSubtitle}>Traffic Police Portal</Text>
+            </View>
+          </View>
           <ProfileMenu
             userName={userDetails?.fullName || user?.fullName}
             userRole={userDetails?.role || user?.role}
             onChangePassword={() => navigation.navigate("ChangePassword")}
             onLogout={handleLogout}
           />
-        }
-      />
+        </View>
+      </View>
 
       <ScrollView
         style={styles.content}
@@ -204,212 +181,153 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         }
         showsVerticalScrollIndicator={false}
       >
-        <RNAnimated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
-          {/* Premium Officer Card with glassmorphism */}
-          <Reanimated.View
-            entering={FadeInUp.duration(600)}
-            layout={Layout.springify()}
-          >
-            <Card style={styles.officerCard} variant="glass">
-              <View style={styles.officerHeader}>
-                <View style={styles.avatarContainer}>
-                  <View style={styles.avatarGlow} />
-                  <View style={styles.avatarInner}>
-                    <UserIcon
-                      size={40}
-                      color={colors.primary[600]}
-                      strokeWidth={2}
-                    />
-                  </View>
-                </View>
-                <View style={styles.officerInfo}>
-                  <Text style={styles.officerName}>
-                    {userDetails?.fullName || user?.fullName}
-                  </Text>
-                  <View style={styles.roleContainer}>
-                    <View style={styles.roleDot} />
-                    <Text style={styles.officerRole}>
-                      {userDetails?.role?.toUpperCase() ||
-                        user?.role?.toUpperCase()}
-                    </Text>
-                  </View>
-                  {userDetails?.rank && (
-                    <Text style={styles.officerBadge}>{userDetails.rank}</Text>
-                  )}
-                  {userDetails?.badgeNumber && (
-                    <Text style={styles.officerBadge}>
-                      Badge • {userDetails.badgeNumber}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </Card>
-          </Reanimated.View>
-
-          {/* Premium Statistics Grid */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionTitle}>Performance Today</Text>
-                <Text style={styles.sectionSubtitle}>Your daily metrics</Text>
-              </View>
-              <View style={styles.liveBadge}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveBadgeText}>LIVE</Text>
-              </View>
-            </View>
-
-            {loading ? (
-              <View style={styles.statsGrid}>
-                <SkeletonStat />
-                <SkeletonStat />
-              </View>
-            ) : (
-              <View style={styles.statsGrid}>
-                <Reanimated.View
-                  entering={FadeInUp.duration(500).delay(50)}
-                  layout={Layout.springify()}
-                  style={styles.statCardWrapper}
-                >
-                  <View style={styles.statCard}>
-                    <View style={styles.statIconContainer}>
-                      <FileText
-                        size={28}
-                        color={colors.primary[600]}
-                        strokeWidth={2.5}
-                      />
-                    </View>
-                    <Text style={styles.statValue}>{stats.todayChallans}</Text>
-                    <Text style={styles.statLabel}>Today's Challans</Text>
-                  </View>
-                </Reanimated.View>
-
-                <Reanimated.View
-                  entering={FadeInUp.duration(500).delay(120)}
-                  layout={Layout.springify()}
-                  style={styles.statCardWrapper}
-                >
-                  <View style={styles.statCard}>
-                    <View style={styles.statIconContainer}>
-                      <BarChart3
-                        size={28}
-                        color={colors.accent[600]}
-                        strokeWidth={2.5}
-                      />
-                    </View>
-                    <Text style={styles.statValue}>{stats.totalChallans}</Text>
-                    <Text style={styles.statLabel}>Total Issued</Text>
-                  </View>
-                </Reanimated.View>
-              </View>
+        {/* Officer Info Card */}
+        <View style={styles.officerCard}>
+          <View style={styles.officerAvatar}>
+            <UserIcon size={28} color={colors.primary[600]} strokeWidth={2} />
+          </View>
+          <View style={styles.officerInfo}>
+            <Text style={styles.officerName}>
+              {userDetails?.fullName || user?.fullName || "Officer"}
+            </Text>
+            <Text style={styles.officerRole}>
+              {userDetails?.role || user?.role || "Traffic Police"}
+            </Text>
+            {userDetails?.badgeNumber && (
+              <Text style={styles.officerBadge}>
+                Badge #{userDetails.badgeNumber}
+              </Text>
             )}
           </View>
-
-          {/* Premium Quick Actions Grid */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionTitle}>Quick Actions</Text>
-                <Text style={styles.sectionSubtitle}>Common operations</Text>
-              </View>
-            </View>
-
-            <View style={styles.actionsGrid}>
-              {quickActions.map((action, index) => (
-                <Reanimated.View
-                  key={index}
-                  entering={FadeInUp.duration(500).delay(200 + index * 60)}
-                  layout={Layout.springify()}
-                >
-                  <TouchableOpacity
-                    style={styles.actionCard}
-                    onPress={action.onPress}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.actionCardInner}>
-                      <View style={styles.actionIconContainer}>
-                        <action.IconComponent
-                          size={28}
-                          color={colors.accent[600]}
-                          strokeWidth={2}
-                        />
-                      </View>
-                      <Text style={styles.actionTitle}>{action.title}</Text>
-                      <View style={styles.actionArrow}>
-                        <Text style={styles.actionArrowText}>→</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                </Reanimated.View>
-              ))}
-            </View>
+          <View style={styles.onlineIndicator}>
+            <View style={styles.onlineDot} />
+            <Text style={styles.onlineText}>Online</Text>
           </View>
+        </View>
 
-          {/* Premium Search Actions */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionTitle}>Database Search</Text>
-                <Text style={styles.sectionSubtitle}>Quick lookup tools</Text>
+        {/* Statistics */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Today's Performance</Text>
+
+          {loading ? (
+            <View style={styles.statsRow}>
+              <SkeletonStat />
+              <SkeletonStat />
+            </View>
+          ) : (
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <View
+                  style={[
+                    styles.statIcon,
+                    { backgroundColor: colors.primary[50] },
+                  ]}
+                >
+                  <FileText
+                    size={24}
+                    color={colors.primary[600]}
+                    strokeWidth={2}
+                  />
+                </View>
+                <Text style={styles.statValue}>{stats.todayChallans}</Text>
+                <Text style={styles.statLabel}>Today's Challans</Text>
+              </View>
+
+              <View style={styles.statCard}>
+                <View
+                  style={[
+                    styles.statIcon,
+                    { backgroundColor: colors.accent[50] },
+                  ]}
+                >
+                  <BarChart3
+                    size={24}
+                    color={colors.accent[600]}
+                    strokeWidth={2}
+                  />
+                </View>
+                <Text style={styles.statValue}>{stats.totalChallans}</Text>
+                <Text style={styles.statLabel}>Total Issued</Text>
               </View>
             </View>
+          )}
+        </View>
 
-            {searchActions.map((action, index) => (
-              <Reanimated.View
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionsGrid}>
+            {quickActions.map((action, index) => (
+              <TouchableOpacity
                 key={index}
-                entering={FadeInUp.duration(500).delay(420 + index * 60)}
-                layout={Layout.springify()}
+                style={styles.actionCard}
+                onPress={action.onPress}
+                activeOpacity={0.7}
               >
-                <TouchableOpacity
-                  style={styles.searchCard}
-                  onPress={action.onPress}
-                  activeOpacity={0.8}
+                <View
+                  style={[
+                    styles.actionIcon,
+                    { backgroundColor: `${action.color}15` },
+                  ]}
                 >
-                  <View
-                    style={[
-                      styles.searchIconContainer,
-                      { backgroundColor: `${action.color}15` },
-                    ]}
-                  >
-                    <action.IconComponent
-                      size={24}
-                      color={action.color}
-                      strokeWidth={2}
-                    />
-                  </View>
-                  <View style={styles.searchContent}>
-                    <Text style={styles.searchTitle}>{action.title}</Text>
-                    <Text style={styles.searchDescription}>
-                      {action.description}
-                    </Text>
-                  </View>
-                  <View style={styles.searchArrow}>
-                    <Text style={styles.searchArrowText}>→</Text>
-                  </View>
-                </TouchableOpacity>
-              </Reanimated.View>
+                  <action.IconComponent
+                    size={24}
+                    color={action.color}
+                    strokeWidth={2}
+                  />
+                </View>
+                <Text style={styles.actionTitle}>{action.title}</Text>
+              </TouchableOpacity>
             ))}
           </View>
+        </View>
 
-          {/* Premium Footer */}
-          <View style={styles.footer}>
-            <View style={styles.footerDivider} />
-            <Text style={styles.footerText}>
-              Government of Pakistan • Traffic Police Department
-            </Text>
-            <Text style={styles.footerSubtext}>
-              Authorized Personnel Only • {new Date().getFullYear()}
-            </Text>
-          </View>
+        {/* Search Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Database Search</Text>
+          {searchActions.map((action, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.searchCard}
+              onPress={action.onPress}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[styles.searchIcon, { backgroundColor: action.bgColor }]}
+              >
+                <action.IconComponent
+                  size={22}
+                  color={action.color}
+                  strokeWidth={2}
+                />
+              </View>
+              <View style={styles.searchContent}>
+                <Text style={styles.searchTitle}>{action.title}</Text>
+                <Text style={styles.searchDescription}>
+                  {action.description}
+                </Text>
+              </View>
+              <ChevronRight
+                size={20}
+                color={colors.neutral[400]}
+                strokeWidth={2}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
 
-          {/* Spacer for bottom tab bar - 8pt grid system */}
-          <View style={{ height: 96 }} />
-        </RNAnimated.View>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Government of Pakistan • Traffic Police Department
+          </Text>
+          <Text style={styles.footerSubtext}>
+            NoiseSentinel v1.0 • {new Date().getFullYear()}
+          </Text>
+        </View>
+
+        {/* Spacer for tab bar */}
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   );
@@ -418,308 +336,214 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.background.secondary,
   },
-  backgroundGradient: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: "hidden",
+  header: {
+    backgroundColor: colors.primary[700],
+    paddingTop: Platform.OS === "ios" ? 50 : 40,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
   },
-  gradientCircle1: {
-    position: "absolute",
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: width * 0.4,
-    backgroundColor: colors.primary[100],
-    opacity: 0.3,
-    top: -width * 0.4,
-    right: -width * 0.3,
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  gradientCircle2: {
-    position: "absolute",
-    width: width * 0.6,
-    height: width * 0.6,
-    borderRadius: width * 0.3,
-    backgroundColor: colors.accent[100],
-    opacity: 0.3,
-    bottom: width * 0.2,
-    left: -width * 0.2,
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  logoContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: colors.white,
+    letterSpacing: -0.3,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "500",
   },
   content: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 100,
   },
   officerCard: {
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-  },
-  officerHeader: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  avatarContainer: {
-    position: "relative",
-    marginRight: spacing.md,
-  },
-  avatarGlow: {
-    position: "absolute",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary[400],
-    opacity: 0.2,
-    top: -5,
-    left: -5,
-  },
-  avatarInner: {
-    width: 70,
-    height: 70,
     backgroundColor: colors.white,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: colors.primary[400],
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
     ...Platform.select({
       ios: {
-        shadowColor: colors.primary[500],
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
         shadowRadius: 8,
       },
       android: {
-        elevation: 6,
+        elevation: 2,
       },
     }),
   },
-  avatarText: {
-    fontSize: 36,
+  officerAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary[50],
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
   },
   officerInfo: {
     flex: 1,
   },
   officerName: {
-    ...typography.h3,
-    color: colors.primary[900],
-    fontWeight: "800",
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  roleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  roleDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.success[500],
-    marginRight: spacing.xs,
-  },
-  officerRole: {
-    ...typography.bodySmall,
-    color: colors.primary[700],
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  officerBadge: {
-    ...typography.caption,
-    color: colors.text.tertiary,
+    fontSize: 17,
     fontWeight: "600",
-  },
-  section: {
-    marginBottom: spacing.xl,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: spacing.md,
-  },
-  sectionTitle: {
-    ...typography.h3,
     color: colors.text.primary,
-    fontWeight: "800",
-    letterSpacing: -0.3,
     marginBottom: 2,
   },
-  sectionSubtitle: {
-    ...typography.bodySmall,
-    color: colors.text.tertiary,
-    fontWeight: "500",
+  officerRole: {
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginBottom: 2,
   },
-  liveBadge: {
+  officerBadge: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+  },
+  onlineIndicator: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.success[50],
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: "#86EFAC",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
   },
-  liveDot: {
+  onlineDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: colors.success[500],
-    marginRight: spacing.xs,
+    marginRight: 5,
   },
-  liveBadgeText: {
-    ...typography.caption,
+  onlineText: {
+    fontSize: 11,
+    fontWeight: "600",
     color: colors.success[700],
-    fontWeight: "700",
-    fontSize: 10,
-    letterSpacing: 0.5,
   },
-  statsGrid: {
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.text.primary,
+    marginBottom: 12,
+  },
+  statsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md,
-  },
-  statCardWrapper: {
-    width: (width - spacing.md * 3) / 2,
+    gap: 12,
   },
   statCard: {
-    width: (width - spacing.md * 3) / 2,
-    padding: spacing.xl,
-    backgroundColor: "#FFFFFF",
-    borderRadius: borderRadius.xxl,
-    borderWidth: 0,
+    flex: 1,
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
     ...Platform.select({
       ios: {
-        shadowColor: "#64748B",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 16,
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: "0 4px 16px rgba(100, 116, 139, 0.06)",
+        elevation: 1,
       },
     }),
   },
-  statIconContainer: {
-    position: "relative",
-    width: 56,
-    height: 56,
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: spacing.md,
-    borderRadius: 16,
-    backgroundColor: colors.background.secondary,
-  },
-  statIconGlow: {
-    position: "absolute",
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: colors.primary[100],
-    opacity: 0.3,
-  },
-  statIcon: {
-    fontSize: 28,
+    marginBottom: 10,
   },
   statValue: {
-    ...typography.display,
-    fontSize: 48,
+    fontSize: 32,
+    fontWeight: "700",
     color: colors.text.primary,
-    fontWeight: "800",
-    marginBottom: spacing.xs,
-    letterSpacing: -1.5,
-    lineHeight: 52,
+    marginBottom: 2,
   },
   statLabel: {
-    ...typography.bodySmall,
+    fontSize: 12,
     color: colors.text.secondary,
-    fontWeight: "600",
-    letterSpacing: 0,
-    marginBottom: spacing.sm,
-  },
-  statProgress: {
-    height: 4,
-    backgroundColor: colors.neutral[200],
-    borderRadius: 2,
-    overflow: "hidden",
-  },
-  statProgressBar: {
-    height: "100%",
-    backgroundColor: colors.primary[500],
-    borderRadius: 2,
+    fontWeight: "500",
   },
   actionsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.md,
+    gap: 12,
   },
   actionCard: {
-    width: (width - spacing.md * 3) / 2,
-    aspectRatio: 1.2,
-    borderRadius: borderRadius.xl,
-    overflow: "hidden",
+    width: (width - 44) / 2,
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
     ...Platform.select({
       ios: {
-        shadowColor: colors.shadow.default,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 4,
+        elevation: 1,
       },
     }),
   },
-  actionCardInner: {
-    flex: 1,
-    backgroundColor: colors.white,
-    padding: spacing.lg,
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: colors.border.light,
-  },
-  actionIconContainer: {
-    width: 56,
-    height: 56,
-    backgroundColor: colors.background.secondary,
-    borderRadius: borderRadius.lg,
+  actionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 10,
   },
   actionTitle: {
-    ...typography.bodyMedium,
-    color: colors.text.primary,
-    fontWeight: "700",
-    letterSpacing: -0.2,
-  },
-  actionArrow: {
-    alignSelf: "flex-end",
-  },
-  actionArrowText: {
-    fontSize: 24,
-    color: colors.primary[600],
+    fontSize: 13,
     fontWeight: "600",
+    color: colors.text.primary,
+    textAlign: "center",
   },
   searchCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.white,
-    padding: spacing.md + 2,
-    borderRadius: borderRadius.xl,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border.light,
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 10,
     ...Platform.select({
       ios: {
-        shadowColor: colors.shadow.light,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
         shadowRadius: 4,
       },
       android: {
@@ -727,59 +551,40 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  searchIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.lg,
+  searchIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: spacing.md,
+    marginRight: 12,
   },
   searchContent: {
     flex: 1,
   },
   searchTitle: {
-    ...typography.bodyMedium,
+    fontSize: 15,
+    fontWeight: "600",
     color: colors.text.primary,
-    fontWeight: "700",
     marginBottom: 2,
-    letterSpacing: -0.2,
   },
   searchDescription: {
-    ...typography.caption,
+    fontSize: 12,
     color: colors.text.tertiary,
-    fontWeight: "500",
-  },
-  searchArrow: {
-    marginLeft: spacing.sm,
-  },
-  searchArrowText: {
-    fontSize: 20,
-    color: colors.text.tertiary,
-    fontWeight: "600",
   },
   footer: {
     alignItems: "center",
-    paddingVertical: spacing.xl,
-    marginTop: spacing.lg,
-  },
-  footerDivider: {
-    width: 60,
-    height: 3,
-    backgroundColor: colors.primary[600],
-    borderRadius: 2,
-    marginBottom: spacing.md,
+    paddingVertical: 20,
+    marginTop: 10,
   },
   footerText: {
-    ...typography.bodySmall,
+    fontSize: 12,
     color: colors.text.secondary,
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: spacing.xs,
+    fontWeight: "500",
+    marginBottom: 4,
   },
   footerSubtext: {
-    ...typography.caption,
+    fontSize: 11,
     color: colors.text.tertiary,
-    textAlign: "center",
   },
 });

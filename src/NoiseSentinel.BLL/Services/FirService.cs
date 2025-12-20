@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NoiseSentinel.BLL.Common;
 using NoiseSentinel.BLL.DTOs.Fir;
 using NoiseSentinel.BLL.Services.Interfaces;
@@ -21,17 +22,23 @@ public class FirService : IFirService
     private readonly IChallanRepository _challanRepository;
     private readonly IPolicestationRepository _policestationRepository;
     private readonly NoiseSentinelDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<FirService> _logger;
 
     public FirService(
         IFirRepository firRepository,
         IChallanRepository challanRepository,
         IPolicestationRepository policestationRepository,
-        NoiseSentinelDbContext context)
+        NoiseSentinelDbContext context,
+        IEmailService emailService,
+        ILogger<FirService> logger)
     {
         _firRepository = firRepository;
         _challanRepository = challanRepository;
         _policestationRepository = policestationRepository;
         _context = context;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<FirResponseDto>> CreateFirAsync(CreateFirDto dto, int creatorUserId)
@@ -144,6 +151,33 @@ public class FirService : IFirService
         var createdFir = await _firRepository.GetByIdAsync(firId);
 
         var response = MapToFirResponseDto(createdFir!);
+
+        // ========================================================================
+        // STEP 9: SEND EMAIL NOTIFICATION TO ACCUSED (IF EMAIL EXISTS)
+        // ========================================================================
+
+        try
+        {
+            var accusedEmail = challan.Accused?.Email;
+            if (!string.IsNullOrEmpty(accusedEmail))
+            {
+                await _emailService.SendFirCreatedEmailAsync(
+                    toEmail: accusedEmail,
+                    accusedName: challan.Accused?.FullName ?? "Sir/Madam",
+                    firNo: firNo,
+                    challanId: dto.ChallanId.ToString(),
+                    violationType: challan.Violation?.ViolationType ?? "Violation",
+                    dateFiled: fir.DateFiled ?? DateTime.UtcNow,
+                    stationName: station.StationName ?? "Police Station"
+                );
+                _logger.LogInformation("FIR email notification sent to {Email} for FIR {FirNo}", accusedEmail, firNo);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the FIR creation
+            _logger.LogWarning(ex, "Failed to send FIR email notification for FIR {FirNo}", firNo);
+        }
 
         return ServiceResult<FirResponseDto>.SuccessResult(
             response,

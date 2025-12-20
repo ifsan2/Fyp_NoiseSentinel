@@ -68,6 +68,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
   const [accusedProvince, setAccusedProvince] = useState("");
   const [accusedAddress, setAccusedAddress] = useState("");
   const [accusedContact, setAccusedContact] = useState("");
+  const [accusedEmail, setAccusedEmail] = useState("");
 
   // Step 4: Evidence & Bank
   const [evidencePath, setEvidencePath] = useState("");
@@ -322,6 +323,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       setAccusedProvince(accused.province || "");
       setAccusedAddress(accused.address || "");
       setAccusedContact(accused.contact || "");
+      setAccusedEmail(accused.email || "");
       setAccusedFound(true);
 
       Toast.show({
@@ -466,6 +468,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
           province: accusedProvince,
           address: accusedAddress,
           contact: accusedContact,
+          email: accusedEmail || undefined,
         };
       }
 
@@ -490,18 +493,20 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
         visibilityTime: 2000,
       });
 
-      // Navigation logic based on challan type
+      // Navigate back to home after successful creation
       setTimeout(() => {
-        if (emissionReportId) {
-          // From emission report → Cannot go back, must go to dashboard
-          // Reset navigation stack to prevent going back to emission report
+        // Check if we're in a tab navigator or stack navigator
+        const parentNav = navigation.getParent();
+        if (parentNav) {
+          // We're in a tab navigator inside MainTabs stack
+          // First navigate to Dashboard tab
+          navigation.navigate("Dashboard");
+        } else {
+          // We're in the main stack (from emission report flow)
           navigation.reset({
             index: 0,
-            routes: [{ name: "Dashboard" }],
+            routes: [{ name: "MainTabs" }],
           });
-        } else {
-          // Direct challan → Also go to dashboard
-          navigation.navigate("Dashboard");
         }
       }, 1500);
     } catch (error: any) {
@@ -736,6 +741,15 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
               keyboardType="phone-pad"
               required
             />
+
+            <Input
+              label="Email Address"
+              placeholder="example@email.com (for notifications)"
+              value={accusedEmail}
+              onChangeText={setAccusedEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
           </>
         )}
       </Card>
@@ -849,7 +863,6 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
         subtitle={`Step ${step} of 4`}
         showBack
         onBackPress={handleBack}
-        variant="elevated"
       />
 
       {renderStepIndicator()}
@@ -890,180 +903,143 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    padding: spacing.lg,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     backgroundColor: colors.white,
-    borderBottomWidth: 3,
-    borderBottomColor: colors.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
   },
   stepDot: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.gray200,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.neutral[100],
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: spacing.sm,
-    borderWidth: 2,
-    borderColor: colors.border.default,
+    marginHorizontal: 8,
   },
   stepDotActive: {
-    backgroundColor: colors.primaryLight + "30",
-    borderColor: colors.primaryLight,
+    backgroundColor: colors.primary[100],
   },
   stepDotCurrent: {
-    backgroundColor: colors.primary[500],
-    borderColor: colors.secondary,
-    borderWidth: 3,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary[500],
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    backgroundColor: colors.primary[600],
   },
   stepNumber: {
-    ...typography.h4,
-    color: colors.gray500,
-    fontWeight: "700",
+    fontSize: 14,
+    color: colors.neutral[400],
+    fontWeight: "600",
   },
   stepNumberActive: {
     color: colors.white,
   },
   stepContent: {
     flex: 1,
-    padding: spacing.md,
+    padding: 16,
   },
   stepTitle: {
-    ...typography.h2,
-    color: colors.primary[500],
-    marginBottom: spacing.md,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-    textTransform: "uppercase",
+    fontSize: 18,
+    color: colors.text.primary,
+    marginBottom: 16,
+    fontWeight: "600",
   },
   cardTitle: {
-    ...typography.h4,
-    color: colors.primary[500],
-    marginBottom: spacing.md,
-    fontWeight: "700",
+    fontSize: 15,
+    color: colors.text.primary,
+    marginBottom: 12,
+    fontWeight: "600",
   },
   searchRow: {
     flexDirection: "row",
     alignItems: "flex-end",
-    gap: spacing.sm,
-    marginBottom: spacing.md,
+    gap: 8,
+    marginBottom: 12,
   },
   searchInputWrapper: {
     flex: 1,
   },
   searchButtonWrapper: {
-    marginBottom: spacing.md,
+    marginBottom: 12,
   },
   reviewTitle: {
-    ...typography.h3,
-    color: colors.primary[500],
-    marginBottom: spacing.lg,
+    fontSize: 16,
+    color: colors.text.primary,
+    marginBottom: 16,
     textAlign: "center",
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    fontWeight: "600",
   },
   reviewRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: spacing.sm,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-    marginBottom: spacing.sm,
+    borderBottomColor: colors.border.light,
   },
   reviewLabel: {
-    ...typography.bodyMedium,
-    color: colors.textSecondary,
-    textTransform: "uppercase",
     fontSize: 13,
-    letterSpacing: 0.3,
+    color: colors.text.secondary,
   },
   reviewValue: {
-    ...typography.bodySemibold,
-    color: colors.textPrimary,
-  },
-  cognizableWarning: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.cognizable + "15",
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: colors.cognizable,
-  },
-  cognizableText: {
-    ...typography.h4,
-    color: colors.cognizable,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  cognizableSubtext: {
-    ...typography.bodySmall,
-    color: colors.cognizable,
-    marginTop: spacing.xs,
+    fontSize: 14,
+    color: colors.text.primary,
     fontWeight: "500",
   },
+  cognizableWarning: {
+    marginTop: 16,
+    backgroundColor: colors.error[50],
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.error[200],
+  },
+  cognizableText: {
+    fontSize: 14,
+    color: colors.error[700],
+    fontWeight: "600",
+  },
+  cognizableSubtext: {
+    fontSize: 12,
+    color: colors.error[600],
+    marginTop: 4,
+  },
   helperText: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginBottom: 12,
   },
   imageContainer: {
     alignItems: "center",
-    marginVertical: spacing.md,
+    marginVertical: 12,
   },
   previewImage: {
     width: "100%",
     height: 200,
-    borderRadius: borderRadius.md,
+    borderRadius: 8,
     resizeMode: "cover",
   },
   removeImageButton: {
-    marginTop: spacing.md,
+    marginTop: 12,
     backgroundColor: colors.error[600],
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   removeImageText: {
-    ...typography.bodySemibold,
+    fontSize: 14,
     color: colors.white,
+    fontWeight: "500",
   },
   imageButtons: {
-    gap: spacing.md,
-    marginTop: spacing.md,
+    gap: 12,
+    marginTop: 12,
   },
   imageButton: {
     width: "100%",
   },
   footer: {
-    padding: spacing.md,
+    padding: 16,
     backgroundColor: colors.white,
-    borderTopWidth: 3,
-    borderTopColor: colors.secondary,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
   },
 });
-
-

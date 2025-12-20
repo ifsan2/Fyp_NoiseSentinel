@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
-  Animated,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -8,6 +7,8 @@ import {
   Text,
   View,
   Dimensions,
+  StatusBar,
+  TouchableOpacity,
 } from "react-native";
 import { Shield, User, Lock } from "lucide-react-native";
 import Toast from "react-native-toast-message";
@@ -17,14 +18,12 @@ import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
 import { useAuth } from "../../contexts/AuthContext";
 import { colors } from "../../styles/colors";
-import { borderRadius, spacing } from "../../styles/spacing";
-import { typography } from "../../styles/typography";
+import { spacing } from "../../styles/spacing";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-// PREMIUM LOGIN SCREEN
-// Features: Animated gradients, Glassmorphism, Fluid animations, Premium visual effects
-// Inspired by: Linear, Stripe, Arc Browser - Award-winning login design worth $50000+
+// NoiseSentinel Login Screen
+// Clean, professional design for government traffic enforcement app
 
 export const LoginScreen: React.FC = () => {
   const { login } = useAuth();
@@ -33,61 +32,6 @@ export const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ username: "", password: "" });
-
-  // Premium animations
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        speed: 10,
-        bounciness: 8,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        speed: 10,
-        bounciness: 8,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Continuous pulse animation for logo
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.08,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    // Continuous rotation for gradient circles
-    Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 20000,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, []);
 
   const validate = (): boolean => {
     let isValid = true;
@@ -186,171 +130,103 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
   return (
     <View style={styles.container}>
-      {/* Animated gradient background */}
-      <View style={styles.gradientBackground}>
-        <Animated.View
-          style={[
-            styles.gradientCircle,
-            styles.gradientCircle1,
-            { transform: [{ rotate: spin }] },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.gradientCircle,
-            styles.gradientCircle2,
-            { transform: [{ rotate: spin }] },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.gradientCircle,
-            styles.gradientCircle3,
-            {
-              transform: [
-                {
-                  rotate: rotateAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ["360deg", "0deg"],
-                  }),
-                },
-              ],
-            },
-          ]}
-        />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.primary[800]}
+      />
+
+      {/* Header Section */}
+      <View style={styles.headerSection}>
+        <View style={styles.logoContainer}>
+          <Shield size={40} color={colors.white} strokeWidth={2} />
+        </View>
+        <Text style={styles.appTitle}>NoiseSentinel</Text>
+        <Text style={styles.appSubtitle}>Traffic Police Portal</Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>GOVERNMENT OF PAKISTAN</Text>
+        </View>
       </View>
 
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        style={styles.formSection}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          bounces={false}
         >
-          <Animated.View
-            style={[
-              styles.content,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
-              },
-            ]}
-          >
-            {/* Header with animated logo */}
-            <View style={styles.header}>
-              <Animated.View
-                style={[
-                  styles.logoContainer,
-                  { transform: [{ scale: pulseAnim }] },
-                ]}
+          {/* Login Form */}
+          <View style={styles.formCard}>
+            <Text style={styles.formTitle}>Sign In</Text>
+            <Text style={styles.formSubtitle}>
+              Enter your credentials to continue
+            </Text>
+
+            <View style={styles.inputsContainer}>
+              <Input
+                label="Username or Email"
+                placeholder="Enter username or email"
+                value={username}
+                onChangeText={(text) => {
+                  setUsername(text);
+                  setErrors({ ...errors, username: "" });
+                }}
+                error={errors.username}
+                autoCapitalize="none"
+                leftIcon={<User size={18} color={colors.neutral[400]} />}
+              />
+
+              <Input
+                label="Password"
+                placeholder="Enter password"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setErrors({ ...errors, password: "" });
+                }}
+                error={errors.password}
+                secureTextEntry
+                leftIcon={<Lock size={18} color={colors.neutral[400]} />}
+              />
+
+              <Button
+                title={loading ? "Signing In..." : "Sign In"}
+                onPress={handleLogin}
+                loading={loading}
+                disabled={loading}
+                fullWidth
+                size="large"
+                style={styles.loginButton}
+              />
+
+              <TouchableOpacity
+                style={styles.forgotPasswordLink}
+                onPress={() => (navigation as any).navigate("ForgotPassword")}
+                disabled={loading}
               >
-                <View style={styles.logoInner}>
-                  <Shield
-                    size={56}
-                    color={colors.accent[600]}
-                    strokeWidth={2.5}
-                  />
-                </View>
-                {/* Glow effect rings */}
-                <View style={[styles.glowRing, styles.glowRing1]} />
-                <View style={[styles.glowRing, styles.glowRing2]} />
-              </Animated.View>
-
-              <Text style={styles.title}>NoiseSentinel</Text>
-              <Text style={styles.subtitle}>Traffic Police Officer Portal</Text>
-
-              <View style={styles.badge}>
-                <View style={styles.badgeDot} />
-                <Text style={styles.badgeText}>GOVERNMENT OF PAKISTAN</Text>
-              </View>
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
             </View>
 
-            {/* Premium glassmorphic login form */}
-            <View style={styles.formContainer}>
-              <View style={styles.formGlass}>
-                {/* Subtle highlight */}
-                <View style={styles.formHighlight} />
-
-                <View style={styles.formHeader}>
-                  <Text style={styles.formTitle}>Secure Login</Text>
-                  <Text style={styles.formSubtitle}>
-                    Enter your credentials to continue
-                  </Text>
-                </View>
-
-                <Input
-                  label="Username or Email"
-                  placeholder="Enter username or email"
-                  value={username}
-                  onChangeText={(text) => {
-                    setUsername(text);
-                    setErrors({ ...errors, username: "" });
-                  }}
-                  error={errors.username}
-                  autoCapitalize="none"
-                  required
-                  leftIcon={<User size={20} color={colors.text.tertiary} />}
-                />
-
-                <Input
-                  label="Password"
-                  placeholder="Enter password"
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    setErrors({ ...errors, password: "" });
-                  }}
-                  error={errors.password}
-                  secureTextEntry
-                  required
-                  leftIcon={<Lock size={20} color={colors.text.tertiary} />}
-                />
-
-                <Button
-                  title={loading ? "Authenticating..." : "Sign In"}
-                  onPress={handleLogin}
-                  loading={loading}
-                  disabled={loading}
-                  fullWidth
-                  size="large"
-                  style={styles.loginButton}
-                />
-
-                {/* Security badge */}
-                <View style={styles.securityBadge}>
-                  <Shield
-                    size={16}
-                    color={colors.accent[600]}
-                    strokeWidth={2}
-                  />
-                  <Text style={styles.securityText}>
-                    256-bit encrypted connection
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Footer */}
-            <View style={styles.footer}>
-              <View style={styles.footerLockContainer}>
-                <Lock size={14} color={colors.text.tertiary} strokeWidth={2} />
-                <Text style={styles.footerText}>Authorized Personnel Only</Text>
-              </View>
-              <Text style={styles.versionText}>
-                v1.0.0 • Traffic Police Department • {new Date().getFullYear()}
+            <View style={styles.securityNote}>
+              <Shield size={14} color={colors.neutral[400]} strokeWidth={2} />
+              <Text style={styles.securityText}>
+                Secure encrypted connection
               </Text>
             </View>
-          </Animated.View>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Authorized Personnel Only</Text>
+            <Text style={styles.versionText}>
+              Version 1.0 • Traffic Police Department •{" "}
+              {new Date().getFullYear()}
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -360,232 +236,128 @@ export const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary[900],
+    backgroundColor: colors.primary[800],
   },
-  gradientBackground: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: "hidden",
-  },
-  gradientCircle: {
-    position: "absolute",
-    borderRadius: 9999,
-    opacity: 0.3,
-  },
-  gradientCircle1: {
-    width: width * 1.5,
-    height: width * 1.5,
-    backgroundColor: colors.primary[500],
-    top: -width * 0.5,
-    left: -width * 0.3,
-  },
-  gradientCircle2: {
-    width: width * 1.2,
-    height: width * 1.2,
-    backgroundColor: colors.accent[500],
-    bottom: -width * 0.4,
-    right: -width * 0.3,
-  },
-  gradientCircle3: {
-    width: width * 0.8,
-    height: width * 0.8,
-    backgroundColor: colors.primary[300],
-    top: height * 0.3,
-    right: -width * 0.2,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: spacing.xl,
-    paddingTop: spacing.xxl,
-  },
-  content: {
-    width: "100%",
-  },
-  header: {
+  headerSection: {
     alignItems: "center",
-    marginBottom: spacing.xxl,
+    paddingTop: Platform.OS === "ios" ? 70 : 50,
+    paddingBottom: 30,
+    backgroundColor: colors.primary[800],
   },
   logoContainer: {
-    position: "relative",
-    marginBottom: spacing.lg,
-  },
-  logoInner: {
-    width: 100,
-    height: 100,
-    backgroundColor: colors.white,
-    borderRadius: 50,
+    width: 72,
+    height: 72,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.15)",
     justifyContent: "center",
     alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary[500],
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 12,
-      },
-    }),
+    marginBottom: 16,
   },
-  logoIcon: {
-    fontSize: 52,
-  },
-  glowRing: {
-    position: "absolute",
-    borderRadius: 9999,
-    borderWidth: 2,
-    borderColor: colors.white,
-  },
-  glowRing1: {
-    width: 120,
-    height: 120,
-    top: -10,
-    left: -10,
-    opacity: 0.3,
-  },
-  glowRing2: {
-    width: 140,
-    height: 140,
-    top: -20,
-    left: -20,
-    opacity: 0.15,
-  },
-  title: {
-    ...typography.display,
-    fontSize: 40,
+  appTitle: {
+    fontSize: 28,
+    fontWeight: "700",
     color: colors.white,
-    fontWeight: "800",
-    marginBottom: spacing.xs,
-    textAlign: "center",
     letterSpacing: -0.5,
+    marginBottom: 4,
   },
-  subtitle: {
-    ...typography.h5,
-    color: colors.accent[300],
-    marginBottom: spacing.md,
-    textAlign: "center",
-    fontWeight: "600",
+  appSubtitle: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "500",
+    marginBottom: 16,
   },
   badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    paddingHorizontal: 16,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-    marginTop: spacing.sm,
-  },
-  badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accent[400],
-    marginRight: spacing.sm,
+    borderRadius: 20,
   },
   badgeText: {
-    ...typography.caption,
-    color: colors.white,
-    fontWeight: "600",
-    letterSpacing: 1,
     fontSize: 10,
-    opacity: 0.9,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.8)",
+    letterSpacing: 1,
   },
-  formContainer: {
-    marginBottom: spacing.xl,
+  formSection: {
+    flex: 1,
+    backgroundColor: colors.background.secondary,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
-  formGlass: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: borderRadius.xl + 4,
-    padding: spacing.xl,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+  scrollContent: {
+    padding: 20,
+    paddingTop: 28,
+  },
+  formCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 24,
     ...Platform.select({
       ios: {
         shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.2,
-        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 16,
+        elevation: 4,
       },
     }),
   },
-  formHighlight: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    borderTopLeftRadius: borderRadius.xl + 4,
-    borderTopRightRadius: borderRadius.xl + 4,
-  },
-  formHeader: {
-    marginBottom: spacing.lg + 4,
-  },
   formTitle: {
-    ...typography.h2,
-    color: colors.primary[900],
-    fontWeight: "800",
-    marginBottom: spacing.xs,
-    letterSpacing: -0.5,
+    fontSize: 22,
+    fontWeight: "700",
+    color: colors.text.primary,
+    marginBottom: 4,
   },
   formSubtitle: {
-    ...typography.bodySmall,
+    fontSize: 14,
     color: colors.text.secondary,
-    fontWeight: "500",
+    marginBottom: 24,
   },
-  inputIcon: {
-    fontSize: 20,
+  inputsContainer: {
+    gap: 4,
   },
   loginButton: {
-    marginTop: spacing.md,
+    marginTop: 12,
   },
-  securityBadge: {
+  forgotPasswordLink: {
+    alignItems: "center",
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: colors.primary[600],
+    fontWeight: "600",
+  },
+  securityNote: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: spacing.lg,
-    paddingTop: spacing.md,
+    marginTop: 20,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: colors.border.light,
-    gap: spacing.xs,
+    gap: 6,
   },
   securityText: {
-    ...typography.caption,
-    color: colors.text.tertiary,
+    fontSize: 12,
+    color: colors.neutral[400],
     fontWeight: "500",
   },
   footer: {
     alignItems: "center",
-    paddingTop: spacing.lg,
-  },
-  footerLockContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
+    paddingVertical: 24,
   },
   footerText: {
-    ...typography.bodySmall,
-    color: colors.white,
-    fontWeight: "500",
-    textAlign: "center",
-    opacity: 0.7,
     fontSize: 13,
+    color: colors.text.secondary,
+    fontWeight: "500",
+    marginBottom: 4,
   },
   versionText: {
-    ...typography.caption,
-    color: colors.white,
-    textAlign: "center",
-    opacity: 0.5,
-    fontSize: 10,
+    fontSize: 11,
+    color: colors.text.tertiary,
   },
 });

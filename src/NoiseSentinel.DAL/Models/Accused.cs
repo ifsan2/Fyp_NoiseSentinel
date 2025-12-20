@@ -20,6 +20,9 @@ public partial class Accused
     [StringLength(20)]
     public string? Cnic { get; set; }
 
+    [StringLength(255)]
+    public string? Email { get; set; }
+
     [StringLength(100)]
     public string? City { get; set; }
 

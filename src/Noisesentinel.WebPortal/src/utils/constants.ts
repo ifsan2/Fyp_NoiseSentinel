@@ -40,6 +40,7 @@ export const ROUTES = {
   LOGIN: "/login",
   REGISTER_ADMIN: "/register-admin",
   VERIFY_EMAIL: "/verify-email",
+  FORGOT_PASSWORD: "/forgot-password",
 
   // Admin Routes
   DASHBOARD: "/admin/dashboard",

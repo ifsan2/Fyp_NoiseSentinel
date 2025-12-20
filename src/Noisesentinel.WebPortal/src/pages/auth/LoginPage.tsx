@@ -423,11 +423,30 @@ export const LoginPage: React.FC = () => {
                 py: 1.5,
                 fontSize: "0.9375rem",
                 fontWeight: 600,
-                mb: 3,
+                mb: 2,
               }}
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
+
+            {/* Forgot Password Link */}
+            <Box sx={{ textAlign: "center", mb: 3 }}>
+              <Link
+                onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
+                sx={{
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  color: theme.palette.primary.main,
+                  textDecoration: "none",
+                  fontSize: "0.875rem",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+              >
+                Forgot Password?
+              </Link>
+            </Box>
           </form>
 
           {/* Register Link */}

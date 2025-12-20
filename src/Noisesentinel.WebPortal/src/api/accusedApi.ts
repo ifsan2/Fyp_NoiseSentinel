@@ -1,5 +1,5 @@
-import apiClient from './axios.config';
-import { ApiResponse } from '@/models/ApiResponse';
+import apiClient from "./axios.config";
+import { ApiResponse } from "@/models/ApiResponse";
 
 export interface AccusedDto {
   accusedId: number;
@@ -9,6 +9,7 @@ export interface AccusedDto {
   address?: string;
   city?: string;
   province?: string;
+  email?: string;
   totalChallans?: number;
   totalPenalties?: number;
   hasPendingChallans?: boolean;
@@ -20,7 +21,7 @@ class AccusedApi {
    */
   async getAllAccused(): Promise<AccusedDto[]> {
     const response = await apiClient.get<ApiResponse<AccusedDto[]>>(
-      '/Accused/list'
+      "/Accused/list"
     );
     return response.data.data || [];
   }

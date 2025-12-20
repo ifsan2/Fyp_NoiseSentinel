@@ -229,6 +229,7 @@ builder.Services.AddScoped<IFirService, FirService>();
 builder.Services.AddScoped<ICaseService, CaseService>();
 builder.Services.AddScoped<ICasestatementService, CasestatementService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPublicStatusService, PublicStatusService>();
 
 // ============================================================================
 // CONTROLLERS CONFIGURATION

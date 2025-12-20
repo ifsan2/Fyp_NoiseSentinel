@@ -1155,4 +1155,151 @@ public class AuthService : IAuthService
             otp,
             verificationLink);
     }
+
+    // ========================================================================
+    // PASSWORD RESET (FORGOT PASSWORD)
+    // ========================================================================
+
+    /// <summary>
+    /// Initiate forgot password flow - sends OTP to user email.
+    /// </summary>
+    public async Task<ServiceResult<string>> ForgotPasswordAsync(ForgotPasswordRequestDto dto)
+    {
+        try
+        {
+            // Find user by email
+            var user = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
+            
+            if (user == null)
+            {
+                // Return success even if user not found (security - don't reveal if email exists)
+                return ServiceResult<string>.SuccessResult("If an account with that email exists, a password reset OTP has been sent.");
+            }
+
+            // Check if user is active
+            if (user.IsActive != true)
+            {
+                return ServiceResult<string>.FailureResult("This account is not active. Please contact support.");
+            }
+
+            // Generate OTP
+            var otp = GenerateOtp();
+            var expiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+
+            // Update user with password reset OTP
+            user.PasswordResetOtp = otp;
+            user.PasswordResetOtpExpiresAt = expiresAt;
+            await _context.SaveChangesAsync();
+
+            // Send password reset email
+            await _emailService.SendPasswordResetOtpAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User",
+                otp);
+
+            return ServiceResult<string>.SuccessResult("Password reset OTP has been sent to your email.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult($"Failed to process forgot password request: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Verify password reset OTP.
+    /// </summary>
+    public async Task<ServiceResult<string>> VerifyPasswordResetOtpAsync(VerifyPasswordResetOtpDto dto)
+    {
+        try
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
+            
+            if (user == null)
+            {
+                return ServiceResult<string>.FailureResult("Invalid email or OTP.");
+            }
+
+            // Check if OTP matches
+            if (user.PasswordResetOtp != dto.Otp)
+            {
+                return ServiceResult<string>.FailureResult("Invalid OTP.");
+            }
+
+            // Check if OTP is expired
+            if (user.PasswordResetOtpExpiresAt == null || user.PasswordResetOtpExpiresAt < DateTime.UtcNow)
+            {
+                return ServiceResult<string>.FailureResult("OTP has expired. Please request a new one.");
+            }
+
+            return ServiceResult<string>.SuccessResult("OTP verified successfully. You can now reset your password.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult($"Failed to verify OTP: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Reset password with OTP verification.
+    /// </summary>
+    public async Task<ServiceResult<string>> ResetPasswordWithOtpAsync(ResetPasswordWithOtpDto dto)
+    {
+        try
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
+            
+            if (user == null)
+            {
+                return ServiceResult<string>.FailureResult("Invalid email or OTP.");
+            }
+
+            // Verify OTP
+            if (user.PasswordResetOtp != dto.Otp)
+            {
+                return ServiceResult<string>.FailureResult("Invalid OTP.");
+            }
+
+            // Check if OTP is expired
+            if (user.PasswordResetOtpExpiresAt == null || user.PasswordResetOtpExpiresAt < DateTime.UtcNow)
+            {
+                return ServiceResult<string>.FailureResult("OTP has expired. Please request a new one.");
+            }
+
+            // Ensure security stamp exists (required for password reset)
+            if (string.IsNullOrEmpty(user.SecurityStamp))
+            {
+                user.SecurityStamp = Guid.NewGuid().ToString();
+                await _userManager.UpdateAsync(user);
+            }
+
+            // Reset password
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return ServiceResult<string>.FailureResult($"Failed to reset password: {errors}");
+            }
+
+            // Clear the password reset OTP
+            user.PasswordResetOtp = null;
+            user.PasswordResetOtpExpiresAt = null;
+            user.LastPasswordChangedAt = DateTime.UtcNow;
+            user.MustChangePassword = false;
+            user.IsFirstLogin = false;
+            await _context.SaveChangesAsync();
+
+            // Send confirmation email
+            await _emailService.SendPasswordChangedNotificationAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User");
+
+            return ServiceResult<string>.SuccessResult("Password has been reset successfully. You can now login with your new password.");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult($"Failed to reset password: {ex.Message}");
+        }
+    }
 }

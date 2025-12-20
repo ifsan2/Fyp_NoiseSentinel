@@ -1,13 +1,16 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform } from "react-native";
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import { ChallanListItemDto } from "../../models/Challan";
 import { colors } from "../../styles/colors";
-import { spacing, borderRadius } from "../../styles/spacing";
-import { typography } from "../../styles/typography";
 import { formatters } from "../../utils/formatters";
 
-// PREMIUM CHALLAN CARD
-// Features: Micro-interactions, Premium shadows, Elegant status badges
+// Clean, Professional Challan Card
 
 interface ChallanCardProps {
   challan: ChallanListItemDto;
@@ -18,31 +21,11 @@ export const ChallanCard: React.FC<ChallanCardProps> = ({
   challan,
   onPress,
 }) => {
-  const [scaleAnim] = useState(new Animated.Value(1));
-
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.98,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 8,
-    }).start();
-  };
-
   const getStatusColor = () => {
-    if (challan.isOverdue) return colors.error[500];
-    if (challan.status === "Paid") return colors.success[500];
-    if (challan.status === "Disputed") return colors.warning[500];
-    return colors.info[500];
+    if (challan.isOverdue) return colors.error[600];
+    if (challan.status === "Paid") return colors.success[600];
+    if (challan.status === "Disputed") return colors.warning[600];
+    return colors.info[600];
   };
 
   const getStatusBg = () => {
@@ -53,166 +36,144 @@ export const ChallanCard: React.FC<ChallanCardProps> = ({
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => onPress(challan.challanId)}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={1}
-      >
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onPress(challan.challanId)}
+      activeOpacity={0.7}
+    >
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.challanIdLabel}>Challan ID</Text>
+        <View>
+          <Text style={styles.challanIdLabel}>Challan</Text>
           <Text style={styles.challanId}>#{challan.challanId}</Text>
         </View>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: getStatusBg() },
-          ]}
-        >
-          <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
+        <View style={[styles.statusBadge, { backgroundColor: getStatusBg() }]}>
+          <View
+            style={[styles.statusDot, { backgroundColor: getStatusColor() }]}
+          />
           <Text style={[styles.statusText, { color: getStatusColor() }]}>
-            {challan.status}
+            {challan.isOverdue ? "Overdue" : challan.status}
           </Text>
         </View>
       </View>
 
-      <View style={styles.header}>
-        <Text style={styles.plateNumber}>🚗 {challan.vehiclePlateNumber}</Text>
-      </View>
+      {/* Vehicle Plate */}
+      <Text style={styles.plateNumber}>{challan.vehiclePlateNumber}</Text>
 
       <View style={styles.divider} />
 
+      {/* Details */}
       <View style={styles.content}>
         <View style={styles.row}>
-          <Text style={styles.label}>Accused:</Text>
+          <Text style={styles.label}>Accused</Text>
           <Text style={styles.value} numberOfLines={1}>
             {challan.accusedName}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Violation:</Text>
+          <Text style={styles.label}>Violation</Text>
           <Text style={styles.value} numberOfLines={1}>
             {challan.violationType}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Penalty:</Text>
+          <Text style={styles.label}>Penalty</Text>
           <Text style={[styles.value, styles.penalty]}>
             {formatters.formatCurrency(challan.penaltyAmount)}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Issued:</Text>
-          <Text style={styles.value}>
-            {formatters.formatDateTime(challan.issueDateTime)}
-          </Text>
-        </View>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Due Date:</Text>
+          <Text style={styles.label}>Due Date</Text>
           <Text style={[styles.value, challan.isOverdue && styles.overdue]}>
             {formatters.formatDate(challan.dueDateTime)}
           </Text>
         </View>
       </View>
 
-      {challan.hasFir && (
-        <View style={styles.firBadge}>
-          <Text style={styles.firText}>⚖️ FIR Filed</Text>
+      {/* Badges */}
+      {(challan.hasFir || challan.isOverdue) && (
+        <View style={styles.badges}>
+          {challan.hasFir && (
+            <View style={styles.firBadge}>
+              <Text style={styles.firText}>FIR Filed</Text>
+            </View>
+          )}
         </View>
       )}
-
-      {challan.isOverdue && (
-        <View style={styles.overdueWarning}>
-          <Text style={styles.overdueText}>⚠️ Overdue</Text>
-        </View>
-      )}
-      </TouchableOpacity>
-    </Animated.View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: colors.border.light,
     ...Platform.select({
       ios: {
-        shadowColor: colors.shadow.default,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
       },
     }),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  headerLeft: {
-    flexDirection: "column",
+    alignItems: "flex-start",
+    marginBottom: 8,
   },
   challanIdLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
+    color: colors.text.tertiary,
+    fontWeight: "500",
     textTransform: "uppercase",
   },
   challanId: {
-    ...typography.h3,
+    fontSize: 18,
     color: colors.primary[700],
-    fontWeight: "800",
-    letterSpacing: -0.3,
+    fontWeight: "700",
   },
   plateNumber: {
-    ...typography.h4,
+    fontSize: 15,
     color: colors.text.primary,
-    fontWeight: "700",
-    flex: 1,
+    fontWeight: "600",
+    marginBottom: 12,
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.05)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    marginRight: spacing.xs,
+    marginRight: 6,
   },
   statusText: {
-    ...typography.caption,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-    textTransform: "uppercase",
+    fontSize: 12,
+    fontWeight: "600",
   },
   divider: {
     height: 1,
     backgroundColor: colors.border.light,
-    marginVertical: spacing.md,
+    marginBottom: 12,
   },
   content: {
-    gap: spacing.sm,
+    gap: 8,
   },
   row: {
     flexDirection: "row",
@@ -220,54 +181,38 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   label: {
-    ...typography.bodySmall,
-    color: colors.text.tertiary,
-    fontWeight: "500",
+    fontSize: 13,
+    color: colors.text.secondary,
   },
   value: {
-    ...typography.bodySmall,
+    fontSize: 14,
     color: colors.text.primary,
-    fontWeight: "700",
+    fontWeight: "500",
     flex: 1,
     textAlign: "right",
+    marginLeft: 12,
   },
   penalty: {
-    color: colors.error[600],
-    fontSize: 16,
-    fontWeight: "800",
+    color: colors.primary[700],
+    fontWeight: "600",
   },
   overdue: {
     color: colors.error[600],
   },
+  badges: {
+    flexDirection: "row",
+    marginTop: 12,
+    gap: 8,
+  },
   firBadge: {
-    marginTop: spacing.md,
-    backgroundColor: colors.warning[50],
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.warning[200],
+    backgroundColor: colors.error[50],
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   firText: {
-    ...typography.caption,
-    color: colors.warning[700],
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-  overdueWarning: {
-    marginTop: spacing.md,
-    backgroundColor: colors.error[50],
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.error[200],
-  },
-  overdueText: {
-    ...typography.caption,
+    fontSize: 11,
     color: colors.error[700],
-    fontWeight: "800",
-    letterSpacing: 0.3,
+    fontWeight: "600",
   },
 });
-

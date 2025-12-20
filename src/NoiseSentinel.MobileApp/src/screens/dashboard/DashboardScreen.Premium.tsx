@@ -161,7 +161,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       <Header
         title="NoiseSentinel"
         subtitle="Traffic Police Portal"
-        variant="elevated"
+        variant="primary"
         rightComponent={
           <ProfileMenu
             userName={user?.fullName}
@@ -238,7 +238,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                   <View
                     style={[
                       styles.statProgressBar,
-                      { width: `${Math.min((stats.todayChallans / 10) * 100, 100)}%` },
+                      {
+                        width: `${Math.min(
+                          (stats.todayChallans / 10) * 100,
+                          100
+                        )}%`,
+                      },
                     ]}
                   />
                 </View>
@@ -305,12 +310,19 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
                 onPress={action.onPress}
                 activeOpacity={0.8}
               >
-                <View style={[styles.searchIconContainer, { backgroundColor: `${action.color}15` }]}>
+                <View
+                  style={[
+                    styles.searchIconContainer,
+                    { backgroundColor: `${action.color}15` },
+                  ]}
+                >
                   <Text style={styles.searchIcon}>{action.icon}</Text>
                 </View>
                 <View style={styles.searchContent}>
                   <Text style={styles.searchTitle}>{action.title}</Text>
-                  <Text style={styles.searchDescription}>{action.description}</Text>
+                  <Text style={styles.searchDescription}>
+                    {action.description}
+                  </Text>
                 </View>
                 <View style={styles.searchArrow}>
                   <Text style={styles.searchArrowText}>→</Text>
@@ -688,5 +700,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
-

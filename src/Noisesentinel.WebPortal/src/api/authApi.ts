@@ -116,6 +116,47 @@ class AuthApi {
   }
 
   /**
+   * Forgot Password - Request OTP
+   */
+  async forgotPassword(email: string): Promise<string> {
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/forgot-password",
+      { email }
+    );
+    return (
+      response.data.message ||
+      "If an account exists with this email, an OTP has been sent."
+    );
+  }
+
+  /**
+   * Verify Password Reset OTP
+   */
+  async verifyResetOtp(data: { email: string; otp: string }): Promise<string> {
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/verify-reset-otp",
+      data
+    );
+    return response.data.message || "OTP verified successfully";
+  }
+
+  /**
+   * Reset Password with OTP
+   */
+  async resetPassword(data: {
+    email: string;
+    otp: string;
+    newPassword: string;
+    confirmPassword: string;
+  }): Promise<string> {
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/reset-password",
+      data
+    );
+    return response.data.message || "Password reset successfully";
+  }
+
+  /**
    * Check backend connectivity and health
    */
   async checkHealth(): Promise<boolean> {
