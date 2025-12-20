@@ -34,17 +34,17 @@ The NoiseSentinel Web Portal is a comprehensive administrative interface that en
 
 ## 🛠️ Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| **Framework** | React 18.2 with TypeScript |
-| **Build Tool** | Vite 5.0 |
-| **UI Library** | Material-UI (MUI) 5.15 |
-| **Routing** | React Router DOM 6.20 |
-| **Forms** | React Hook Form 7.49 |
-| **HTTP Client** | Axios 1.6 |
-| **Notifications** | Notistack 3.0 |
-| **Date Utilities** | date-fns 4.1 |
-| **State Management** | React Context API |
+| Category             | Technology                 |
+| -------------------- | -------------------------- |
+| **Framework**        | React 18.2 with TypeScript |
+| **Build Tool**       | Vite 5.0                   |
+| **UI Library**       | Material-UI (MUI) 5.15     |
+| **Routing**          | React Router DOM 6.20      |
+| **Forms**            | React Hook Form 7.49       |
+| **HTTP Client**      | Axios 1.6                  |
+| **Notifications**    | Notistack 3.0              |
+| **Date Utilities**   | date-fns 4.1               |
+| **State Management** | React Context API          |
 
 ---
 
@@ -112,13 +112,13 @@ Noisesentinel.WebPortal/
 
 The system supports 5 roles, with 4 having web portal access:
 
-| Role | Web Portal | Description |
-|------|------------|-------------|
-| **Admin** | ✅ Yes | System administrator, manages all users |
-| **Station Authority** | ✅ Yes | Manages police stations, officers, FIRs |
-| **Court Authority** | ✅ Yes | Manages courts, judges, creates cases |
-| **Judge** | ✅ Yes | Reviews cases, delivers verdicts |
-| **Police Officer** | ❌ No | Uses [Mobile App](../NoiseSentinel.MobileApp/README.md) only |
+| Role                  | Web Portal | Description                                                  |
+| --------------------- | ---------- | ------------------------------------------------------------ |
+| **Admin**             | ✅ Yes     | System administrator, manages all users                      |
+| **Station Authority** | ✅ Yes     | Manages police stations, officers, FIRs                      |
+| **Court Authority**   | ✅ Yes     | Manages courts, judges, creates cases                        |
+| **Judge**             | ✅ Yes     | Reviews cases, delivers verdicts                             |
+| **Police Officer**    | ❌ No      | Uses [Mobile App](../NoiseSentinel.MobileApp/README.md) only |
 
 ---
 
@@ -126,53 +126,53 @@ The system supports 5 roles, with 4 having web portal access:
 
 ### 🔴 Admin Features
 
-| Feature | Description |
-|---------|-------------|
-| **Dashboard** | System-wide statistics overview |
+| Feature             | Description                                                |
+| ------------------- | ---------------------------------------------------------- |
+| **Dashboard**       | System-wide statistics overview                            |
 | **User Management** | Create/view Admins, Court Authorities, Station Authorities |
-| **Account Control** | Activate/deactivate users, reset passwords |
-| **Profile** | Update personal information |
+| **Account Control** | Activate/deactivate users, reset passwords                 |
+| **Profile**         | Update personal information                                |
 
 ### 🔵 Station Authority Features
 
-| Feature | Description |
-|---------|-------------|
-| **Dashboard** | Station statistics, quick actions |
-| **Police Stations** | CRUD operations for stations |
-| **Officers** | Create officers, transfer between stations, activate/deactivate |
-| **IoT Devices** | Register, pair/unpair monitoring devices |
-| **Violations** | Define violation types (cognizable/non-cognizable) |
-| **Challans** | View all challans, filter by status, search |
-| **Vehicles** | View registered vehicles |
-| **Accused** | View accused persons |
-| **FIRs** | Create FIRs from cognizable challans, track status |
+| Feature             | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| **Dashboard**       | Station statistics, quick actions                               |
+| **Police Stations** | CRUD operations for stations                                    |
+| **Officers**        | Create officers, transfer between stations, activate/deactivate |
+| **IoT Devices**     | Register, pair/unpair monitoring devices                        |
+| **Violations**      | Define violation types (cognizable/non-cognizable)              |
+| **Challans**        | View all challans, filter by status, search                     |
+| **Vehicles**        | View registered vehicles                                        |
+| **Accused**         | View accused persons                                            |
+| **FIRs**            | Create FIRs from cognizable challans, track status              |
 
 ### 🟢 Court Authority Features
 
-| Feature | Description |
-|---------|-------------|
-| **Dashboard** | Court statistics, case overview |
-| **Courts** | CRUD operations for courts |
-| **Judges** | Create judge accounts, assign to courts |
-| **FIRs** | View all FIRs submitted by stations |
-| **Cases** | Create cases from FIRs, assign judges |
-| **Statements** | Monitor all case statements |
+| Feature        | Description                             |
+| -------------- | --------------------------------------- |
+| **Dashboard**  | Court statistics, case overview         |
+| **Courts**     | CRUD operations for courts              |
+| **Judges**     | Create judge accounts, assign to courts |
+| **FIRs**       | View all FIRs submitted by stations     |
+| **Cases**      | Create cases from FIRs, assign judges   |
+| **Statements** | Monitor all case statements             |
 
 ### 🟡 Judge Features
 
-| Feature | Description |
-|---------|-------------|
-| **Dashboard** | Assigned cases, upcoming hearings |
-| **My Cases** | View and manage assigned cases |
-| **Case Statements** | Create proceedings, deliver verdicts |
-| **Updates** | Update case status, set hearing dates |
+| Feature             | Description                           |
+| ------------------- | ------------------------------------- |
+| **Dashboard**       | Assigned cases, upcoming hearings     |
+| **My Cases**        | View and manage assigned cases        |
+| **Case Statements** | Create proceedings, deliver verdicts  |
+| **Updates**         | Update case status, set hearing dates |
 
 ### 🌐 Public Features (No Login Required)
 
-| Feature | Description |
-|---------|-------------|
-| **Challan Search** | Search by vehicle plate + CNIC |
-| **Case Status** | OTP-verified case status lookup |
+| Feature            | Description                     |
+| ------------------ | ------------------------------- |
+| **Challan Search** | Search by vehicle plate + CNIC  |
+| **Case Status**    | OTP-verified case status lookup |
 
 ---
 
@@ -180,58 +180,58 @@ The system supports 5 roles, with 4 having web portal access:
 
 ### Public Routes
 
-| Route | Description |
-|-------|-------------|
-| `/login` | User authentication |
-| `/register-admin` | First admin registration |
-| `/verify-email` | Email OTP verification |
-| `/forgot-password` | Password reset |
-| `/public/challan-search` | Public challan lookup |
-| `/public/case-status` | Public case status |
+| Route                    | Description              |
+| ------------------------ | ------------------------ |
+| `/login`                 | User authentication      |
+| `/register-admin`        | First admin registration |
+| `/verify-email`          | Email OTP verification   |
+| `/forgot-password`       | Password reset           |
+| `/public/challan-search` | Public challan lookup    |
+| `/public/case-status`    | Public case status       |
 
 ### Admin Routes (`/admin/*`)
 
-| Route | Description |
-|-------|-------------|
-| `/admin/dashboard` | Admin overview |
-| `/admin/view-users` | All system users |
-| `/admin/create-court-authority` | Create Court Authority |
+| Route                             | Description              |
+| --------------------------------- | ------------------------ |
+| `/admin/dashboard`                | Admin overview           |
+| `/admin/view-users`               | All system users         |
+| `/admin/create-court-authority`   | Create Court Authority   |
 | `/admin/create-station-authority` | Create Station Authority |
-| `/admin/create-admin` | Create additional admin |
-| `/admin/profile` | Profile management |
-| `/admin/change-password` | Change password |
+| `/admin/create-admin`             | Create additional admin  |
+| `/admin/profile`                  | Profile management       |
+| `/admin/change-password`          | Change password          |
 
 ### Station Authority Routes (`/station/*`)
 
-| Route | Description |
-|-------|-------------|
-| `/station/dashboard` | Station overview |
-| `/station/stations/*` | Police station CRUD |
-| `/station/officers/*` | Officer management |
-| `/station/devices/*` | IoT device management |
-| `/station/violations/*` | Violation types |
-| `/station/challans` | Challan monitoring |
-| `/station/vehicles` | Vehicle registry |
-| `/station/accused` | Accused persons |
-| `/station/fir/*` | FIR management |
+| Route                   | Description           |
+| ----------------------- | --------------------- |
+| `/station/dashboard`    | Station overview      |
+| `/station/stations/*`   | Police station CRUD   |
+| `/station/officers/*`   | Officer management    |
+| `/station/devices/*`    | IoT device management |
+| `/station/violations/*` | Violation types       |
+| `/station/challans`     | Challan monitoring    |
+| `/station/vehicles`     | Vehicle registry      |
+| `/station/accused`      | Accused persons       |
+| `/station/fir/*`        | FIR management        |
 
 ### Court Authority Routes (`/court/*`)
 
-| Route | Description |
-|-------|-------------|
-| `/court/dashboard` | Court overview |
-| `/court/courts/*` | Court CRUD |
-| `/court/judges/*` | Judge management |
-| `/court/firs/*` | FIR viewing |
-| `/court/cases/*` | Case management |
+| Route                 | Description          |
+| --------------------- | -------------------- |
+| `/court/dashboard`    | Court overview       |
+| `/court/courts/*`     | Court CRUD           |
+| `/court/judges/*`     | Judge management     |
+| `/court/firs/*`       | FIR viewing          |
+| `/court/cases/*`      | Case management      |
 | `/court/statements/*` | Statement monitoring |
 
 ### Judge Routes (`/judge/*`)
 
-| Route | Description |
-|-------|-------------|
-| `/judge/dashboard` | Judge overview |
-| `/judge/cases/*` | Assigned cases |
+| Route                 | Description     |
+| --------------------- | --------------- |
+| `/judge/dashboard`    | Judge overview  |
+| `/judge/cases/*`      | Assigned cases  |
 | `/judge/statements/*` | Case statements |
 
 ---
@@ -280,7 +280,7 @@ The system supports 5 roles, with 4 having web portal access:
 ```typescript
 // src/api/axios.config.ts
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5200/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5200/api",
   timeout: 30000,
 });
 
@@ -290,20 +290,20 @@ const apiClient = axios.create({
 
 ### API Services
 
-| Service | Purpose |
-|---------|---------|
-| `authApi` | Login, registration, password management |
-| `stationApi` | Police station CRUD |
-| `stationOfficerApi` | Officer CRUD, transfers |
-| `deviceApi` | IoT device management |
-| `violationApi` | Violation types |
-| `challanApi` | Challan listing, search |
-| `firApi` | FIR management |
-| `courtApi` | Court CRUD |
-| `judgeApi` | Judge management |
-| `caseApi` | Case management |
-| `caseStatementApi` | Case statements |
-| `publicStatusApi` | Public OTP-based status |
+| Service             | Purpose                                  |
+| ------------------- | ---------------------------------------- |
+| `authApi`           | Login, registration, password management |
+| `stationApi`        | Police station CRUD                      |
+| `stationOfficerApi` | Officer CRUD, transfers                  |
+| `deviceApi`         | IoT device management                    |
+| `violationApi`      | Violation types                          |
+| `challanApi`        | Challan listing, search                  |
+| `firApi`            | FIR management                           |
+| `courtApi`          | Court CRUD                               |
+| `judgeApi`          | Judge management                         |
+| `caseApi`           | Case management                          |
+| `caseStatementApi`  | Case statements                          |
+| `publicStatusApi`   | Public OTP-based status                  |
 
 ---
 
@@ -311,33 +311,38 @@ const apiClient = axios.create({
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Running [Backend API](../NoiseSentinel.WebApi/README.md)
 
 ### Installation
 
 1. **Navigate to the portal directory**
+
    ```bash
    cd src/Noisesentinel.WebPortal
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Configure environment**
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Edit `.env`:
+
    ```env
    VITE_API_BASE_URL=http://localhost:5200/api
    ```
 
 4. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -353,8 +358,8 @@ const apiClient = axios.create({
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable            | Description     | Default                     |
+| ------------------- | --------------- | --------------------------- |
 | `VITE_API_BASE_URL` | Backend API URL | `http://localhost:5200/api` |
 
 ### Theme Configuration
@@ -401,33 +406,33 @@ npm run lint
 
 ### Layout Components
 
-| Component | Description |
-|-----------|-------------|
-| `AdminLayout` | Admin dashboard wrapper |
+| Component       | Description               |
+| --------------- | ------------------------- |
+| `AdminLayout`   | Admin dashboard wrapper   |
 | `StationLayout` | Station Authority wrapper |
-| `CourtLayout` | Court Authority wrapper |
-| `JudgeLayout` | Judge dashboard wrapper |
+| `CourtLayout`   | Court Authority wrapper   |
+| `JudgeLayout`   | Judge dashboard wrapper   |
 
 ### Common Components
 
-| Component | Description |
-|-----------|-------------|
-| `Loading` | Spinner component |
-| `PageHeader` | Page title with actions |
-| `FormCard` | Styled form wrapper |
-| `BrandLogo` | NoiseSentinel branding |
-| `ThemeToggleButton` | Light/dark mode switch |
+| Component           | Description             |
+| ------------------- | ----------------------- |
+| `Loading`           | Spinner component       |
+| `PageHeader`        | Page title with actions |
+| `FormCard`          | Styled form wrapper     |
+| `BrandLogo`         | NoiseSentinel branding  |
+| `ThemeToggleButton` | Light/dark mode switch  |
 
 ---
 
 ## 📝 Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Production build |
+| Script            | Description              |
+| ----------------- | ------------------------ |
+| `npm run dev`     | Start development server |
+| `npm run build`   | Production build         |
 | `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint |
+| `npm run lint`    | Run ESLint               |
 
 ---
 

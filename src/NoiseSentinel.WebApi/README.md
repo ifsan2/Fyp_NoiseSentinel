@@ -41,16 +41,16 @@ The backend follows a **3-tier architecture** with clear separation of concerns:
 
 ## 🛠️ Technology Stack
 
-| Component | Technology |
-|-----------|------------|
-| **Framework** | .NET 8.0 |
-| **API** | ASP.NET Core Web API |
-| **ORM** | Entity Framework Core 8.0 |
-| **Database** | SQL Server |
-| **Authentication** | ASP.NET Core Identity + JWT Bearer Tokens |
-| **Email** | MailKit (Gmail SMTP) |
-| **Documentation** | Swashbuckle (Swagger/OpenAPI) |
-| **Image Processing** | GZip Compression |
+| Component            | Technology                                |
+| -------------------- | ----------------------------------------- |
+| **Framework**        | .NET 8.0                                  |
+| **API**              | ASP.NET Core Web API                      |
+| **ORM**              | Entity Framework Core 8.0                 |
+| **Database**         | SQL Server                                |
+| **Authentication**   | ASP.NET Core Identity + JWT Bearer Tokens |
+| **Email**            | MailKit (Gmail SMTP)                      |
+| **Documentation**    | Swashbuckle (Swagger/OpenAPI)             |
+| **Image Processing** | GZip Compression                          |
 
 ---
 
@@ -136,25 +136,25 @@ src/
 
 The system manages 17 interconnected entities:
 
-| Entity | Description |
-|--------|-------------|
-| **User** | System users (extends ASP.NET Identity) |
-| **Role** | Business roles (Admin, Court Authority, Station Authority, Judge, Police Officer) |
-| **Policeofficer** | Officers linked to users and stations |
-| **Policestation** | Police station locations |
-| **Judge** | Judges linked to users and courts |
-| **Court** | Court locations |
-| **Courttype** | Court categories (Supreme, High, District, etc.) |
-| **Iotdevice** | Noise/emission monitoring devices |
-| **Emissionreport** | IoT device readings with digital signatures |
-| **Violation** | Violation type catalog with fines |
-| **Vehicle** | Registered vehicles |
-| **Accused** | Violators/offenders |
-| **Challan** | Traffic citations (immutable evidence) |
-| **Fir** | First Information Reports |
-| **Case** | Court cases |
-| **Casestatement** | Court proceedings/verdicts |
-| **PublicStatusOtp** | OTP for public case status lookup |
+| Entity              | Description                                                                       |
+| ------------------- | --------------------------------------------------------------------------------- |
+| **User**            | System users (extends ASP.NET Identity)                                           |
+| **Role**            | Business roles (Admin, Court Authority, Station Authority, Judge, Police Officer) |
+| **Policeofficer**   | Officers linked to users and stations                                             |
+| **Policestation**   | Police station locations                                                          |
+| **Judge**           | Judges linked to users and courts                                                 |
+| **Court**           | Court locations                                                                   |
+| **Courttype**       | Court categories (Supreme, High, District, etc.)                                  |
+| **Iotdevice**       | Noise/emission monitoring devices                                                 |
+| **Emissionreport**  | IoT device readings with digital signatures                                       |
+| **Violation**       | Violation type catalog with fines                                                 |
+| **Vehicle**         | Registered vehicles                                                               |
+| **Accused**         | Violators/offenders                                                               |
+| **Challan**         | Traffic citations (immutable evidence)                                            |
+| **Fir**             | First Information Reports                                                         |
+| **Case**            | Court cases                                                                       |
+| **Casestatement**   | Court proceedings/verdicts                                                        |
+| **PublicStatusOtp** | OTP for public case status lookup                                                 |
 
 ### Entity Relationship Diagram
 
@@ -201,23 +201,23 @@ IoT Device → Emission Report → Challan → FIR → Case → Case Statement/V
 
 ### Services Overview
 
-| Service | Responsibility |
-|---------|----------------|
-| **AuthService** | Authentication, registration, OTP verification, password management |
-| **UserService** | User CRUD, role-specific queries, status management |
-| **EmailService** | HTML email templates for notifications (OTP, credentials, updates) |
-| **ViolationService** | Violation type catalog management |
-| **IotdeviceService** | Device registration, pairing with officers |
-| **EmissionreportService** | IoT readings with digital signatures |
-| **ChallanService** | Citation issuance with evidence preservation |
-| **VehicleService** | Vehicle registration and lookup |
-| **AccusedService** | Offender management |
-| **FirService** | FIR filing from cognizable violations |
-| **CaseService** | Court case management |
-| **CasestatementService** | Court proceedings and verdicts |
-| **CourtService** | Court management |
-| **PolicestationService** | Station management |
-| **PublicStatusService** | Public OTP-based case status lookup |
+| Service                   | Responsibility                                                      |
+| ------------------------- | ------------------------------------------------------------------- |
+| **AuthService**           | Authentication, registration, OTP verification, password management |
+| **UserService**           | User CRUD, role-specific queries, status management                 |
+| **EmailService**          | HTML email templates for notifications (OTP, credentials, updates)  |
+| **ViolationService**      | Violation type catalog management                                   |
+| **IotdeviceService**      | Device registration, pairing with officers                          |
+| **EmissionreportService** | IoT readings with digital signatures                                |
+| **ChallanService**        | Citation issuance with evidence preservation                        |
+| **VehicleService**        | Vehicle registration and lookup                                     |
+| **AccusedService**        | Offender management                                                 |
+| **FirService**            | FIR filing from cognizable violations                               |
+| **CaseService**           | Court case management                                               |
+| **CasestatementService**  | Court proceedings and verdicts                                      |
+| **CourtService**          | Court management                                                    |
+| **PolicestationService**  | Station management                                                  |
+| **PublicStatusService**   | Public OTP-based case status lookup                                 |
 
 ### Key Business Rules
 
@@ -234,105 +234,105 @@ IoT Device → Emission Report → Challan → FIR → Case → Case Statement/V
 
 ### Authentication (`/api/auth`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/register/admin` | Anonymous | Bootstrap first admin |
-| POST | `/admin/create/admin` | Admin | Create additional admin |
-| POST | `/admin/create/court-authority` | Admin | Create Court Authority |
-| POST | `/admin/create/station-authority` | Admin | Create Station Authority |
-| POST | `/court-authority/create/judge` | Court Authority | Create Judge |
-| POST | `/create/police-officer` | Station Authority | Create Police Officer |
-| POST | `/login` | Anonymous | User login |
-| POST | `/verify-email` | Anonymous | Verify email OTP |
-| POST | `/change-password` | Authenticated | Change password |
-| POST | `/forgot-password` | Anonymous | Request password reset |
-| GET | `/me` | Authenticated | Get current user |
+| Method | Endpoint                          | Access            | Description              |
+| ------ | --------------------------------- | ----------------- | ------------------------ |
+| POST   | `/register/admin`                 | Anonymous         | Bootstrap first admin    |
+| POST   | `/admin/create/admin`             | Admin             | Create additional admin  |
+| POST   | `/admin/create/court-authority`   | Admin             | Create Court Authority   |
+| POST   | `/admin/create/station-authority` | Admin             | Create Station Authority |
+| POST   | `/court-authority/create/judge`   | Court Authority   | Create Judge             |
+| POST   | `/create/police-officer`          | Station Authority | Create Police Officer    |
+| POST   | `/login`                          | Anonymous         | User login               |
+| POST   | `/verify-email`                   | Anonymous         | Verify email OTP         |
+| POST   | `/change-password`                | Authenticated     | Change password          |
+| POST   | `/forgot-password`                | Anonymous         | Request password reset   |
+| GET    | `/me`                             | Authenticated     | Get current user         |
 
 ### Users (`/api/user`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/admins` | Admin | Get all admins |
-| GET | `/court-authorities` | Admin | Get court authorities |
-| GET | `/station-authorities` | Admin | Get station authorities |
-| GET | `/judges` | Admin, Court Authority | Get all judges |
-| GET | `/police-officers` | Admin, Station Authority | Get all officers |
-| GET | `/{id}` | Authority Roles | Get user by ID |
-| PUT | `/judges/{judgeId}` | Admin, Court Authority | Update judge |
-| PUT | `/officers/{officerId}` | Admin, Station Authority | Update officer |
-| DELETE | `/{id}` | Admin | Delete user |
+| Method | Endpoint                | Access                   | Description             |
+| ------ | ----------------------- | ------------------------ | ----------------------- |
+| GET    | `/admins`               | Admin                    | Get all admins          |
+| GET    | `/court-authorities`    | Admin                    | Get court authorities   |
+| GET    | `/station-authorities`  | Admin                    | Get station authorities |
+| GET    | `/judges`               | Admin, Court Authority   | Get all judges          |
+| GET    | `/police-officers`      | Admin, Station Authority | Get all officers        |
+| GET    | `/{id}`                 | Authority Roles          | Get user by ID          |
+| PUT    | `/judges/{judgeId}`     | Admin, Court Authority   | Update judge            |
+| PUT    | `/officers/{officerId}` | Admin, Station Authority | Update officer          |
+| DELETE | `/{id}`                 | Admin                    | Delete user             |
 
 ### Cases (`/api/case`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/create` | Court Authority | Create case from FIR |
-| GET | `/{id}` | Authenticated | Get case by ID |
-| GET | `/number/{caseNumber}` | Court Roles | Get by case number |
-| GET | `/list` | Court Authority | Get all cases |
-| GET | `/judge/{judgeId}` | Judge | Get judge's cases |
-| GET | `/court/{courtId}` | Court Authority | Get cases by court |
-| PUT | `/update` | Court Roles | Update case |
-| PUT | `/assign-judge/{caseId}` | Court Authority | Assign judge |
+| Method | Endpoint                 | Access          | Description          |
+| ------ | ------------------------ | --------------- | -------------------- |
+| POST   | `/create`                | Court Authority | Create case from FIR |
+| GET    | `/{id}`                  | Authenticated   | Get case by ID       |
+| GET    | `/number/{caseNumber}`   | Court Roles     | Get by case number   |
+| GET    | `/list`                  | Court Authority | Get all cases        |
+| GET    | `/judge/{judgeId}`       | Judge           | Get judge's cases    |
+| GET    | `/court/{courtId}`       | Court Authority | Get cases by court   |
+| PUT    | `/update`                | Court Roles     | Update case          |
+| PUT    | `/assign-judge/{caseId}` | Court Authority | Assign judge         |
 
 ### FIRs (`/api/fir`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/create` | Station Authority | Create FIR from challan |
-| GET | `/{id}` | All Roles | Get FIR by ID |
-| GET | `/list` | Station/Court Authority | Get all FIRs |
-| GET | `/station/{stationId}` | Station Authority | Get FIRs by station |
-| GET | `/eligible-challans/{stationId}` | Station Authority | Get challans for FIR |
-| PUT | `/update` | Station Authority | Update FIR |
+| Method | Endpoint                         | Access                  | Description             |
+| ------ | -------------------------------- | ----------------------- | ----------------------- |
+| POST   | `/create`                        | Station Authority       | Create FIR from challan |
+| GET    | `/{id}`                          | All Roles               | Get FIR by ID           |
+| GET    | `/list`                          | Station/Court Authority | Get all FIRs            |
+| GET    | `/station/{stationId}`           | Station Authority       | Get FIRs by station     |
+| GET    | `/eligible-challans/{stationId}` | Station Authority       | Get challans for FIR    |
+| PUT    | `/update`                        | Station Authority       | Update FIR              |
 
 ### Challans (`/api/challan`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/create` | Police Officer | Create challan (immutable) |
-| GET | `/{id}` | Authenticated | Get challan by ID |
-| GET | `/officer/{officerId}` | Police Officer | Get officer's challans |
-| GET | `/list` | Station Authority | Get all challans |
-| GET | `/station/{stationId}` | Station Authority | Get challans by station |
-| POST | `/public/search` | **Anonymous** | Public search |
+| Method | Endpoint               | Access            | Description                |
+| ------ | ---------------------- | ----------------- | -------------------------- |
+| POST   | `/create`              | Police Officer    | Create challan (immutable) |
+| GET    | `/{id}`                | Authenticated     | Get challan by ID          |
+| GET    | `/officer/{officerId}` | Police Officer    | Get officer's challans     |
+| GET    | `/list`                | Station Authority | Get all challans           |
+| GET    | `/station/{stationId}` | Station Authority | Get challans by station    |
+| POST   | `/public/search`       | **Anonymous**     | Public search              |
 
 ### Emission Reports (`/api/emissionreport`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/create` | Police Officer | Create report (immutable) |
-| GET | `/{id}` | All Roles | Get report by ID |
-| GET | `/list` | Station Authority | Get all reports |
-| GET | `/device/{deviceId}` | Station Authority | Get by device |
+| Method | Endpoint             | Access            | Description               |
+| ------ | -------------------- | ----------------- | ------------------------- |
+| POST   | `/create`            | Police Officer    | Create report (immutable) |
+| GET    | `/{id}`              | All Roles         | Get report by ID          |
+| GET    | `/list`              | Station Authority | Get all reports           |
+| GET    | `/device/{deviceId}` | Station Authority | Get by device             |
 
 ### IoT Devices (`/api/iotdevice`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/register` | Station Authority | Register device |
-| GET | `/{id}` | Station Roles | Get device by ID |
-| GET | `/list` | Station Authority | Get all devices |
-| GET | `/available` | Police Officer | Get available for pairing |
-| POST | `/pair` | Police Officer | Pair device |
-| POST | `/unpair` | Police Officer | Unpair device |
+| Method | Endpoint     | Access            | Description               |
+| ------ | ------------ | ----------------- | ------------------------- |
+| POST   | `/register`  | Station Authority | Register device           |
+| GET    | `/{id}`      | Station Roles     | Get device by ID          |
+| GET    | `/list`      | Station Authority | Get all devices           |
+| GET    | `/available` | Police Officer    | Get available for pairing |
+| POST   | `/pair`      | Police Officer    | Pair device               |
+| POST   | `/unpair`    | Police Officer    | Unpair device             |
 
 ### Violations (`/api/violation`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/create` | Station Authority | Create violation type |
-| GET | `/{id}` | Authenticated | Get violation by ID |
-| GET | `/list` | Authenticated | Get all violations |
-| GET | `/cognizable` | Station Authority | Get FIR-eligible |
+| Method | Endpoint      | Access            | Description           |
+| ------ | ------------- | ----------------- | --------------------- |
+| POST   | `/create`     | Station Authority | Create violation type |
+| GET    | `/{id}`       | Authenticated     | Get violation by ID   |
+| GET    | `/list`       | Authenticated     | Get all violations    |
+| GET    | `/cognizable` | Station Authority | Get FIR-eligible      |
 
 ### Public (`/api/public`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/request-status-otp` | **Anonymous** | Request OTP |
-| POST | `/verify-status-otp` | **Anonymous** | Verify OTP |
-| GET | `/case-status/{vehiclePlateNo}` | **Anonymous** (Token) | Get status |
+| Method | Endpoint                        | Access                | Description |
+| ------ | ------------------------------- | --------------------- | ----------- |
+| POST   | `/request-status-otp`           | **Anonymous**         | Request OTP |
+| POST   | `/verify-status-otp`            | **Anonymous**         | Verify OTP  |
+| GET    | `/case-status/{vehiclePlateNo}` | **Anonymous** (Token) | Get status  |
 
 ---
 
@@ -340,11 +340,11 @@ IoT Device → Emission Report → Challan → FIR → Case → Case Statement/V
 
 ### JWT Configuration
 
-| Setting | Value |
-|---------|-------|
-| Algorithm | HS256 |
-| Issuer | `NoiseSentinelAPI` |
-| Audience | `NoiseSentinelClient` |
+| Setting          | Value                   |
+| ---------------- | ----------------------- |
+| Algorithm        | HS256                   |
+| Issuer           | `NoiseSentinelAPI`      |
+| Audience         | `NoiseSentinelClient`   |
 | Token Expiration | 1440 minutes (24 hours) |
 
 ### Password Policy
@@ -383,27 +383,27 @@ IoT Device → Emission Report → Challan → FIR → Case → Case Statement/V
 
 ### Authorization Policies
 
-| Policy | Allowed Roles |
-|--------|---------------|
-| `AdminOnly` | Admin |
-| `CourtAuthorityOnly` | Court Authority |
-| `StationAuthorityOnly` | Station Authority |
-| `JudgeOnly` | Judge |
-| `PoliceOfficerOnly` | Police Officer |
-| `CourtRoles` | Admin, Court Authority, Judge |
-| `StationRoles` | Admin, Station Authority, Police Officer |
-| `AuthorityRoles` | Admin, Court Authority, Station Authority |
-| `AllRoles` | All authenticated users |
+| Policy                 | Allowed Roles                             |
+| ---------------------- | ----------------------------------------- |
+| `AdminOnly`            | Admin                                     |
+| `CourtAuthorityOnly`   | Court Authority                           |
+| `StationAuthorityOnly` | Station Authority                         |
+| `JudgeOnly`            | Judge                                     |
+| `PoliceOfficerOnly`    | Police Officer                            |
+| `CourtRoles`           | Admin, Court Authority, Judge             |
+| `StationRoles`         | Admin, Station Authority, Police Officer  |
+| `AuthorityRoles`       | Admin, Court Authority, Station Authority |
+| `AllRoles`             | All authenticated users                   |
 
 ### Role Permissions
 
-| Role | Can Create | Primary Functions |
-|------|------------|-------------------|
-| **Admin** | Admin, Court Authority, Station Authority | System administration |
-| **Court Authority** | Judge, Court, Case | Court management, case creation |
-| **Station Authority** | Police Officer, Station, Violation, FIR, IoT Device | Station operations |
-| **Judge** | Case Statement | Case proceedings, verdicts |
-| **Police Officer** | Challan, Emission Report | Field enforcement |
+| Role                  | Can Create                                          | Primary Functions               |
+| --------------------- | --------------------------------------------------- | ------------------------------- |
+| **Admin**             | Admin, Court Authority, Station Authority           | System administration           |
+| **Court Authority**   | Judge, Court, Case                                  | Court management, case creation |
+| **Station Authority** | Police Officer, Station, Violation, FIR, IoT Device | Station operations              |
+| **Judge**             | Case Statement                                      | Case proceedings, verdicts      |
+| **Police Officer**    | Challan, Emission Report                            | Field enforcement               |
 
 ---
 
@@ -418,29 +418,34 @@ IoT Device → Emission Report → Challan → FIR → Case → Case Statement/V
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/Fyp_NoiseSentinel.git
    cd Fyp_NoiseSentinel/src
    ```
 
 2. **Configure the database**
+
    ```bash
    # Update connection string in appsettings.json
    ```
 
 3. **Configure email settings**
+
    ```bash
    # Update EmailSettings in appsettings.json
    # See EMAIL_AUTHENTICATION_SETUP.md for Gmail App Password setup
    ```
 
 4. **Run migrations**
+
    ```bash
    cd NoiseSentinel.WebApi
    dotnet ef database update
    ```
 
 5. **Run the API**
+
    ```bash
    dotnet run
    ```

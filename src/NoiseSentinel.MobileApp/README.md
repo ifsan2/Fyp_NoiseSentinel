@@ -33,22 +33,22 @@ The NoiseSentinel Mobile App empowers Police Officers to:
 
 ## 🛠️ Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| **Framework** | React Native 0.72.10 with Expo SDK 49 |
-| **Language** | TypeScript |
-| **Navigation** | React Navigation 6.x (Native Stack + Bottom Tabs) |
-| **State Management** | React Context API |
-| **HTTP Client** | Axios |
-| **Secure Storage** | expo-secure-store |
-| **UI Icons** | Lucide React Native |
-| **Fonts** | Plus Jakarta Sans (Google Fonts) |
-| **Animation** | react-native-reanimated 3.3.0 |
-| **Gestures** | react-native-gesture-handler |
-| **Image Handling** | expo-image-picker |
-| **Haptics** | expo-haptics |
-| **Notifications** | react-native-toast-message |
-| **Date Handling** | date-fns |
+| Category             | Technology                                        |
+| -------------------- | ------------------------------------------------- |
+| **Framework**        | React Native 0.72.10 with Expo SDK 49             |
+| **Language**         | TypeScript                                        |
+| **Navigation**       | React Navigation 6.x (Native Stack + Bottom Tabs) |
+| **State Management** | React Context API                                 |
+| **HTTP Client**      | Axios                                             |
+| **Secure Storage**   | expo-secure-store                                 |
+| **UI Icons**         | Lucide React Native                               |
+| **Fonts**            | Plus Jakarta Sans (Google Fonts)                  |
+| **Animation**        | react-native-reanimated 3.3.0                     |
+| **Gestures**         | react-native-gesture-handler                      |
+| **Image Handling**   | expo-image-picker                                 |
+| **Haptics**          | expo-haptics                                      |
+| **Notifications**    | react-native-toast-message                        |
+| **Date Handling**    | date-fns                                          |
 
 ---
 
@@ -154,17 +154,20 @@ NoiseSentinel.MobileApp/
 ## ⭐ Features
 
 ### 📱 Dashboard
+
 - **Quick Stats**: Total challans issued, today's count
 - **Quick Actions**: Device pairing, create challan, view history
 - **Search Actions**: Vehicle lookup, accused lookup, violations list
 
 ### 🔗 IoT Device Pairing
+
 - View available devices for pairing
 - Pair with calibrated noise monitoring device
 - View currently paired device details
 - Unpair device when done
 
 ### 📊 Emission Report Generation
+
 - Requires paired IoT device
 - **Scan** captures simulated sensor data:
   - Sound Level (dBA)
@@ -175,28 +178,32 @@ NoiseSentinel.MobileApp/
 - Creates report linked to device
 
 ### 📝 Challan Creation
+
 Multi-step wizard:
 
-| Step | Content |
-|------|---------|
-| 1️⃣ | Select Violation Type |
-| 2️⃣ | Vehicle Information (search or create) |
-| 3️⃣ | Accused Information (search by CNIC or create) |
-| 4️⃣ | Evidence Image + Bank Details |
+| Step | Content                                        |
+| ---- | ---------------------------------------------- |
+| 1️⃣   | Select Violation Type                          |
+| 2️⃣   | Vehicle Information (search or create)         |
+| 3️⃣   | Accused Information (search by CNIC or create) |
+| 4️⃣   | Evidence Image + Bank Details                  |
 
 **Business Logic**:
+
 - From Emission Report → Only **Cognizable** violations shown
 - Direct Challan → Only **Non-Cognizable** violations shown
 - Auto-creates vehicle/accused if not found
 - Image evidence upload (base64)
 
 ### 📋 Challan Management
+
 - View all issued challans
 - **Filters**: All, Unpaid, Paid, Overdue, FIR
 - **Search**: By name, plate, violation, challan ID
 - View challan details with digital signature
 
 ### 🔍 Search Features
+
 - **Vehicle Search**: By plate number
 - **Accused Search**: By CNIC
 - **Violations**: View all violation types with fines
@@ -250,35 +257,35 @@ Multi-step wizard:
 
 ### Tab Navigator (Bottom Tabs)
 
-| Tab | Icon | Screen | Description |
-|-----|------|--------|-------------|
-| 🏠 Home | Home | `DashboardScreen` | Officer dashboard |
-| 📜 History | Clock | `MyChallansScreen` | Issued challans |
-| 📷 Scan | Scan | `CreateChallanScreen` | Create challan |
-| 👤 Profile | User | `ProfileScreen` | Settings & logout |
+| Tab        | Icon  | Screen                | Description       |
+| ---------- | ----- | --------------------- | ----------------- |
+| 🏠 Home    | Home  | `DashboardScreen`     | Officer dashboard |
+| 📜 History | Clock | `MyChallansScreen`    | Issued challans   |
+| 📷 Scan    | Scan  | `CreateChallanScreen` | Create challan    |
+| 👤 Profile | User  | `ProfileScreen`       | Settings & logout |
 
 ### Authentication Screens
 
-| Screen | Purpose |
-|--------|---------|
-| `LoginScreen` | Officer login |
+| Screen                 | Purpose                |
+| ---------------------- | ---------------------- |
+| `LoginScreen`          | Officer login          |
 | `ForgotPasswordScreen` | Request password reset |
-| `VerifyOtpScreen` | Email OTP verification |
-| `ChangePasswordScreen` | Change/reset password |
+| `VerifyOtpScreen`      | Email OTP verification |
+| `ChangePasswordScreen` | Change/reset password  |
 
 ### Main Screens
 
-| Screen | Purpose |
-|--------|---------|
-| `DashboardScreen` | Overview with stats and actions |
-| `PairDeviceScreen` | IoT device pairing |
-| `CreateEmissionReportScreen` | Generate emission report |
-| `CreateChallanScreen` | Multi-step challan wizard |
-| `MyChallansScreen` | View issued challans |
-| `ChallanDetailScreen` | Challan details |
-| `SearchVehicleScreen` | Search by plate |
-| `SearchAccusedScreen` | Search by CNIC |
-| `ViolationsScreen` | View violation types |
+| Screen                       | Purpose                         |
+| ---------------------------- | ------------------------------- |
+| `DashboardScreen`            | Overview with stats and actions |
+| `PairDeviceScreen`           | IoT device pairing              |
+| `CreateEmissionReportScreen` | Generate emission report        |
+| `CreateChallanScreen`        | Multi-step challan wizard       |
+| `MyChallansScreen`           | View issued challans            |
+| `ChallanDetailScreen`        | Challan details                 |
+| `SearchVehicleScreen`        | Search by plate                 |
+| `SearchAccusedScreen`        | Search by CNIC                  |
+| `ViolationsScreen`           | View violation types            |
 
 ---
 
@@ -325,21 +332,21 @@ Multi-step wizard:
 
 ```typescript
 // src/api/axios.config.ts
-const BASE_URL = 'http://localhost:5200/api';
+const BASE_URL = "http://localhost:5200/api";
 const TIMEOUT = 30000;
 ```
 
 ### API Endpoints Used
 
-| Service | Endpoints |
-|---------|-----------|
-| **Auth** | `/login`, `/verify-email`, `/change-password` |
-| **Challan** | `/create`, `/officer/{id}`, `/{id}` |
-| **Emission Report** | `/create`, `/list`, `/{id}` |
-| **IoT Device** | `/available`, `/pair`, `/unpair`, `/{id}` |
-| **Vehicle** | `/plate/{plateNo}`, `/{id}` |
-| **Accused** | `/cnic/{cnic}`, `/{id}` |
-| **Violation** | `/list`, `/cognizable` |
+| Service             | Endpoints                                     |
+| ------------------- | --------------------------------------------- |
+| **Auth**            | `/login`, `/verify-email`, `/change-password` |
+| **Challan**         | `/create`, `/officer/{id}`, `/{id}`           |
+| **Emission Report** | `/create`, `/list`, `/{id}`                   |
+| **IoT Device**      | `/available`, `/pair`, `/unpair`, `/{id}`     |
+| **Vehicle**         | `/plate/{plateNo}`, `/{id}`                   |
+| **Accused**         | `/cnic/{cnic}`, `/{id}`                       |
+| **Violation**       | `/list`, `/cognizable`                        |
 
 ### Request/Response Interceptors
 
@@ -361,25 +368,29 @@ const TIMEOUT = 30000;
 ### Installation
 
 1. **Navigate to mobile app directory**
+
    ```bash
    cd src/NoiseSentinel.MobileApp
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Configure API URL**
-   
+
    Edit `src/api/axios.config.ts`:
+
    ```typescript
-   const BASE_URL = 'http://YOUR_IP:5200/api';
+   const BASE_URL = "http://YOUR_IP:5200/api";
    ```
-   
+
    > Use your machine's IP address instead of `localhost` for physical devices
 
 4. **Start Expo development server**
+
    ```bash
    npm start
    # or
@@ -427,11 +438,11 @@ npx eas build --platform ios
 
 ## 📱 Platform Support
 
-| Platform | Status |
-|----------|--------|
-| Android | ✅ Supported |
-| iOS | ✅ Supported |
-| Web | ✅ Supported (via react-native-web) |
+| Platform | Status                              |
+| -------- | ----------------------------------- |
+| Android  | ✅ Supported                        |
+| iOS      | ✅ Supported                        |
+| Web      | ✅ Supported (via react-native-web) |
 
 ---
 
@@ -470,26 +481,26 @@ text: {
 
 ```typescript
 // Sound threshold for violations
-SOUND_THRESHOLD = 85.0  // dBA
+SOUND_THRESHOLD = 85.0; // dBA
 
 // Challan statuses
 CHALLAN_STATUS = {
-  UNPAID: 'Unpaid',
-  PAID: 'Paid',
-  DISPUTED: 'Disputed'
-}
+  UNPAID: "Unpaid",
+  PAID: "Paid",
+  DISPUTED: "Disputed",
+};
 ```
 
 ---
 
 ## 📝 Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm start` | Start Expo server |
-| `npm run android` | Run on Android |
-| `npm run ios` | Run on iOS |
-| `npm run web` | Run on web |
+| Script            | Description       |
+| ----------------- | ----------------- |
+| `npm start`       | Start Expo server |
+| `npm run android` | Run on Android    |
+| `npm run ios`     | Run on iOS        |
+| `npm run web`     | Run on web        |
 
 ---
 

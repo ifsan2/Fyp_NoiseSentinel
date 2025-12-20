@@ -39,6 +39,7 @@
 **NoiseSentinel** is an enterprise-grade noise pollution monitoring and traffic enforcement system that manages the complete lifecycle of environmental violations — from IoT device readings to court case resolution.
 
 The system enables:
+
 - 📊 **Real-time noise monitoring** via IoT devices
 - 📝 **Digital challan issuance** with evidence preservation
 - 📁 **FIR filing** for cognizable violations
@@ -51,6 +52,7 @@ The system enables:
 ## ✨ Features
 
 ### 🚔 For Police Officers (Mobile App)
+
 - Pair with calibrated IoT noise monitoring devices
 - Generate emission reports with ML-based violation detection
 - Issue digital challans with evidence images
@@ -59,6 +61,7 @@ The system enables:
 - Track issued challans with status filters
 
 ### 🏢 For Station Authority (Web Portal)
+
 - Manage police stations and officers
 - Register and manage IoT devices
 - Define violation types and fine amounts
@@ -67,6 +70,7 @@ The system enables:
 - Transfer officers between stations
 
 ### ⚖️ For Court Authority (Web Portal)
+
 - Manage courts and court types
 - Create and manage judge accounts
 - Create court cases from FIRs
@@ -74,6 +78,7 @@ The system enables:
 - Monitor case proceedings
 
 ### 👨‍⚖️ For Judges (Web Portal)
+
 - View assigned cases
 - Record case statements
 - Update case status
@@ -81,12 +86,14 @@ The system enables:
 - Set hearing dates
 
 ### 👑 For Admins (Web Portal)
+
 - Create Court Authorities
 - Create Station Authorities
 - Manage all system users
 - View system-wide statistics
 
 ### 🌍 For Public (No Login Required)
+
 - Search challans by vehicle plate + CNIC
 - Check case status via OTP verification
 
@@ -130,36 +137,39 @@ The system enables:
 ## 🛠️ Technology Stack
 
 ### Backend
-| Component | Technology |
-|-----------|------------|
-| Framework | .NET 8.0 |
-| API | ASP.NET Core Web API |
-| ORM | Entity Framework Core 8.0 |
-| Database | SQL Server |
+
+| Component      | Technology                  |
+| -------------- | --------------------------- |
+| Framework      | .NET 8.0                    |
+| API            | ASP.NET Core Web API        |
+| ORM            | Entity Framework Core 8.0   |
+| Database       | SQL Server                  |
 | Authentication | ASP.NET Core Identity + JWT |
-| Email | MailKit (Gmail SMTP) |
-| Documentation | Swagger/OpenAPI |
+| Email          | MailKit (Gmail SMTP)        |
+| Documentation  | Swagger/OpenAPI             |
 
 ### Web Portal
-| Component | Technology |
-|-----------|------------|
-| Framework | React 18.2 |
-| Language | TypeScript |
-| Build Tool | Vite 5.0 |
-| UI Library | Material-UI (MUI) 5.15 |
-| Routing | React Router DOM 6.20 |
-| Forms | React Hook Form |
-| HTTP Client | Axios |
+
+| Component   | Technology             |
+| ----------- | ---------------------- |
+| Framework   | React 18.2             |
+| Language    | TypeScript             |
+| Build Tool  | Vite 5.0               |
+| UI Library  | Material-UI (MUI) 5.15 |
+| Routing     | React Router DOM 6.20  |
+| Forms       | React Hook Form        |
+| HTTP Client | Axios                  |
 
 ### Mobile App
-| Component | Technology |
-|-----------|------------|
-| Framework | React Native 0.72.10 |
-| Platform | Expo SDK 49 |
-| Language | TypeScript |
-| Navigation | React Navigation 6.x |
-| Storage | expo-secure-store |
-| HTTP Client | Axios |
+
+| Component   | Technology           |
+| ----------- | -------------------- |
+| Framework   | React Native 0.72.10 |
+| Platform    | Expo SDK 49          |
+| Language    | TypeScript           |
+| Navigation  | React Navigation 6.x |
+| Storage     | expo-secure-store    |
+| HTTP Client | Axios                |
 
 ---
 
@@ -183,13 +193,13 @@ The system enables:
        └──────────┘     └──────────────┘
 ```
 
-| Role | Platform | Responsibilities |
-|------|----------|------------------|
-| **Admin** | Web Portal | System administration, user management |
-| **Court Authority** | Web Portal | Court/Judge management, case creation |
+| Role                  | Platform   | Responsibilities                       |
+| --------------------- | ---------- | -------------------------------------- |
+| **Admin**             | Web Portal | System administration, user management |
+| **Court Authority**   | Web Portal | Court/Judge management, case creation  |
 | **Station Authority** | Web Portal | Station/Officer management, FIR filing |
-| **Judge** | Web Portal | Case proceedings, verdicts |
-| **Police Officer** | Mobile App | Challan issuance, field enforcement |
+| **Judge**             | Web Portal | Case proceedings, verdicts             |
+| **Police Officer**    | Mobile App | Challan issuance, field enforcement    |
 
 ---
 
@@ -235,27 +245,32 @@ The system enables:
 ### Quick Start
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/Fyp_NoiseSentinel.git
    cd Fyp_NoiseSentinel
    ```
 
 2. **Setup Backend**
+
    ```bash
    cd src/NoiseSentinel.WebApi
    # Configure appsettings.json (database, email, JWT)
    dotnet ef database update
    dotnet run
    ```
+
    API will be available at `http://localhost:5200`
 
 3. **Setup Web Portal**
+
    ```bash
    cd src/Noisesentinel.WebPortal
    npm install
    # Configure .env with API URL
    npm run dev
    ```
+
    Portal will be available at `http://localhost:5173`
 
 4. **Setup Mobile App**
@@ -267,6 +282,7 @@ The system enables:
    ```
 
 For detailed setup instructions, see:
+
 - [Backend README](src/NoiseSentinel.WebApi/README.md)
 - [Web Portal README](src/Noisesentinel.WebPortal/README.md)
 - [Mobile App README](src/NoiseSentinel.MobileApp/README.md)
@@ -327,13 +343,13 @@ Fyp_NoiseSentinel/
 
 ## 📚 Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Backend API README](src/NoiseSentinel.WebApi/README.md) | Complete backend documentation including architecture, API endpoints, authentication, and database schema |
-| [Web Portal README](src/Noisesentinel.WebPortal/README.md) | Web application documentation including features, routes, and setup |
-| [Mobile App README](src/NoiseSentinel.MobileApp/README.md) | Mobile app documentation including features, screens, and workflow |
-| [Email Setup Guide](src/EMAIL_AUTHENTICATION_SETUP.md) | Gmail App Password configuration for email notifications |
-| [Database Schema](SQL%20Queries/ERD%20FYP.sql) | Complete SQL schema for the database |
+| Document                                                   | Description                                                                                               |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [Backend API README](src/NoiseSentinel.WebApi/README.md)   | Complete backend documentation including architecture, API endpoints, authentication, and database schema |
+| [Web Portal README](src/Noisesentinel.WebPortal/README.md) | Web application documentation including features, routes, and setup                                       |
+| [Mobile App README](src/NoiseSentinel.MobileApp/README.md) | Mobile app documentation including features, screens, and workflow                                        |
+| [Email Setup Guide](src/EMAIL_AUTHENTICATION_SETUP.md)     | Gmail App Password configuration for email notifications                                                  |
+| [Database Schema](SQL%20Queries/ERD%20FYP.sql)             | Complete SQL schema for the database                                                                      |
 
 ---
 
@@ -341,17 +357,17 @@ Fyp_NoiseSentinel/
 
 ### Web Portal
 
-| Admin Dashboard | Station Authority | Court Authority | Judge Dashboard |
-|-----------------|-------------------|-----------------|-----------------|
-| User management | Station operations | Case management | Assigned cases |
-| Statistics | FIR filing | Judge management | Verdicts |
+| Admin Dashboard | Station Authority  | Court Authority  | Judge Dashboard |
+| --------------- | ------------------ | ---------------- | --------------- |
+| User management | Station operations | Case management  | Assigned cases  |
+| Statistics      | FIR filing         | Judge management | Verdicts        |
 
 ### Mobile App
 
-| Dashboard | Create Challan | Device Pairing | My Challans |
-|-----------|----------------|----------------|-------------|
-| Quick stats | Multi-step wizard | IoT pairing | History view |
-| Actions | Evidence upload | Scan readings | Filters |
+| Dashboard   | Create Challan    | Device Pairing | My Challans  |
+| ----------- | ----------------- | -------------- | ------------ |
+| Quick stats | Multi-step wizard | IoT pairing    | History view |
+| Actions     | Evidence upload   | Scan readings  | Filters      |
 
 ---
 

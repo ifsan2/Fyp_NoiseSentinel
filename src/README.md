@@ -16,11 +16,11 @@ src/
 
 ## 📚 Documentation
 
-| Component | README |
-|-----------|--------|
-| **Backend API** | [NoiseSentinel.WebApi/README.md](NoiseSentinel.WebApi/README.md) |
-| **Web Portal** | [Noisesentinel.WebPortal/README.md](Noisesentinel.WebPortal/README.md) |
-| **Mobile App** | [NoiseSentinel.MobileApp/README.md](NoiseSentinel.MobileApp/README.md) |
+| Component       | README                                                                 |
+| --------------- | ---------------------------------------------------------------------- |
+| **Backend API** | [NoiseSentinel.WebApi/README.md](NoiseSentinel.WebApi/README.md)       |
+| **Web Portal**  | [Noisesentinel.WebPortal/README.md](Noisesentinel.WebPortal/README.md) |
+| **Mobile App**  | [NoiseSentinel.MobileApp/README.md](NoiseSentinel.MobileApp/README.md) |
 
 ## 🚀 Quick Start
 
@@ -52,6 +52,7 @@ npx expo start
 ## ⚙️ Configuration
 
 ### Email Setup
+
 See [EMAIL_AUTHENTICATION_SETUP.md](EMAIL_AUTHENTICATION_SETUP.md) for Gmail App Password configuration.
 
 ## 🔗 Main Documentation
