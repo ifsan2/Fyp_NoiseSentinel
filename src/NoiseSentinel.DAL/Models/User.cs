@@ -36,6 +36,24 @@ public partial class User : IdentityUser<int>
     [Column("RoleID")]
     public int? RoleId { get; set; }
 
+    // Email Verification Fields
+    [StringLength(6)]
+    public string? EmailVerificationOtp { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? OtpExpiresAt { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? EmailVerifiedAt { get; set; }
+
+    // First Login and Password Management
+    public bool IsFirstLogin { get; set; } = true;
+
+    [Column(TypeName = "datetime")]
+    public DateTime? LastPasswordChangedAt { get; set; }
+
+    public bool MustChangePassword { get; set; } = false;
+
     [InverseProperty("User")]
     public virtual ICollection<Judge> Judges { get; set; } = new List<Judge>();
 

@@ -6,7 +6,6 @@ interface CreateJudgeDto {
   fullName: string;
   email: string;
   username: string;
-  password: string;
   cnic: string;
   contactNo: string;
   rank: string;

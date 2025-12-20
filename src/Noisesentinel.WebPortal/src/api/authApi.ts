@@ -82,8 +82,37 @@ class AuthApi {
   /**
    * Change password
    */
-  async changePassword(data: ChangePasswordDto): Promise<void> {
-    await apiClient.post("/Auth/change-password", data);
+  async changePassword(data: ChangePasswordDto): Promise<AuthResponseDto> {
+    const response = await apiClient.post<ApiResponse<AuthResponseDto>>(
+      "/Auth/change-password",
+      data
+    );
+    return response.data.data!;
+  }
+
+  /**
+   * Verify email with OTP and get auth token for immediate login
+   */
+  async verifyEmail(data: {
+    email: string;
+    otp: string;
+  }): Promise<AuthResponseDto> {
+    const response = await apiClient.post<ApiResponse<AuthResponseDto>>(
+      "/Auth/verify-email",
+      data
+    );
+    return response.data.data!;
+  }
+
+  /**
+   * Resend OTP
+   */
+  async resendOtp(data: { email: string }): Promise<string> {
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/resend-otp",
+      data
+    );
+    return response.data.message || "OTP sent successfully";
   }
 
   /**

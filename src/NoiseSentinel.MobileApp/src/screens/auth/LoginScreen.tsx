@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Shield, User, Lock } from "lucide-react-native";
 import Toast from "react-native-toast-message";
+import { useNavigation } from "@react-navigation/native";
 import authApi from "../../api/authApi";
 import { Button } from "../../components/common/Button";
 import { Input } from "../../components/common/Input";
@@ -27,6 +28,7 @@ const { width, height } = Dimensions.get("window");
 
 export const LoginScreen: React.FC = () => {
   const { login } = useAuth();
+  const navigation = useNavigation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -117,6 +119,19 @@ export const LoginScreen: React.FC = () => {
 
       console.log("✅ Login response received:", response);
 
+      // ✅ Check if email verification is required
+      if (response.requiresEmailVerification) {
+        Toast.show({
+          type: "info",
+          text1: "Email Verification Required",
+          text2: "Please verify your email first",
+        });
+        setLoading(false);
+        // Navigate to email verification screen
+        (navigation as any).navigate("VerifyEmail", { email: response.email });
+        return;
+      }
+
       // Check if user is a Police Officer
       if (response.role !== "Police Officer") {
         Toast.show({
@@ -128,7 +143,24 @@ export const LoginScreen: React.FC = () => {
         return;
       }
 
-      // Save token and user data
+      // ✅ Check if password change is required BEFORE saving token
+      if (response.mustChangePassword) {
+        Toast.show({
+          type: "info",
+          text1: "Password Change Required",
+          text2: "You must change your temporary password",
+        });
+        setLoading(false);
+        // Navigate to ChangePassword with token and user data
+        (navigation as any).navigate("ChangePassword", {
+          token: response.token,
+          userData: response,
+          fromLogin: true,
+        });
+        return;
+      }
+
+      // Save token and user data (only if password change NOT required)
       await login(response.token, response);
 
       Toast.show({

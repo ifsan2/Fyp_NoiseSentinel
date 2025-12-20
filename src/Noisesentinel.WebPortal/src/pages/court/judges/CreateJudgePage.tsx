@@ -9,6 +9,7 @@ import {
   CircularProgress,
   FormControlLabel,
   Switch,
+  Alert,
 } from "@mui/material";
 import { Save, Cancel } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +24,6 @@ interface CreateJudgeFormData {
   fullName: string;
   email: string;
   username: string;
-  password: string;
   cnic: string;
   contactNo: string;
   rank: string;
@@ -40,7 +40,6 @@ export const CreateJudgePage: React.FC = () => {
     fullName: "",
     email: "",
     username: "",
-    password: "",
     cnic: "",
     contactNo: "",
     rank: "",
@@ -73,9 +72,12 @@ export const CreateJudgePage: React.FC = () => {
       console.log("Creating judge with data:", formData);
       const result = await judgeApi.createJudge(formData);
       console.log("Judge created successfully, response:", result);
-      enqueueSnackbar(`Judge created successfully! User ID: ${result?.userId || 'N/A'}`, { 
-        variant: "success" 
-      });
+      enqueueSnackbar(
+        `Judge created successfully! User ID: ${result?.userId || "N/A"}`,
+        {
+          variant: "success",
+        }
+      );
       navigate(COURT_ROUTES.JUDGES);
     } catch (error: any) {
       console.error("Create judge error:", error);
@@ -133,16 +135,12 @@ export const CreateJudgePage: React.FC = () => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                required
-                value={formData.password}
-                onChange={(e) => handleChange("password", e.target.value)}
-                helperText="Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special char"
-              />
+            <Grid item xs={12}>
+              <Alert severity="info">
+                <strong>Password:</strong> A secure temporary password will be
+                automatically generated and emailed to the judge. They can
+                change it after their first login.
+              </Alert>
             </Grid>
 
             <Grid item xs={12} md={6}>

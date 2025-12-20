@@ -83,7 +83,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
                 <Text style={styles.userAvatarLargeText}>👮</Text>
               </View>
               <Text style={styles.userName}>{userName || "moiz"}</Text>
-              <Text style={styles.userRole}>{userRole || "POLICE OFFICER"}</Text>
+              <Text style={styles.userRole}>
+                {userRole || "POLICE OFFICER"}
+              </Text>
             </View>
 
             {/* Menu Items */}
@@ -94,11 +96,17 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
                 activeOpacity={0.8}
               >
                 <View style={styles.menuIconContainer}>
-                  <Lock size={20} color={colors.warning[600]} strokeWidth={2.5} />
+                  <Lock
+                    size={20}
+                    color={colors.warning[600]}
+                    strokeWidth={2.5}
+                  />
                 </View>
                 <View style={styles.menuTextContainer}>
                   <Text style={styles.menuItemText}>Change Password</Text>
-                  <Text style={styles.menuItemSubtext}>Update your password</Text>
+                  <Text style={styles.menuItemSubtext}>
+                    Update your password
+                  </Text>
                 </View>
                 <View style={styles.menuArrowContainer}>
                   <Text style={styles.menuArrow}>→</Text>
@@ -110,12 +118,22 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
                 onPress={handleLogout}
                 activeOpacity={0.8}
               >
-                <View style={[styles.menuIconContainer, styles.logoutIconContainer]}>
-                  <LogOut size={20} color={colors.error[500]} strokeWidth={2.5} />
+                <View
+                  style={[styles.menuIconContainer, styles.logoutIconContainer]}
+                >
+                  <LogOut
+                    size={20}
+                    color={colors.error[500]}
+                    strokeWidth={2.5}
+                  />
                 </View>
                 <View style={styles.menuTextContainer}>
-                  <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
-                  <Text style={styles.menuItemSubtext}>Sign out of your account</Text>
+                  <Text style={[styles.menuItemText, styles.logoutText]}>
+                    Logout
+                  </Text>
+                  <Text style={styles.menuItemSubtext}>
+                    Sign out of your account
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -292,19 +310,19 @@ const styles = StyleSheet.create({
   logoutItem: {
     backgroundColor: colors.error[50],
     borderWidth: 1,
-    borderColor: colors.error[100],
+    borderColor: colors.error[200],
   },
   menuIconContainer: {
     width: 44,
     height: 44,
-    backgroundColor: colors.warning[100],
+    backgroundColor: colors.warning[50],
     borderRadius: borderRadius.md,
     justifyContent: "center",
     alignItems: "center",
     marginRight: spacing.md,
   },
   logoutIconContainer: {
-    backgroundColor: colors.error[100],
+    backgroundColor: colors.error[50],
   },
   menuTextContainer: {
     flex: 1,
@@ -336,5 +354,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-
-

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Table,
   TableBody,
@@ -10,9 +10,15 @@ import {
   Chip,
   IconButton,
   Tooltip,
-} from '@mui/material';
-import { Edit, Delete, Visibility, CheckCircle, Cancel } from '@mui/icons-material';
-import { UserListItemDto } from '@/models/User';
+} from "@mui/material";
+import {
+  Edit,
+  Delete,
+  Visibility,
+  CheckCircle,
+  Cancel,
+} from "@mui/icons-material";
+import { UserListItemDto } from "@/models/User";
 
 interface UserTableProps {
   users: UserListItemDto[];
@@ -20,6 +26,8 @@ interface UserTableProps {
   onEdit: (userId: number) => void;
   onDelete: (userId: number) => void;
   onToggleStatus: (userId: number, currentStatus: boolean) => void;
+  currentUserId?: number; // Current logged-in user ID
+  totalAdmins?: number; // Total number of admins
 }
 
 export const UserTable: React.FC<UserTableProps> = ({
@@ -28,28 +36,51 @@ export const UserTable: React.FC<UserTableProps> = ({
   onEdit,
   onDelete,
   onToggleStatus,
+  currentUserId,
+  totalAdmins = 0,
 }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
+  };
+
+  // Check if this is the only admin trying to delete themselves
+  const isOnlyAdminDeletingSelf = (user: UserListItemDto) => {
+    return (
+      user.userId === currentUserId &&
+      user.role === "Admin" &&
+      totalAdmins === 1
+    );
   };
 
   return (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
-          <TableRow sx={{ bgcolor: 'primary.main' }}>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>ID</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Full Name</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Username</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Email</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Role</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Status</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Created</TableCell>
-            <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
+          <TableRow sx={{ bgcolor: "primary.main" }}>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>ID</TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Full Name
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Username
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Email
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>Role</TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Status
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Created
+            </TableCell>
+            <TableCell sx={{ color: "white", fontWeight: 600 }}>
+              Actions
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -64,7 +95,7 @@ export const UserTable: React.FC<UserTableProps> = ({
               <TableRow
                 key={user.userId}
                 hover
-                sx={{ '&:hover': { bgcolor: 'action.hover' } }}
+                sx={{ "&:hover": { bgcolor: "action.hover" } }}
               >
                 <TableCell>{user.userId}</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>{user.fullName}</TableCell>
@@ -75,13 +106,13 @@ export const UserTable: React.FC<UserTableProps> = ({
                     label={user.role}
                     size="small"
                     color={
-                      user.role === 'Admin'
-                        ? 'error'
-                        : user.role === 'Judge'
-                        ? 'warning'
-                        : user.role === 'Police Officer'
-                        ? 'info'
-                        : 'default'
+                      user.role === "Admin"
+                        ? "error"
+                        : user.role === "Judge"
+                        ? "warning"
+                        : user.role === "Police Officer"
+                        ? "info"
+                        : "default"
                     }
                   />
                 </TableCell>
@@ -89,7 +120,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                   <Chip
                     label={user.status}
                     size="small"
-                    color={user.isActive ? 'success' : 'default'}
+                    color={user.isActive ? "success" : "default"}
                     icon={user.isActive ? <CheckCircle /> : <Cancel />}
                   />
                 </TableCell>
@@ -115,24 +146,37 @@ export const UserTable: React.FC<UserTableProps> = ({
                     </IconButton>
                   </Tooltip>
 
-                  <Tooltip title={user.isActive ? 'Deactivate' : 'Activate'}>
+                  <Tooltip title={user.isActive ? "Deactivate" : "Activate"}>
                     <IconButton
                       size="small"
-                      color={user.isActive ? 'warning' : 'success'}
+                      color={user.isActive ? "warning" : "success"}
                       onClick={() => onToggleStatus(user.userId, user.isActive)}
                     >
-                      {user.isActive ? <Cancel fontSize="small" /> : <CheckCircle fontSize="small" />}
+                      {user.isActive ? (
+                        <Cancel fontSize="small" />
+                      ) : (
+                        <CheckCircle fontSize="small" />
+                      )}
                     </IconButton>
                   </Tooltip>
 
-                  <Tooltip title="Delete">
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => onDelete(user.userId)}
-                    >
-                      <Delete fontSize="small" />
-                    </IconButton>
+                  <Tooltip
+                    title={
+                      isOnlyAdminDeletingSelf(user)
+                        ? "Cannot delete the only admin account"
+                        : "Delete"
+                    }
+                  >
+                    <span>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => onDelete(user.userId)}
+                        disabled={isOnlyAdminDeletingSelf(user)}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </TableCell>
               </TableRow>

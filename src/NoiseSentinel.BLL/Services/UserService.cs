@@ -702,6 +702,20 @@ public class UserService : IUserService
                 return ServiceResult<string>.FailureResult($"User with ID {userId} not found.");
             }
 
+            // ✅ Prevent deleting the only admin
+            if (user.Role?.RoleName == "Admin")
+            {
+                var adminCount = await _context.Users
+                    .Where(u => u.Role!.RoleName == "Admin")
+                    .CountAsync();
+
+                if (adminCount == 1)
+                {
+                    return ServiceResult<string>.FailureResult(
+                        "Cannot delete the only admin account. Please create another admin before deleting this one.");
+                }
+            }
+
             // Soft delete (set IsActive = false)
             user.IsActive = false;
             await _context.SaveChangesAsync();

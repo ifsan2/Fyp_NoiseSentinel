@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -7,26 +7,32 @@ import {
   InputAdornment,
   IconButton,
   Alert,
-} from '@mui/material';
-import { Visibility, VisibilityOff, Save } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { useSnackbar } from 'notistack';
-import authApi from '@/api/authApi';
-import { ChangePasswordDto } from '@/models/Auth';
-import { PageHeader } from '@/components/common/PageHeader';
-import { FormCard } from '@/components/common/FormCard';
-import { ROUTES } from '@/utils/constants';
-import { validation, validationMessages } from '@/utils/validation';
+} from "@mui/material";
+import { Visibility, VisibilityOff, Save } from "@mui/icons-material";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { useSnackbar } from "notistack";
+import authApi from "@/api/authApi";
+import { ChangePasswordDto } from "@/models/Auth";
+import { PageHeader } from "@/components/common/PageHeader";
+import { FormCard } from "@/components/common/FormCard";
+import { ROUTES } from "@/utils/constants";
+import { validation, validationMessages } from "@/utils/validation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const ChangePasswordPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { enqueueSnackbar } = useSnackbar();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // ✅ Check if this is a forced password change (from login flow)
+  const isForcedChange = searchParams.get("forced") === "true";
 
   const {
     control,
@@ -36,24 +42,31 @@ export const ChangePasswordPage: React.FC = () => {
     formState: { errors },
   } = useForm<ChangePasswordDto>({
     defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+      isForcedChange: isForcedChange,
     },
   });
 
-  const newPassword = watch('newPassword');
+  const newPassword = watch("newPassword");
 
   const onSubmit = async (data: ChangePasswordDto) => {
     try {
       setLoading(true);
-      setErrorMessage('');
+      setErrorMessage("");
 
-      await authApi.changePassword(data);
+      // ✅ Pass data with isForcedChange flag
+      const response = await authApi.changePassword(data);
 
-      enqueueSnackbar('Password changed successfully!', {
-        variant: 'success',
+      enqueueSnackbar("Password changed successfully!", {
+        variant: "success",
       });
+
+      // ✅ If forced change, update with NEW token from response
+      if (isForcedChange && response) {
+        login(response.token, response);
+      }
 
       reset();
       setTimeout(() => {
@@ -61,9 +74,9 @@ export const ChangePasswordPage: React.FC = () => {
       }, 2000);
     } catch (error: any) {
       const message =
-        error.response?.data?.message || 'Failed to change password.';
+        error.response?.data?.message || "Failed to change password.";
       setErrorMessage(message);
-      enqueueSnackbar(message, { variant: 'error' });
+      enqueueSnackbar(message, { variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -72,12 +85,20 @@ export const ChangePasswordPage: React.FC = () => {
   return (
     <Box>
       <PageHeader
-        title="Change Password"
-        subtitle="Update your account password"
-        breadcrumbs={[
-          { label: 'Dashboard', path: ROUTES.DASHBOARD },
-          { label: 'Change Password' },
-        ]}
+        title={isForcedChange ? "Change Temporary Password" : "Change Password"}
+        subtitle={
+          isForcedChange
+            ? "You must change your temporary password to continue"
+            : "Update your account password"
+        }
+        breadcrumbs={
+          isForcedChange
+            ? [{ label: "Change Password" }]
+            : [
+                { label: "Dashboard", path: ROUTES.DASHBOARD },
+                { label: "Change Password" },
+              ]
+        }
       />
 
       <Grid container justifyContent="center">
@@ -92,45 +113,48 @@ export const ChangePasswordPage: React.FC = () => {
 
             <form onSubmit={handleSubmit(onSubmit)}>
               <Grid container spacing={3}>
-                {/* Current Password */}
-                <Grid item xs={12}>
-                  <Controller
-                    name="currentPassword"
-                    control={control}
-                    rules={{
-                      required: validationMessages.required('Current password'),
-                    }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        type={showCurrentPassword ? 'text' : 'password'}
-                        label="Current Password"
-                        placeholder="Enter current password"
-                        error={!!errors.currentPassword}
-                        helperText={errors.currentPassword?.message}
-                        required
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() =>
-                                  setShowCurrentPassword(!showCurrentPassword)
-                                }
-                                edge="end"
-                              >
-                                {showCurrentPassword ? (
-                                  <VisibilityOff />
-                                ) : (
-                                  <Visibility />
-                                )}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
+                {/* Current Password - Only show for normal password change */}
+                {!isForcedChange && (
+                  <Grid item xs={12}>
+                    <Controller
+                      name="currentPassword"
+                      control={control}
+                      rules={{
+                        required:
+                          validationMessages.required("Current password"),
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          type={showCurrentPassword ? "text" : "password"}
+                          label="Current Password"
+                          placeholder="Enter current password"
+                          error={!!errors.currentPassword}
+                          helperText={errors.currentPassword?.message}
+                          required
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton
+                                  onClick={() =>
+                                    setShowCurrentPassword(!showCurrentPassword)
+                                  }
+                                  edge="end"
+                                >
+                                  {showCurrentPassword ? (
+                                    <VisibilityOff />
+                                  ) : (
+                                    <Visibility />
+                                  )}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                )}
 
                 {/* New Password */}
                 <Grid item xs={12}>
@@ -138,31 +162,34 @@ export const ChangePasswordPage: React.FC = () => {
                     name="newPassword"
                     control={control}
                     rules={{
-                      required: validationMessages.required('New password'),
+                      required: validationMessages.required("New password"),
                       minLength: {
                         value: 8,
-                        message: validationMessages.minLength('Password', 8),
+                        message: validationMessages.minLength("Password", 8),
                       },
                       validate: (value) =>
-                        validation.password(value) || validationMessages.password,
+                        validation.password(value) ||
+                        validationMessages.password,
                     }}
                     render={({ field }) => (
                       <TextField
                         {...field}
-                        type={showNewPassword ? 'text' : 'password'}
+                        type={showNewPassword ? "text" : "password"}
                         label="New Password"
                         placeholder="Enter new password"
                         error={!!errors.newPassword}
                         helperText={
                           errors.newPassword?.message ||
-                          'Min 8 chars, uppercase, lowercase, number, special char'
+                          "Min 8 chars, uppercase, lowercase, number, special char"
                         }
                         required
                         InputProps={{
                           endAdornment: (
                             <InputAdornment position="end">
                               <IconButton
-                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                onClick={() =>
+                                  setShowNewPassword(!showNewPassword)
+                                }
                                 edge="end"
                               >
                                 {showNewPassword ? (
@@ -185,7 +212,7 @@ export const ChangePasswordPage: React.FC = () => {
                     name="confirmPassword"
                     control={control}
                     rules={{
-                      required: validationMessages.required('Confirm password'),
+                      required: validationMessages.required("Confirm password"),
                       validate: (value) =>
                         validation.passwordMatch(newPassword, value) ||
                         validationMessages.passwordMatch,
@@ -193,7 +220,7 @@ export const ChangePasswordPage: React.FC = () => {
                     render={({ field }) => (
                       <TextField
                         {...field}
-                        type={showConfirmPassword ? 'text' : 'password'}
+                        type={showConfirmPassword ? "text" : "password"}
                         label="Confirm New Password"
                         placeholder="Re-enter new password"
                         error={!!errors.confirmPassword}
@@ -229,14 +256,17 @@ export const ChangePasswordPage: React.FC = () => {
                     <br />
                     • Use a unique password you don't use elsewhere
                     <br />
-                    • Include uppercase, lowercase, numbers, and special characters
+                    • Include uppercase, lowercase, numbers, and special
+                    characters
                     <br />• Avoid common words or personal information
                   </Alert>
                 </Grid>
 
                 {/* Actions */}
                 <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                  <Box
+                    sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}
+                  >
                     <Button
                       variant="outlined"
                       onClick={() => navigate(ROUTES.DASHBOARD)}
@@ -250,7 +280,7 @@ export const ChangePasswordPage: React.FC = () => {
                       startIcon={<Save />}
                       disabled={loading}
                     >
-                      {loading ? 'Changing Password...' : 'Change Password'}
+                      {loading ? "Changing Password..." : "Change Password"}
                     </Button>
                   </Box>
                 </Grid>

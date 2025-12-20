@@ -12,6 +12,7 @@ import { ROUTES, ROLES } from "@/utils/constants";
 // Auth Pages
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterAdminPage } from "@/pages/auth/RegisterAdminPage";
+import { VerifyEmailPage } from "@/pages/auth/VerifyEmailPage";
 
 // Public Pages
 import { PublicChallanSearchPage } from "@/pages/public/PublicChallanSearchPage";
@@ -93,6 +94,9 @@ export const AppRouter: React.FC = () => {
             )
           }
         />
+
+        {/* Email Verification Route */}
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Public Challan Search - No Authentication Required */}
         <Route path="/search-challans" element={<PublicChallanSearchPage />} />

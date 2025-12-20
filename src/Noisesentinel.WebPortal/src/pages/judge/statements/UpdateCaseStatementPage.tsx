@@ -25,7 +25,9 @@ export const UpdateCaseStatementPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [statement, setStatement] = useState<CaseStatementResponse | null>(null);
+  const [statement, setStatement] = useState<CaseStatementResponse | null>(
+    null
+  );
   const [statementText, setStatementText] = useState("");
 
   useEffect(() => {
@@ -113,7 +115,6 @@ export const UpdateCaseStatementPage: React.FC = () => {
       <PageHeader
         title="Update Case Statement"
         subtitle={`Update statement for case ${statement.caseNo}`}
-        icon={Description}
         breadcrumbs={[
           { label: "Dashboard", path: JUDGE_ROUTES.DASHBOARD },
           { label: "Case Statements", path: JUDGE_ROUTES.CASE_STATEMENTS },

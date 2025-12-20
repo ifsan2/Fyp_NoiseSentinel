@@ -63,7 +63,7 @@ function TabPanel(props: TabPanelProps) {
 
 export const ViewUsersPage: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -513,10 +513,13 @@ export const ViewUsersPage: React.FC = () => {
           onView={handleView}
           onEdit={(id) => handleEdit(id, "user")}
           onDelete={(id) => {
-            const user = admins.find((u) => u.userId === id);
-            if (user) handleDeleteClick("user", id, user.fullName);
+            const userToDelete = admins.find((u) => u.userId === id);
+            if (userToDelete)
+              handleDeleteClick("user", id, userToDelete.fullName);
           }}
           onToggleStatus={handleToggleStatus}
+          currentUserId={user?.userId}
+          totalAdmins={admins.length}
         />
       </TabPanel>
 
@@ -527,8 +530,9 @@ export const ViewUsersPage: React.FC = () => {
           onView={handleView}
           onEdit={(id) => handleEdit(id, "user")}
           onDelete={(id) => {
-            const user = courtAuthorities.find((u) => u.userId === id);
-            if (user) handleDeleteClick("user", id, user.fullName);
+            const userToDelete = courtAuthorities.find((u) => u.userId === id);
+            if (userToDelete)
+              handleDeleteClick("user", id, userToDelete.fullName);
           }}
           onToggleStatus={handleToggleStatus}
         />
@@ -541,8 +545,11 @@ export const ViewUsersPage: React.FC = () => {
           onView={handleView}
           onEdit={(id) => handleEdit(id, "user")}
           onDelete={(id) => {
-            const user = stationAuthorities.find((u) => u.userId === id);
-            if (user) handleDeleteClick("user", id, user.fullName);
+            const userToDelete = stationAuthorities.find(
+              (u) => u.userId === id
+            );
+            if (userToDelete)
+              handleDeleteClick("user", id, userToDelete.fullName);
           }}
           onToggleStatus={handleToggleStatus}
         />

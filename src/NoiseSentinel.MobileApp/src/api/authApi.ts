@@ -1,5 +1,11 @@
 import { ApiResponse } from "../models/ApiResponse";
-import { AuthResponseDto, ChangePasswordDto, LoginDto } from "../models/Auth";
+import {
+  AuthResponseDto,
+  ChangePasswordDto,
+  LoginDto,
+  VerifyOtpDto,
+  ResendOtpDto,
+} from "../models/Auth";
 import apiClient from "./axios.config";
 
 class AuthApi {
@@ -40,8 +46,37 @@ class AuthApi {
   /**
    * Change password
    */
-  async changePassword(data: ChangePasswordDto): Promise<void> {
-    await apiClient.post("/Auth/change-password", data);
+  async changePassword(data: ChangePasswordDto): Promise<AuthResponseDto> {
+    const response = await apiClient.post<ApiResponse<AuthResponseDto>>(
+      "/Auth/change-password",
+      data
+    );
+    return response.data.data!;
+  }
+
+  /**
+   * Verify email with OTP and get auth token for immediate login
+   */
+  async verifyEmail(data: VerifyOtpDto): Promise<AuthResponseDto> {
+    console.log("📧 Verifying email with OTP:", { email: data.email });
+    const response = await apiClient.post<ApiResponse<AuthResponseDto>>(
+      "/Auth/verify-email",
+      data
+    );
+    console.log("✅ Email verified, received auth data:", response.data.data);
+    return response.data.data!;
+  }
+
+  /**
+   * Resend OTP
+   */
+  async resendOtp(data: ResendOtpDto): Promise<string> {
+    console.log("📨 Resending OTP to:", data.email);
+    const response = await apiClient.post<ApiResponse<string>>(
+      "/Auth/resend-otp",
+      data
+    );
+    return response.data.message || "OTP sent successfully";
   }
 }
 

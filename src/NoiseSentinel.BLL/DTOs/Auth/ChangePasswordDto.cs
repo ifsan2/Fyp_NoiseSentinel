@@ -7,8 +7,11 @@ namespace NoiseSentinel.BLL.DTOs.Auth;
 /// </summary>
 public class ChangePasswordDto
 {
-    [Required(ErrorMessage = "Current password is required")]
-    public string CurrentPassword { get; set; } = string.Empty;
+    /// <summary>
+    /// Current password - Optional for forced password changes (MustChangePassword = true).
+    /// Required for normal password changes.
+    /// </summary>
+    public string? CurrentPassword { get; set; }
 
     [Required(ErrorMessage = "New password is required")]
     [StringLength(255, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
@@ -19,4 +22,10 @@ public class ChangePasswordDto
     [Required(ErrorMessage = "Confirm password is required")]
     [Compare("NewPassword", ErrorMessage = "New password and confirm password do not match")]
     public string ConfirmPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Indicates this is a forced password change (after OTP verification).
+    /// When true, CurrentPassword is not required.
+    /// </summary>
+    public bool IsForcedChange { get; set; } = false;
 }

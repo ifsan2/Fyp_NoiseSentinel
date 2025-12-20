@@ -1,14 +1,6 @@
 import React, { useState } from "react";
-import {
-  Box,
-  TextField,
-  Button,
-  Grid,
-  InputAdornment,
-  IconButton,
-  Alert,
-} from "@mui/material";
-import { Visibility, VisibilityOff, Save } from "@mui/icons-material";
+import { Box, TextField, Button, Grid, Alert } from "@mui/material";
+import { Save } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { useSnackbar } from "notistack";
@@ -23,7 +15,6 @@ export const CreateCourtAuthorityPage: React.FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -37,7 +28,6 @@ export const CreateCourtAuthorityPage: React.FC = () => {
       fullName: "",
       email: "",
       username: "",
-      password: "",
     },
   });
 
@@ -194,48 +184,13 @@ export const CreateCourtAuthorityPage: React.FC = () => {
               />
             </Grid>
 
-            {/* Password */}
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="password"
-                control={control}
-                rules={{
-                  required: validationMessages.required("Password"),
-                  minLength: {
-                    value: 8,
-                    message: validationMessages.minLength("Password", 8),
-                  },
-                  validate: (value) =>
-                    validation.password(value) || validationMessages.password,
-                }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type={showPassword ? "text" : "password"}
-                    label="Password"
-                    placeholder="Enter secure password"
-                    fullWidth
-                    error={!!errors.password}
-                    helperText={
-                      errors.password?.message ||
-                      "Min 8 chars, uppercase, lowercase, number, special char"
-                    }
-                    required
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                )}
-              />
+            {/* Auto-Generated Password Info */}
+            <Grid item xs={12}>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <strong>Password:</strong> A secure temporary password will be
+                automatically generated and emailed to the user. They can change
+                it after their first login.
+              </Alert>
             </Grid>
 
             {/* Info Box */}

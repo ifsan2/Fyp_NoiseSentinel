@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -33,6 +33,16 @@ export const StationLayout: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  // ✅ Force redirect to change password if required
+  useEffect(() => {
+    if (user?.mustChangePassword) {
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes("change-password")) {
+        navigate("/station/change-password?forced=true");
+      }
+    }
+  }, [user, navigate]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

@@ -59,7 +59,21 @@ public interface IAuthService
     /// <summary>
     /// Change user password.
     /// </summary>
-    Task<ServiceResult<string>> ChangePasswordAsync(ChangePasswordDto dto, int userId);
+    Task<ServiceResult<AuthResponseDto>> ChangePasswordAsync(ChangePasswordDto dto, int userId);
+
+    // ========================================================================
+    // EMAIL VERIFICATION
+    // ========================================================================
+
+    /// <summary>
+    /// Verify user email with OTP and return auth token for immediate login.
+    /// </summary>
+    Task<ServiceResult<AuthResponseDto>> VerifyEmailOtpAsync(VerifyOtpDto dto);
+
+    /// <summary>
+    /// Resend verification OTP to user email.
+    /// </summary>
+    Task<ServiceResult<string>> ResendVerificationOtpAsync(ResendOtpDto dto);
 
     // ========================================================================
     // SYSTEM INITIALIZATION

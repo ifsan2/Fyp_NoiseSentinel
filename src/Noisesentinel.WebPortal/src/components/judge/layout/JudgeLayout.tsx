@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -33,6 +33,16 @@ export const JudgeLayout: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  // ✅ Force redirect to change password if required
+  useEffect(() => {
+    if (user?.mustChangePassword) {
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes("change-password")) {
+        navigate("/judge/change-password?forced=true");
+      }
+    }
+  }, [user, navigate]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -249,10 +259,10 @@ export const JudgeLayout: React.FC = () => {
                   theme.palette.background.default,
                   0.95
                 )} 0%, ${alpha(theme.palette.background.paper, 0.95)} 100%)`
-              : `linear-gradient(135deg, ${alpha(
-                  "#F8F9FA",
-                  0.5
-                )} 0%, ${alpha("#E9ECEF", 0.3)} 100%)`,
+              : `linear-gradient(135deg, ${alpha("#F8F9FA", 0.5)} 0%, ${alpha(
+                  "#E9ECEF",
+                  0.3
+                )} 100%)`,
         }}
       >
         <Toolbar />

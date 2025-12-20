@@ -473,6 +473,117 @@ public class AuthController : ControllerBase
     }
 
     // ========================================================================
+    // EMAIL VERIFICATION
+    // ========================================================================
+
+    /// <summary>
+    /// Verify user email with OTP.
+    /// </summary>
+    /// <remarks>
+    /// **Public Endpoint**
+    /// 
+    /// Verifies user's email address using the 6-digit OTP sent during registration.
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/auth/verify-email
+    ///     {
+    ///         "email": "user@example.com",
+    ///         "otp": "123456"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="dto">Email and OTP for verification</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">Email verified successfully</response>
+    /// <response code="400">Invalid OTP, expired OTP, or email already verified</response>
+    [HttpPost("verify-email")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyOtpDto dto)
+    {
+        _logger.LogInformation("Email verification attempt for: {Email}", dto.Email);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        var result = await _authService.VerifyEmailOtpAsync(dto);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Email verification failed for {Email}: {Message}", dto.Email, result.Message);
+            return BadRequest(new
+            {
+                message = result.Message,
+                errors = result.Errors
+            });
+        }
+
+        _logger.LogInformation("Email verified successfully for: {Email}", dto.Email);
+        return Ok(new
+        {
+            message = result.Message,
+            data = result.Data
+        });
+    }
+
+    /// <summary>
+    /// Resend verification OTP to user email.
+    /// </summary>
+    /// <remarks>
+    /// **Public Endpoint**
+    /// 
+    /// Resends the 6-digit OTP to the user's email if they didn't receive it or if it expired.
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/auth/resend-otp
+    ///     {
+    ///         "email": "user@example.com"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="dto">Email address to resend OTP to</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">OTP resent successfully</response>
+    /// <response code="400">User not found or email already verified</response>
+    [HttpPost("resend-otp")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
+    {
+        _logger.LogInformation("OTP resend request for: {Email}", dto.Email);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Validation failed", errors = ModelState });
+        }
+
+        var result = await _authService.ResendVerificationOtpAsync(dto);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("OTP resend failed for {Email}: {Message}", dto.Email, result.Message);
+            return BadRequest(new
+            {
+                message = result.Message,
+                errors = result.Errors
+            });
+        }
+
+        _logger.LogInformation("OTP resent successfully to: {Email}", dto.Email);
+        return Ok(new
+        {
+            message = result.Message,
+            data = result.Data
+        });
+    }
+
+    // ========================================================================
     // PASSWORD MANAGEMENT
     // ========================================================================
 
@@ -500,7 +611,7 @@ public class AuthController : ControllerBase
     /// <response code="401">Unauthorized - No valid token provided</response>
     [HttpPost("change-password")]
     [Authorize]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
@@ -528,7 +639,8 @@ public class AuthController : ControllerBase
         _logger.LogInformation("Password changed successfully for user: {UserId}", userId);
         return Ok(new
         {
-            message = "Password changed successfully"
+            message = result.Message,
+            data = result.Data
         });
     }
 

@@ -11,6 +11,9 @@ export interface AuthResponseDto {
   role: string;
   token: string;
   expiresAt: string;
+  requiresEmailVerification?: boolean;
+  mustChangePassword?: boolean;
+  isFirstLogin?: boolean;
 }
 
 export interface UserDetailsDto {
@@ -44,7 +47,17 @@ export interface UserDetailsDto {
 }
 
 export interface ChangePasswordDto {
-  currentPassword: string;
+  currentPassword?: string;
   newPassword: string;
   confirmPassword: string;
+  isForcedChange?: boolean;
+}
+
+export interface VerifyOtpDto {
+  email: string;
+  otp: string;
+}
+
+export interface ResendOtpDto {
+  email: string;
 }

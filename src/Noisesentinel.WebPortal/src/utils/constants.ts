@@ -39,6 +39,7 @@ export const ROUTES = {
   // Public
   LOGIN: "/login",
   REGISTER_ADMIN: "/register-admin",
+  VERIFY_EMAIL: "/verify-email",
 
   // Admin Routes
   DASHBOARD: "/admin/dashboard",

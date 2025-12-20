@@ -12,9 +12,22 @@ import {
 } from "react-native";
 import Reanimated, { FadeInUp, Layout } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
-import { Link, BarChart3, FileText, History, Search, User as UserIcon, Car, AlertTriangle } from "lucide-react-native";
+import {
+  Link,
+  BarChart3,
+  FileText,
+  History,
+  Search,
+  User as UserIcon,
+  Car,
+  AlertTriangle,
+} from "lucide-react-native";
 import challanApi from "../../api/challanApi";
-import { SkeletonCard, SkeletonStat, SkeletonList } from "../../components/common/Skeleton";
+import {
+  SkeletonCard,
+  SkeletonStat,
+  SkeletonList,
+} from "../../components/common/Skeleton";
 import { Card } from "../../components/common/Card";
 import { Header } from "../../components/common/Header";
 import { ProfileMenu } from "../../components/common/ProfileMenu";
@@ -198,33 +211,43 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           }}
         >
           {/* Premium Officer Card with glassmorphism */}
-          <Reanimated.View entering={FadeInUp.duration(600)} layout={Layout.springify()}>
+          <Reanimated.View
+            entering={FadeInUp.duration(600)}
+            layout={Layout.springify()}
+          >
             <Card style={styles.officerCard} variant="glass">
-            <View style={styles.officerHeader}>
-              <View style={styles.avatarContainer}>
-                <View style={styles.avatarGlow} />
-                <View style={styles.avatarInner}>
-                  <UserIcon size={40} color={colors.primary[600]} strokeWidth={2} />
+              <View style={styles.officerHeader}>
+                <View style={styles.avatarContainer}>
+                  <View style={styles.avatarGlow} />
+                  <View style={styles.avatarInner}>
+                    <UserIcon
+                      size={40}
+                      color={colors.primary[600]}
+                      strokeWidth={2}
+                    />
+                  </View>
+                </View>
+                <View style={styles.officerInfo}>
+                  <Text style={styles.officerName}>
+                    {userDetails?.fullName || user?.fullName}
+                  </Text>
+                  <View style={styles.roleContainer}>
+                    <View style={styles.roleDot} />
+                    <Text style={styles.officerRole}>
+                      {userDetails?.role?.toUpperCase() ||
+                        user?.role?.toUpperCase()}
+                    </Text>
+                  </View>
+                  {userDetails?.rank && (
+                    <Text style={styles.officerBadge}>{userDetails.rank}</Text>
+                  )}
+                  {userDetails?.badgeNumber && (
+                    <Text style={styles.officerBadge}>
+                      Badge • {userDetails.badgeNumber}
+                    </Text>
+                  )}
                 </View>
               </View>
-              <View style={styles.officerInfo}>
-                <Text style={styles.officerName}>{userDetails?.fullName || user?.fullName}</Text>
-                <View style={styles.roleContainer}>
-                  <View style={styles.roleDot} />
-                  <Text style={styles.officerRole}>{userDetails?.role?.toUpperCase() || user?.role?.toUpperCase()}</Text>
-                </View>
-                {userDetails?.rank && (
-                  <Text style={styles.officerBadge}>
-                    {userDetails.rank}
-                  </Text>
-                )}
-                {userDetails?.badgeNumber && (
-                  <Text style={styles.officerBadge}>
-                    Badge • {userDetails.badgeNumber}
-                  </Text>
-                )}
-              </View>
-            </View>
             </Card>
           </Reanimated.View>
 
@@ -248,20 +271,36 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               </View>
             ) : (
               <View style={styles.statsGrid}>
-                <Reanimated.View entering={FadeInUp.duration(500).delay(50)} layout={Layout.springify()} style={styles.statCardWrapper}>
+                <Reanimated.View
+                  entering={FadeInUp.duration(500).delay(50)}
+                  layout={Layout.springify()}
+                  style={styles.statCardWrapper}
+                >
                   <View style={styles.statCard}>
                     <View style={styles.statIconContainer}>
-                      <FileText size={28} color={colors.primary[600]} strokeWidth={2.5} />
+                      <FileText
+                        size={28}
+                        color={colors.primary[600]}
+                        strokeWidth={2.5}
+                      />
                     </View>
                     <Text style={styles.statValue}>{stats.todayChallans}</Text>
                     <Text style={styles.statLabel}>Today's Challans</Text>
                   </View>
                 </Reanimated.View>
 
-                <Reanimated.View entering={FadeInUp.duration(500).delay(120)} layout={Layout.springify()} style={styles.statCardWrapper}>
+                <Reanimated.View
+                  entering={FadeInUp.duration(500).delay(120)}
+                  layout={Layout.springify()}
+                  style={styles.statCardWrapper}
+                >
                   <View style={styles.statCard}>
                     <View style={styles.statIconContainer}>
-                      <BarChart3 size={28} color={colors.accent[600]} strokeWidth={2.5} />
+                      <BarChart3
+                        size={28}
+                        color={colors.accent[600]}
+                        strokeWidth={2.5}
+                      />
                     </View>
                     <Text style={styles.statValue}>{stats.totalChallans}</Text>
                     <Text style={styles.statLabel}>Total Issued</Text>
@@ -282,16 +321,24 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
             <View style={styles.actionsGrid}>
               {quickActions.map((action, index) => (
-                <Reanimated.View key={index} entering={FadeInUp.duration(500).delay(200 + index * 60)} layout={Layout.springify()}>
+                <Reanimated.View
+                  key={index}
+                  entering={FadeInUp.duration(500).delay(200 + index * 60)}
+                  layout={Layout.springify()}
+                >
                   <TouchableOpacity
                     style={styles.actionCard}
                     onPress={action.onPress}
                     activeOpacity={0.8}
                   >
                     <View style={styles.actionCardInner}>
-                    <View style={styles.actionIconContainer}>
-                      <action.IconComponent size={28} color={colors.accent[600]} strokeWidth={2} />
-                    </View>
+                      <View style={styles.actionIconContainer}>
+                        <action.IconComponent
+                          size={28}
+                          color={colors.accent[600]}
+                          strokeWidth={2}
+                        />
+                      </View>
                       <Text style={styles.actionTitle}>{action.title}</Text>
                       <View style={styles.actionArrow}>
                         <Text style={styles.actionArrowText}>→</Text>
@@ -313,18 +360,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             </View>
 
             {searchActions.map((action, index) => (
-              <Reanimated.View key={index} entering={FadeInUp.duration(500).delay(420 + index * 60)} layout={Layout.springify()}>
+              <Reanimated.View
+                key={index}
+                entering={FadeInUp.duration(500).delay(420 + index * 60)}
+                layout={Layout.springify()}
+              >
                 <TouchableOpacity
                   style={styles.searchCard}
                   onPress={action.onPress}
                   activeOpacity={0.8}
                 >
-                <View style={[styles.searchIconContainer, { backgroundColor: `${action.color}15` }]}>
-                  <action.IconComponent size={24} color={action.color} strokeWidth={2} />
-                </View>
+                  <View
+                    style={[
+                      styles.searchIconContainer,
+                      { backgroundColor: `${action.color}15` },
+                    ]}
+                  >
+                    <action.IconComponent
+                      size={24}
+                      color={action.color}
+                      strokeWidth={2}
+                    />
+                  </View>
                   <View style={styles.searchContent}>
                     <Text style={styles.searchTitle}>{action.title}</Text>
-                    <Text style={styles.searchDescription}>{action.description}</Text>
+                    <Text style={styles.searchDescription}>
+                      {action.description}
+                    </Text>
                   </View>
                   <View style={styles.searchArrow}>
                     <Text style={styles.searchArrowText}>→</Text>
@@ -344,7 +406,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               Authorized Personnel Only • {new Date().getFullYear()}
             </Text>
           </View>
-          
+
           {/* Spacer for bottom tab bar - 8pt grid system */}
           <View style={{ height: 96 }} />
         </RNAnimated.View>
@@ -519,6 +581,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.md,
+  },
+  statCardWrapper: {
+    width: (width - spacing.md * 3) / 2,
   },
   statCard: {
     width: (width - spacing.md * 3) / 2,
@@ -718,5 +783,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
-

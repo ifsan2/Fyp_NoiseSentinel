@@ -70,6 +70,13 @@ builder.Services.AddIdentity<User, ApplicationRole>(options =>
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.Configure<JwtSettings>(jwtSettings);
 
+// ============================================================================
+// EMAIL CONFIGURATION
+// ============================================================================
+
+var emailSettings = builder.Configuration.GetSection("EmailSettings");
+builder.Services.Configure<EmailSettings>(emailSettings);
+
 var jwtConfig = jwtSettings.Get<JwtSettings>();
 if (jwtConfig == null || string.IsNullOrEmpty(jwtConfig.SecretKey))
 {
@@ -209,6 +216,7 @@ builder.Services.AddScoped<ICasestatementRepository, CasestatementRepository>();
 // ============================================================================
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<IPolicestationService, PolicestationService>();
 builder.Services.AddScoped<IViolationService, ViolationService>();

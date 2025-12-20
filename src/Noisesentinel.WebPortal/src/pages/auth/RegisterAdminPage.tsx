@@ -57,14 +57,13 @@ export const RegisterAdminPage: React.FC = () => {
 
       const response = await authApi.registerAdmin(data);
 
-      // Auto-login after registration
-      login(response.token, response);
+      enqueueSnackbar(
+        "Registration successful! Please check your email to verify your account.",
+        { variant: "success" }
+      );
 
-      enqueueSnackbar("Admin account created successfully!", {
-        variant: "success",
-      });
-
-      navigate(ROUTES.DASHBOARD);
+      // Redirect to verification page with email
+      navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (error: any) {
       const message =
         error.response?.data?.message ||

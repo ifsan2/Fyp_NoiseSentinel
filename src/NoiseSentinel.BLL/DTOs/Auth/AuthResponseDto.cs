@@ -12,4 +12,7 @@ public class AuthResponseDto
     public string Role { get; set; } = string.Empty;
     public string Token { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
+    public bool MustChangePassword { get; set; } = false;
+    public bool IsFirstLogin { get; set; } = false;
+    public bool RequiresEmailVerification { get; set; } = false;
 }

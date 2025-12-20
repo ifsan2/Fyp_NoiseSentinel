@@ -12,4 +12,9 @@ public interface IUserRepository
     Task<User?> GetByUsernameAsync(string username);
     Task<User?> GetByEmailAsync(string email);
     Task<bool> ExistsAsync(int userId);
+
+    // Email Verification Methods
+    Task UpdateEmailVerificationAsync(User user, string otp, DateTime expiresAt);
+    Task<User?> GetByOtpAsync(string otp);
+    Task MarkEmailAsVerifiedAsync(int userId);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -12,19 +12,19 @@ import {
   Checkbox,
   CircularProgress,
   Alert,
-} from '@mui/material';
-import { Save, Cancel } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { useSnackbar } from 'notistack';
-import { PageHeader } from '@/components/common/PageHeader';
-import { FormCard } from '@/components/common/FormCard';
-import { STATION_ROUTES, OFFICER_RANKS } from '@/utils/stationConstants';
-import { validation, validationMessages } from '@/utils/validation';
-import stationApi from '@/api/stationApi';
-import stationOfficerApi from '@/api/stationOfficerApi';
-import { CreateStationOfficerDto } from '@/models/StationOfficer';
-import { PoliceStationDto } from '@/models/Station';
+} from "@mui/material";
+import { Save, Cancel } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { useSnackbar } from "notistack";
+import { PageHeader } from "@/components/common/PageHeader";
+import { FormCard } from "@/components/common/FormCard";
+import { STATION_ROUTES, OFFICER_RANKS } from "@/utils/stationConstants";
+import { validation, validationMessages } from "@/utils/validation";
+import stationApi from "@/api/stationApi";
+import stationOfficerApi from "@/api/stationOfficerApi";
+import { CreateStationOfficerDto } from "@/models/StationOfficer";
+import { PoliceStationDto } from "@/models/Station";
 
 export const CreateOfficerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export const CreateOfficerPage: React.FC = () => {
   } = useForm<CreateStationOfficerDto>({
     defaultValues: {
       isInvestigationOfficer: false,
-      postingDate: new Date().toISOString().split('T')[0],
+      postingDate: new Date().toISOString().split("T")[0],
     },
   });
 
@@ -55,8 +55,8 @@ export const CreateOfficerPage: React.FC = () => {
       setStations(data);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to load stations',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to load stations",
+        { variant: "error" }
       );
     } finally {
       setLoadingStations(false);
@@ -67,14 +67,14 @@ export const CreateOfficerPage: React.FC = () => {
     setLoading(true);
     try {
       await stationOfficerApi.createOfficer(data);
-      enqueueSnackbar('Police Officer created successfully', {
-        variant: 'success',
+      enqueueSnackbar("Police Officer created successfully", {
+        variant: "success",
       });
       navigate(STATION_ROUTES.OFFICERS);
     } catch (error: any) {
       enqueueSnackbar(
-        error.response?.data?.message || 'Failed to create officer',
-        { variant: 'error' }
+        error.response?.data?.message || "Failed to create officer",
+        { variant: "error" }
       );
     } finally {
       setLoading(false);
@@ -83,7 +83,7 @@ export const CreateOfficerPage: React.FC = () => {
 
   if (loadingStations) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
         <CircularProgress />
       </Box>
     );
@@ -95,9 +95,9 @@ export const CreateOfficerPage: React.FC = () => {
         title="Create Police Officer"
         subtitle="Add a new police officer to the system"
         breadcrumbs={[
-          { label: 'Dashboard', path: STATION_ROUTES.DASHBOARD },
-          { label: 'Police Officers', path: STATION_ROUTES.OFFICERS },
-          { label: 'Create Officer' },
+          { label: "Dashboard", path: STATION_ROUTES.DASHBOARD },
+          { label: "Police Officers", path: STATION_ROUTES.OFFICERS },
+          { label: "Create Officer" },
         ]}
       />
 
@@ -117,10 +117,10 @@ export const CreateOfficerPage: React.FC = () => {
                 name="fullName"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Full name'),
+                  required: validationMessages.required("Full name"),
                   minLength: {
                     value: 3,
-                    message: validationMessages.minLength('Full name', 3),
+                    message: validationMessages.minLength("Full name", 3),
                   },
                 }}
                 render={({ field }) => (
@@ -143,7 +143,7 @@ export const CreateOfficerPage: React.FC = () => {
                 name="email"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Email'),
+                  required: validationMessages.required("Email"),
                   validate: (value) =>
                     validation.email(value) || validationMessages.email,
                 }}
@@ -168,7 +168,7 @@ export const CreateOfficerPage: React.FC = () => {
                 name="username"
                 control={control}
                 rules={{
-                  required: validationMessages.required('Username'),
+                  required: validationMessages.required("Username"),
                   validate: (value) =>
                     validation.username(value) || validationMessages.username,
                 }}
@@ -180,7 +180,7 @@ export const CreateOfficerPage: React.FC = () => {
                     error={!!errors.username}
                     helperText={
                       errors.username?.message ||
-                      'Letters, numbers, underscores, hyphens only'
+                      "Letters, numbers, underscores, hyphens only"
                     }
                     required
                     fullWidth
@@ -189,31 +189,13 @@ export const CreateOfficerPage: React.FC = () => {
               />
             </Grid>
 
-            {/* Password */}
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="password"
-                control={control}
-                rules={{
-                  required: validationMessages.required('Password'),
-                  validate: (value) =>
-                    validation.password(value) || validationMessages.password,
-                }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="password"
-                    label="Password"
-                    error={!!errors.password}
-                    helperText={
-                      errors.password?.message ||
-                      'Min 8 chars, uppercase, lowercase, number, special char'
-                    }
-                    required
-                    fullWidth
-                  />
-                )}
-              />
+            {/* Auto-Generated Password Info */}
+            <Grid item xs={12}>
+              <Alert severity="info">
+                <strong>Password:</strong> A secure temporary password will be
+                automatically generated and emailed to the officer. They can
+                change it after their first login.
+              </Alert>
             </Grid>
 
             {/* CNIC */}
@@ -222,10 +204,10 @@ export const CreateOfficerPage: React.FC = () => {
                 name="cnic"
                 control={control}
                 rules={{
-                  required: validationMessages.required('CNIC'),
+                  required: validationMessages.required("CNIC"),
                   pattern: {
                     value: /^\d{5}-\d{7}-\d{1}$/,
-                    message: 'CNIC format: 12345-1234567-1',
+                    message: "CNIC format: 12345-1234567-1",
                   },
                 }}
                 render={({ field }) => (
@@ -247,7 +229,9 @@ export const CreateOfficerPage: React.FC = () => {
               <Controller
                 name="contactNo"
                 control={control}
-                rules={{ required: validationMessages.required('Contact number') }}
+                rules={{
+                  required: validationMessages.required("Contact number"),
+                }}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -267,7 +251,9 @@ export const CreateOfficerPage: React.FC = () => {
               <Controller
                 name="badgeNumber"
                 control={control}
-                rules={{ required: validationMessages.required('Badge number') }}
+                rules={{
+                  required: validationMessages.required("Badge number"),
+                }}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -287,7 +273,7 @@ export const CreateOfficerPage: React.FC = () => {
               <Controller
                 name="rank"
                 control={control}
-                rules={{ required: validationMessages.required('Rank') }}
+                rules={{ required: validationMessages.required("Rank") }}
                 render={({ field }) => (
                   <FormControl fullWidth required error={!!errors.rank}>
                     <InputLabel>Rank</InputLabel>
@@ -300,7 +286,13 @@ export const CreateOfficerPage: React.FC = () => {
                       ))}
                     </Select>
                     {errors.rank && (
-                      <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
+                      <Box
+                        sx={{
+                          color: "error.main",
+                          fontSize: "0.75rem",
+                          mt: 0.5,
+                        }}
+                      >
                         {errors.rank.message}
                       </Box>
                     )}
@@ -314,20 +306,29 @@ export const CreateOfficerPage: React.FC = () => {
               <Controller
                 name="stationId"
                 control={control}
-                rules={{ required: validationMessages.required('Station') }}
+                rules={{ required: validationMessages.required("Station") }}
                 render={({ field }) => (
                   <FormControl fullWidth required error={!!errors.stationId}>
                     <InputLabel>Assign to Station</InputLabel>
                     <Select {...field} label="Assign to Station">
                       <MenuItem value="">Select Station</MenuItem>
                       {stations.map((station) => (
-                        <MenuItem key={station.stationId} value={station.stationId}>
+                        <MenuItem
+                          key={station.stationId}
+                          value={station.stationId}
+                        >
                           {station.stationName} ({station.stationCode})
                         </MenuItem>
                       ))}
                     </Select>
                     {errors.stationId && (
-                      <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
+                      <Box
+                        sx={{
+                          color: "error.main",
+                          fontSize: "0.75rem",
+                          mt: 0.5,
+                        }}
+                      >
                         {errors.stationId.message}
                       </Box>
                     )}
@@ -374,7 +375,7 @@ export const CreateOfficerPage: React.FC = () => {
 
             {/* Action Buttons */}
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                 <Button
                   variant="outlined"
                   startIcon={<Cancel />}
@@ -389,7 +390,7 @@ export const CreateOfficerPage: React.FC = () => {
                   startIcon={<Save />}
                   disabled={loading || stations.length === 0}
                 >
-                  {loading ? 'Creating...' : 'Create Officer'}
+                  {loading ? "Creating..." : "Create Officer"}
                 </Button>
               </Box>
             </Grid>

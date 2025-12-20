@@ -49,17 +49,6 @@ export const LoginPage: React.FC = () => {
 
       const response = await authApi.login(data);
 
-      // ✅ Check if email verification is required
-      if (response.requiresEmailVerification) {
-        enqueueSnackbar("Please verify your email first", {
-          variant: "info",
-        });
-        navigate(
-          `${ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(response.email)}`
-        );
-        return;
-      }
-
       // ✅ BLOCK Police Officers - they should use Mobile App
       if (response.role === ROLES.POLICE_OFFICER) {
         setErrorMessage(
@@ -73,15 +62,6 @@ export const LoginPage: React.FC = () => {
 
       // Save token and user data
       login(response.token, response);
-
-      // ✅ Check if password change is required
-      if (response.mustChangePassword) {
-        enqueueSnackbar("Please change your temporary password", {
-          variant: "info",
-        });
-        navigate(`${ROUTES.CHANGE_PASSWORD}?forced=true`);
-        return;
-      }
 
       enqueueSnackbar(`Welcome back, ${response.fullName}!`, {
         variant: "success",

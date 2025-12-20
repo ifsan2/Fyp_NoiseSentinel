@@ -20,12 +20,6 @@ public class CreateJudgeDto
     [StringLength(255, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 255 characters")]
     public string Username { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Password is required")]
-    [StringLength(255, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
-        ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")]
-    public string Password { get; set; } = string.Empty;
-
     [Required(ErrorMessage = "CNIC is required")]
     [StringLength(20, ErrorMessage = "CNIC cannot exceed 20 characters")]
     public string Cnic { get; set; } = string.Empty;

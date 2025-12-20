@@ -17,14 +17,18 @@ import { ChangePasswordDto } from "../../models/Auth";
 import { colors } from "../../styles/colors";
 import { borderRadius, spacing } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface ChangePasswordScreenProps {
   navigation: any;
+  route?: any;
 }
 
 export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
   navigation,
+  route,
 }) => {
+  const { login } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,6 +38,11 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
     newPassword: "",
     confirmPassword: "",
   });
+
+  // Check if coming from login flow
+  const fromLogin = route?.params?.fromLogin;
+  const tokenFromLogin = route?.params?.token;
+  const userDataFromLogin = route?.params?.userData;
 
   const validatePassword = (password: string): string => {
     if (!password) {
@@ -65,7 +74,8 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
       confirmPassword: "",
     };
 
-    if (!currentPassword.trim()) {
+    // ✅ Skip current password validation for forced password change
+    if (!fromLogin && !currentPassword.trim()) {
       newErrors.currentPassword = "Current password is required";
       isValid = false;
     }
@@ -95,12 +105,14 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
       setLoading(true);
 
       const data: ChangePasswordDto = {
-        currentPassword,
+        currentPassword: fromLogin ? undefined : currentPassword,
         newPassword,
         confirmPassword,
+        isForcedChange: fromLogin || false,
       };
 
-      await authApi.changePassword(data);
+      // ✅ Call API and get NEW token in response
+      const response = await authApi.changePassword(data);
 
       Toast.show({
         type: "success",
@@ -113,7 +125,19 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
       setNewPassword("");
       setConfirmPassword("");
 
-      // Navigate back after a short delay
+      // ✅ If coming from login flow, update with NEW token from response
+      if (fromLogin && response) {
+        await login(response.token, response);
+        Toast.show({
+          type: "success",
+          text1: "Welcome!",
+          text2: `Logged in as ${response.fullName}`,
+        });
+        // AuthNavigator will automatically switch to MainNavigator since user is now authenticated
+        return;
+      }
+
+      // Navigate back after a short delay (for regular password change)
       setTimeout(() => {
         navigation.goBack();
       }, 1500);
@@ -146,7 +170,7 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
     >
       <Header
         title="Change Password"
-        showBack
+        showBack={!fromLogin}
         onBackPress={() => navigation.goBack()}
         variant="elevated"
       />
@@ -155,25 +179,32 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
         <Card variant="elevated">
           <View style={styles.headerSection}>
             <Text style={styles.lockIcon}>🔒</Text>
-            <Text style={styles.title}>Update Your Password</Text>
+            <Text style={styles.title}>
+              {fromLogin ? "Change Temporary Password" : "Update Your Password"}
+            </Text>
             <Text style={styles.subtitle}>
-              Ensure your account security by using a strong password
+              {fromLogin
+                ? "You must change your temporary password before accessing the app"
+                : "Ensure your account security by using a strong password"}
             </Text>
           </View>
 
           <View style={styles.formSection}>
-            <Input
-              label="Current Password"
-              placeholder="Enter current password"
-              value={currentPassword}
-              onChangeText={(text) => {
-                setCurrentPassword(text);
-                setErrors({ ...errors, currentPassword: "" });
-              }}
-              error={errors.currentPassword}
-              secureTextEntry
-              required
-            />
+            {/* ✅ Hide current password field for forced password change */}
+            {!fromLogin && (
+              <Input
+                label="Current Password"
+                placeholder="Enter current password"
+                value={currentPassword}
+                onChangeText={(text) => {
+                  setCurrentPassword(text);
+                  setErrors({ ...errors, currentPassword: "" });
+                }}
+                error={errors.currentPassword}
+                secureTextEntry
+                required
+              />
+            )}
 
             <Input
               label="New Password"
@@ -322,5 +353,3 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
 });
-
-

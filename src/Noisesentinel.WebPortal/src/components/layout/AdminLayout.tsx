@@ -43,6 +43,16 @@ export const AdminLayout: React.FC = () => {
     }
   }, [user, isAdmin, navigate, enqueueSnackbar]);
 
+  // ✅ Force redirect to change password if required
+  useEffect(() => {
+    if (user?.mustChangePassword) {
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes("change-password")) {
+        navigate("/admin/change-password?forced=true");
+      }
+    }
+  }, [user, navigate]);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };

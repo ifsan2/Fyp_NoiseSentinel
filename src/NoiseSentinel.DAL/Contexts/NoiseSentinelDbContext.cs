@@ -49,6 +49,16 @@ public partial class NoiseSentinelDbContext : IdentityDbContext<User, Applicatio
             entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
+            // Email Verification Fields
+            entity.Property(e => e.EmailVerificationOtp).HasMaxLength(6);
+            entity.Property(e => e.OtpExpiresAt).HasColumnType("datetime");
+            entity.Property(e => e.EmailVerifiedAt).HasColumnType("datetime");
+
+            // First Login and Password Management
+            entity.Property(e => e.IsFirstLogin).HasDefaultValue(true);
+            entity.Property(e => e.LastPasswordChangedAt).HasColumnType("datetime");
+            entity.Property(e => e.MustChangePassword).HasDefaultValue(false);
+
             // Unique indexes
             entity.HasIndex(e => e.NormalizedUserName).IsUnique();
             entity.HasIndex(e => e.NormalizedEmail).IsUnique();

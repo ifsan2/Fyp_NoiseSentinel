@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -29,7 +29,8 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly NoiseSentinelDbContext _context;
     private readonly JwtSettings _jwtSettings;
-
+    private readonly EmailSettings _emailSettings;
+    private readonly IEmailService _emailService;
     private readonly ICourtService _courtService;
 
     public AuthService(
@@ -41,6 +42,8 @@ public class AuthService : IAuthService
         IUserRepository userRepository,
         NoiseSentinelDbContext context,
         IOptions<JwtSettings> jwtSettings,
+        IOptions<EmailSettings> emailSettings,
+        IEmailService emailService,
         ICourtService courtService)
     {
         _userManager = userManager;
@@ -51,6 +54,8 @@ public class AuthService : IAuthService
         _userRepository = userRepository;
         _context = context;
         _jwtSettings = jwtSettings.Value;
+        _emailSettings = emailSettings.Value;
+        _emailService = emailService;
         _courtService = courtService;
     }
 
@@ -63,14 +68,14 @@ public class AuthService : IAuthService
     /// </summary>
     public async Task<ServiceResult<AuthResponseDto>> RegisterAdminAsync(RegisterAdminDto dto)
     {
-        // ✅ Check if any admin exists
+        // ✅ Check if any ACTIVE admin exists (don't count unverified admins)
         var adminRole = await _context.BusinessRoles
             .FirstOrDefaultAsync(r => r.RoleName == "Admin");
 
         if (adminRole != null)
         {
             var adminExists = await _context.Users
-                .AnyAsync(u => u.RoleId == adminRole.RoleId);
+                .AnyAsync(u => u.RoleId == adminRole.RoleId && u.EmailVerifiedAt.HasValue);
 
             if (adminExists)
             {
@@ -112,7 +117,7 @@ public class AuthService : IAuthService
             UserName = dto.Username,
             Email = dto.Email,
             FullName = dto.FullName,
-            IsActive = true,
+            IsActive = false, // ✅ Will be set to true after email verification
             CreatedAt = DateTime.UtcNow,
             RoleId = role.RoleId
         };
@@ -129,9 +134,19 @@ public class AuthService : IAuthService
         // Add to Identity role
         await _userManager.AddToRoleAsync(user, "Admin");
 
-        // Generate JWT token
-        var token = GenerateJwtToken(user, "Admin");
+        // Send email verification
+        try
+        {
+            await SendVerificationEmailAsync(user);
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail registration if email sending fails
+            // In production, you might want to queue this for retry
+            Console.WriteLine($"Failed to send verification email: {ex.Message}");
+        }
 
+        // ✅ DO NOT GENERATE TOKEN - User must verify email first
         var response = new AuthResponseDto
         {
             UserId = user.Id,
@@ -139,13 +154,13 @@ public class AuthService : IAuthService
             Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Admin",
-            Token = token,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes)
+            Token = string.Empty, // No token until email is verified
+            ExpiresAt = DateTime.UtcNow
         };
 
         return ServiceResult<AuthResponseDto>.SuccessResult(
             response,
-            "Admin registered successfully. You now have full system access.");
+            "Admin registered successfully. Please check your email to verify your account before logging in.");
     }
 
     /// <summary>
@@ -153,7 +168,7 @@ public class AuthService : IAuthService
     /// </summary>
     public async Task<ServiceResult<UserCreatedResponseDto>> CreateAdminAsync(CreateAdminDto dto, int creatorUserId)
     {
-        // ✅ Verify creator is Admin
+        // ? Verify creator is Admin
         var creator = await _context.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == creatorUserId);
@@ -191,18 +206,23 @@ public class AuthService : IAuthService
         // Ensure Admin role exists in AspNetRoles
         await EnsureIdentityRoleExistsAsync("Admin");
 
+        // ✅ Generate temporary password
+        var temporaryPassword = GenerateTemporaryPassword();
+
         // Create user
         var user = new User
         {
             UserName = dto.Username,
             Email = dto.Email,
             FullName = dto.FullName,
-            IsActive = true,
+            IsActive = false, // ✅ Will be set to true after email verification
             CreatedAt = DateTime.UtcNow,
-            RoleId = role.RoleId
+            RoleId = role.RoleId,
+            IsFirstLogin = true,
+            MustChangePassword = true
         };
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await _userManager.CreateAsync(user, temporaryPassword);
 
         if (!result.Succeeded)
         {
@@ -214,6 +234,26 @@ public class AuthService : IAuthService
         // Add to Identity role
         await _userManager.AddToRoleAsync(user, "Admin");
 
+        // ✅ Generate OTP for email verification
+        var otp = GenerateOtp();
+        var otpExpiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+        await _userRepository.UpdateEmailVerificationAsync(user, otp, otpExpiresAt);
+
+        // ✅ Send combined email with OTP and temporary password
+        try
+        {
+            await _emailService.SendAccountCreationEmailAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User",
+                otp,
+                temporaryPassword,
+                "Admin");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to send account creation email: {ex.Message}");
+        }
+
         var response = new UserCreatedResponseDto
         {
             UserId = user.Id,
@@ -221,7 +261,7 @@ public class AuthService : IAuthService
             Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Admin",
-            Message = $"Admin account '{dto.Username}' created successfully by {creator.NormalizedUserName}."
+            Message = $"Admin account '{dto.Username}' created successfully. Temporary password sent to email."
         };
 
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
@@ -233,7 +273,7 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<UserCreatedResponseDto>> CreateCourtAuthorityAsync(
         CreateCourtAuthorityDto dto, int creatorUserId)
     {
-        // ✅ Verify creator is Admin
+        // ? Verify creator is Admin
         var creator = await _context.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == creatorUserId);
@@ -271,18 +311,23 @@ public class AuthService : IAuthService
         // Ensure Court Authority role exists in AspNetRoles
         await EnsureIdentityRoleExistsAsync("Court Authority");
 
+        // ✅ Generate temporary password
+        var temporaryPassword = GenerateTemporaryPassword();
+
         // Create user
         var user = new User
         {
             UserName = dto.Username,
             Email = dto.Email,
             FullName = dto.FullName,
-            IsActive = true,
+            IsActive = false, // ✅ Will be set to true after email verification
             CreatedAt = DateTime.UtcNow,
-            RoleId = role.RoleId
+            RoleId = role.RoleId,
+            IsFirstLogin = true,
+            MustChangePassword = true
         };
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await _userManager.CreateAsync(user, temporaryPassword);
 
         if (!result.Succeeded)
         {
@@ -294,6 +339,26 @@ public class AuthService : IAuthService
         // Add to Identity role
         await _userManager.AddToRoleAsync(user, "Court Authority");
 
+        // ✅ Generate OTP for email verification
+        var otp = GenerateOtp();
+        var otpExpiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+        await _userRepository.UpdateEmailVerificationAsync(user, otp, otpExpiresAt);
+
+        // ✅ Send combined email with OTP and temporary password
+        try
+        {
+            await _emailService.SendAccountCreationEmailAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User",
+                otp,
+                temporaryPassword,
+                "Court Authority");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to send account creation email: {ex.Message}");
+        }
+
         var response = new UserCreatedResponseDto
         {
             UserId = user.Id,
@@ -301,7 +366,7 @@ public class AuthService : IAuthService
             Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Court Authority",
-            Message = $"Court Authority account '{dto.Username}' created successfully."
+            Message = $"Court Authority account created successfully. Temporary password sent to email."
         };
 
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
@@ -313,7 +378,7 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<UserCreatedResponseDto>> CreateStationAuthorityAsync(
         CreateStationAuthorityDto dto, int creatorUserId)
     {
-        // ✅ Verify creator is Admin
+        // ? Verify creator is Admin
         var creator = await _context.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == creatorUserId);
@@ -351,18 +416,23 @@ public class AuthService : IAuthService
         // Ensure Station Authority role exists in AspNetRoles
         await EnsureIdentityRoleExistsAsync("Station Authority");
 
+        // ✅ Generate temporary password
+        var temporaryPassword = GenerateTemporaryPassword();
+
         // Create user
         var user = new User
         {
             UserName = dto.Username,
             Email = dto.Email,
             FullName = dto.FullName,
-            IsActive = true,
+            IsActive = false, // ✅ Will be set to true after email verification
             CreatedAt = DateTime.UtcNow,
-            RoleId = role.RoleId
+            RoleId = role.RoleId,
+            IsFirstLogin = true,
+            MustChangePassword = true
         };
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await _userManager.CreateAsync(user, temporaryPassword);
 
         if (!result.Succeeded)
         {
@@ -374,6 +444,26 @@ public class AuthService : IAuthService
         // Add to Identity role
         await _userManager.AddToRoleAsync(user, "Station Authority");
 
+        // ✅ Generate OTP for email verification
+        var otp = GenerateOtp();
+        var otpExpiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+        await _userRepository.UpdateEmailVerificationAsync(user, otp, otpExpiresAt);
+
+        // ✅ Send combined email with OTP and temporary password
+        try
+        {
+            await _emailService.SendAccountCreationEmailAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User",
+                otp,
+                temporaryPassword,
+                "Station Authority");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to send account creation email: {ex.Message}");
+        }
+
         var response = new UserCreatedResponseDto
         {
             UserId = user.Id,
@@ -381,7 +471,7 @@ public class AuthService : IAuthService
             Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Station Authority",
-            Message = $"Station Authority account '{dto.Username}' created successfully."
+            Message = $"Station Authority account created successfully. Temporary password sent to email."
         };
 
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
@@ -393,7 +483,7 @@ public class AuthService : IAuthService
 
     public async Task<ServiceResult<UserCreatedResponseDto>> CreateJudgeAsync(CreateJudgeDto dto, int creatorUserId)
     {
-        // ✅ Load creator with Role navigation property
+        // ? Load creator with Role navigation property
         var creator = await _context.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == creatorUserId);
@@ -416,7 +506,7 @@ public class AuthService : IAuthService
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Email already exists.");
         }
 
-        // ✅ Validate CourtId exists
+        // ? Validate CourtId exists
         var courtExists = await _context.Courts.AnyAsync(c => c.CourtId == dto.CourtId);
         if (!courtExists)
         {
@@ -431,20 +521,25 @@ public class AuthService : IAuthService
             await _roleRepository.CreateAsync(role);
         }
 
-        // ✅ Ensure role exists in AspNetRoles
+        // ? Ensure role exists in AspNetRoles
         await EnsureIdentityRoleExistsAsync("Judge");
+
+        // ✅ Generate temporary password
+        var temporaryPassword = GenerateTemporaryPassword();
 
         var user = new User
         {
             UserName = dto.Username,
             Email = dto.Email,
             FullName = dto.FullName,
-            IsActive = true,
+            IsActive = false, // ✅ Will be set to true after email verification
             CreatedAt = DateTime.UtcNow,
-            RoleId = role.RoleId
+            RoleId = role.RoleId,
+            IsFirstLogin = true,
+            MustChangePassword = true
         };
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await _userManager.CreateAsync(user, temporaryPassword);
 
         if (!result.Succeeded)
         {
@@ -467,6 +562,26 @@ public class AuthService : IAuthService
 
         await _judgeRepository.CreateAsync(judge);
 
+        // ✅ Generate OTP for email verification
+        var otp = GenerateOtp();
+        var otpExpiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+        await _userRepository.UpdateEmailVerificationAsync(user, otp, otpExpiresAt);
+
+        // ✅ Send combined email with OTP and temporary password
+        try
+        {
+            await _emailService.SendAccountCreationEmailAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User",
+                otp,
+                temporaryPassword,
+                "Judge");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to send account creation email: {ex.Message}");
+        }
+
         var response = new UserCreatedResponseDto
         {
             UserId = user.Id,
@@ -474,7 +589,7 @@ public class AuthService : IAuthService
             Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Judge",
-            Message = "Judge account created successfully."
+            Message = "Judge account created successfully. Temporary password sent to email."
         };
 
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
@@ -483,7 +598,7 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<UserCreatedResponseDto>> CreatePoliceOfficerAsync(
         CreatePoliceOfficerDto dto, int creatorUserId)
     {
-        // ✅ Load creator with Role navigation property
+        // ? Load creator with Role navigation property
         var creator = await _context.Users
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == creatorUserId);
@@ -506,7 +621,7 @@ public class AuthService : IAuthService
             return ServiceResult<UserCreatedResponseDto>.FailureResult("Email already exists.");
         }
 
-        // ✅ Validate StationId exists
+        // ? Validate StationId exists
         var stationExists = await _context.Policestations.AnyAsync(s => s.StationId == dto.StationId);
         if (!stationExists)
         {
@@ -521,20 +636,25 @@ public class AuthService : IAuthService
             await _roleRepository.CreateAsync(role);
         }
 
-        // ✅ Ensure role exists in AspNetRoles
+        // ? Ensure role exists in AspNetRoles
         await EnsureIdentityRoleExistsAsync("Police Officer");
+
+        // ✅ Generate temporary password
+        var temporaryPassword = GenerateTemporaryPassword();
 
         var user = new User
         {
             UserName = dto.Username,
             Email = dto.Email,
             FullName = dto.FullName,
-            IsActive = true,
+            IsActive = false, // ✅ Will be set to true after email verification
             CreatedAt = DateTime.UtcNow,
-            RoleId = role.RoleId
+            RoleId = role.RoleId,
+            IsFirstLogin = true,
+            MustChangePassword = true
         };
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await _userManager.CreateAsync(user, temporaryPassword);
 
         if (!result.Succeeded)
         {
@@ -559,6 +679,26 @@ public class AuthService : IAuthService
 
         await _policeofficerRepository.CreateAsync(officer);
 
+        // ✅ Generate OTP for email verification
+        var otp = GenerateOtp();
+        var otpExpiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+        await _userRepository.UpdateEmailVerificationAsync(user, otp, otpExpiresAt);
+
+        // ✅ Send combined email with OTP and temporary password
+        try
+        {
+            await _emailService.SendAccountCreationEmailAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User",
+                otp,
+                temporaryPassword,
+                "Police Officer");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to send account creation email: {ex.Message}");
+        }
+
         var response = new UserCreatedResponseDto
         {
             UserId = user.Id,
@@ -566,7 +706,7 @@ public class AuthService : IAuthService
             Email = user.NormalizedEmail!,
             FullName = user.FullName ?? string.Empty,
             Role = "Police Officer",
-            Message = "Police Officer account created successfully."
+            Message = "Police Officer account created successfully. Temporary password sent to email."
         };
 
         return ServiceResult<UserCreatedResponseDto>.SuccessResult(response);
@@ -580,7 +720,7 @@ public class AuthService : IAuthService
     {
         var normalizedInput = dto.Username.ToUpperInvariant();
 
-        // ✅ Load user with Role navigation property
+        // ? Load user with Role navigation property
         // Check if input is username or email
         var user = await _context.Users
             .Include(u => u.Role)
@@ -593,20 +733,48 @@ public class AuthService : IAuthService
             return ServiceResult<AuthResponseDto>.FailureResult("Invalid username/email or password.");
         }
 
-        if (user.IsActive == false)
-        {
-            return ServiceResult<AuthResponseDto>.FailureResult("User account is deactivated.");
-        }
-
+        // ✅ Check password FIRST before any other validation
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!isPasswordValid)
         {
             return ServiceResult<AuthResponseDto>.FailureResult("Invalid username/email or password.");
         }
 
-        // ✅ Get role from loaded navigation property
+        // ? Get role from loaded navigation property
         var roleName = user.Role?.RoleName ?? "Unknown";
 
+        // ✅ SECURITY FIX: Block login if email not verified
+        var requiresEmailVerification = !user.EmailVerifiedAt.HasValue;
+
+        if (requiresEmailVerification)
+        {
+            // Return response WITHOUT token - user must verify email first
+            var unverifiedResponse = new AuthResponseDto
+            {
+                UserId = user.Id,
+                Username = user.NormalizedUserName ?? string.Empty,
+                Email = user.NormalizedEmail ?? string.Empty,
+                FullName = user.FullName ?? string.Empty,
+                Role = roleName,
+                Token = string.Empty, // No token for unverified users
+                ExpiresAt = DateTime.UtcNow,
+                MustChangePassword = user.MustChangePassword,
+                IsFirstLogin = user.IsFirstLogin,
+                RequiresEmailVerification = true
+            };
+
+            return ServiceResult<AuthResponseDto>.SuccessResult(
+                unverifiedResponse, 
+                "Please verify your email before logging in. Check your inbox for the verification code.");
+        }
+
+        // ✅ NOW check if account is deactivated (after email is verified)
+        if (user.IsActive == false)
+        {
+            return ServiceResult<AuthResponseDto>.FailureResult("Your account has been deactivated. Please contact an administrator.");
+        }
+
+        // ✅ Email verified - generate token
         var token = GenerateJwtToken(user, roleName);
 
         var response = new AuthResponseDto
@@ -617,30 +785,100 @@ public class AuthService : IAuthService
             FullName = user.FullName ?? string.Empty,
             Role = roleName,
             Token = token,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
+            MustChangePassword = user.MustChangePassword,
+            IsFirstLogin = user.IsFirstLogin,
+            RequiresEmailVerification = false
         };
 
-        return ServiceResult<AuthResponseDto>.SuccessResult(response, "Login successful.");
+        var message = user.MustChangePassword 
+            ? "Login successful. You must change your password." 
+            : "Login successful.";
+
+        return ServiceResult<AuthResponseDto>.SuccessResult(response, message);
     }
 
-    public async Task<ServiceResult<string>> ChangePasswordAsync(ChangePasswordDto dto, int userId)
+    public async Task<ServiceResult<AuthResponseDto>> ChangePasswordAsync(ChangePasswordDto dto, int userId)
     {
+        // ✅ Use UserManager to find user (ensures proper Identity context)
         var user = await _userManager.FindByIdAsync(userId.ToString());
+
         if (user == null)
         {
-            return ServiceResult<string>.FailureResult("User not found.");
+            return ServiceResult<AuthResponseDto>.FailureResult("User not found.");
         }
 
-        var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+        // ✅ Ensure SecurityStamp is set (required for password operations)
+        if (string.IsNullOrEmpty(user.SecurityStamp))
+        {
+            user.SecurityStamp = Guid.NewGuid().ToString();
+            await _userManager.UpdateAsync(user);
+        }
+
+        // Load role separately
+        var userWithRole = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
+        var roleName = userWithRole?.Role?.RoleName ?? "Unknown";
+
+        IdentityResult result;
+
+        // ✅ For forced password change (after OTP verification), remove old password and set new one
+        if (dto.IsForcedChange && user.MustChangePassword)
+        {
+            // ✅ Use RemovePasswordAsync + AddPasswordAsync instead of reset token (more reliable)
+            var removeResult = await _userManager.RemovePasswordAsync(user);
+            if (!removeResult.Succeeded)
+            {
+                return ServiceResult<AuthResponseDto>.FailureResult(
+                    "Failed to remove old password.",
+                    removeResult.Errors.Select(e => e.Description).ToList());
+            }
+            
+            result = await _userManager.AddPasswordAsync(user, dto.NewPassword);
+        }
+        else
+        {
+            // Normal password change - requires current password
+            if (string.IsNullOrEmpty(dto.CurrentPassword))
+            {
+                return ServiceResult<AuthResponseDto>.FailureResult("Current password is required for normal password changes.");
+            }
+            result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword!, dto.NewPassword);
+        }
 
         if (!result.Succeeded)
         {
-            return ServiceResult<string>.FailureResult(
+            return ServiceResult<AuthResponseDto>.FailureResult(
                 "Password change failed.",
                 result.Errors.Select(e => e.Description).ToList());
         }
 
-        return ServiceResult<string>.SuccessResult("Password changed successfully.");
+        // ✅ Update password management flags
+        user.MustChangePassword = false;
+        user.IsFirstLogin = false;
+        user.LastPasswordChangedAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        // ✅ Generate new token after password change
+        var newToken = GenerateJwtToken(user, roleName);
+
+        var response = new AuthResponseDto
+        {
+            UserId = user.Id,
+            Username = user.NormalizedUserName ?? string.Empty,
+            Email = user.NormalizedEmail ?? string.Empty,
+            FullName = user.FullName ?? string.Empty,
+            Role = roleName,
+            Token = newToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
+            MustChangePassword = false,
+            IsFirstLogin = false,
+            RequiresEmailVerification = false
+        };
+
+        return ServiceResult<AuthResponseDto>.SuccessResult(response, "Password changed successfully.");
     }
 
     // ========================================================================
@@ -649,7 +887,7 @@ public class AuthService : IAuthService
 
     public async Task InitializeRolesAsync()
     {
-        // ✅ Updated to include Admin role
+        // ? Updated to include Admin role
         var roleNames = new[] { "Admin", "Court Authority", "Station Authority", "Judge", "Police Officer" };
 
         foreach (var roleName in roleNames)
@@ -660,7 +898,7 @@ public class AuthService : IAuthService
             {
                 var role = new Role { RoleName = roleName };
                 await _roleRepository.CreateAsync(role);
-                Console.WriteLine($"✓ Business role '{roleName}' created in ROLE table.");
+                Console.WriteLine($"? Business role '{roleName}' created in ROLE table.");
             }
 
             // Create in AspNetRoles table
@@ -685,7 +923,7 @@ public class AuthService : IAuthService
                 NormalizedName = roleName.ToUpperInvariant()
             };
             await _roleManager.CreateAsync(identityRole);
-            Console.WriteLine($"✓ Identity role '{roleName}' created in AspNetRoles table.");
+            Console.WriteLine($"? Identity role '{roleName}' created in AspNetRoles table.");
         }
     }
 
@@ -712,5 +950,209 @@ public class AuthService : IAuthService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    // ========================================================================
+    // EMAIL VERIFICATION METHODS
+    // ========================================================================
+
+    /// <summary>
+    /// Verify user email with OTP.
+    /// </summary>
+    public async Task<ServiceResult<AuthResponseDto>> VerifyEmailOtpAsync(VerifyOtpDto dto)
+    {
+        // Find user by email
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == dto.Email.ToUpperInvariant());
+
+        if (user == null)
+        {
+            return ServiceResult<AuthResponseDto>.FailureResult("User not found.");
+        }
+
+        // Check if already verified
+        if (user.EmailVerifiedAt.HasValue)
+        {
+            return ServiceResult<AuthResponseDto>.FailureResult("Email is already verified.");
+        }
+
+        // Validate OTP
+        if (user.EmailVerificationOtp != dto.Otp)
+        {
+            return ServiceResult<AuthResponseDto>.FailureResult("Invalid OTP.");
+        }
+
+        // Check OTP expiration
+        if (user.OtpExpiresAt == null || user.OtpExpiresAt < DateTime.UtcNow)
+        {
+            return ServiceResult<AuthResponseDto>.FailureResult("OTP has expired. Please request a new one.");
+        }
+
+        // Mark email as verified (this also sets IsActive = true)
+        await _userRepository.MarkEmailAsVerifiedAsync(user.Id);
+
+        // Reload user to get updated IsActive status
+        user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+        if (user == null || user.Role == null)
+        {
+            return ServiceResult<AuthResponseDto>.FailureResult("User data could not be retrieved.");
+        }
+
+        var roleName = user.Role.RoleName ?? "User";
+
+        // ✅ Generate JWT token for immediate login
+        var token = GenerateJwtToken(user, roleName);
+
+        // Send welcome email
+        try
+        {
+            await _emailService.SendWelcomeEmailAsync(user.NormalizedEmail!, user.FullName ?? "User");
+        }
+        catch (Exception)
+        {
+            // Log but don't fail the verification if welcome email fails
+        }
+
+        var response = new AuthResponseDto
+        {
+            UserId = user.Id,
+            Username = user.NormalizedUserName ?? string.Empty,
+            Email = user.NormalizedEmail ?? string.Empty,
+            FullName = user.FullName ?? string.Empty,
+            Role = roleName,
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
+            MustChangePassword = user.MustChangePassword,
+            IsFirstLogin = user.IsFirstLogin,
+            RequiresEmailVerification = false
+        };
+
+        var message = user.MustChangePassword
+            ? "Email verified successfully! You must change your password."
+            : "Email verified successfully!";
+
+        return ServiceResult<AuthResponseDto>.SuccessResult(response, message);
+    }
+
+    /// <summary>
+    /// Resend verification OTP to user email.
+    /// </summary>
+    public async Task<ServiceResult<string>> ResendVerificationOtpAsync(ResendOtpDto dto)
+    {
+        // Find user by email
+        var user = await _userManager.FindByEmailAsync(dto.Email.ToUpperInvariant());
+        if (user == null)
+        {
+            return ServiceResult<string>.FailureResult("User not found.");
+        }
+
+        // Check if already verified
+        if (user.EmailVerifiedAt.HasValue)
+        {
+            return ServiceResult<string>.FailureResult("Email is already verified.");
+        }
+
+        // Generate new OTP
+        var otp = GenerateOtp();
+        var expiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+
+        // Update user with new OTP
+        await _userRepository.UpdateEmailVerificationAsync(user, otp, expiresAt);
+
+        // Generate verification link
+        var verificationLink = $"https://your-frontend-url.com/verify-email?email={Uri.EscapeDataString(user.NormalizedEmail!)}&otp={otp}";
+
+        // Send verification email
+        try
+        {
+            await _emailService.SendEmailVerificationAsync(
+                user.NormalizedEmail!,
+                user.FullName ?? "User",
+                otp,
+                verificationLink);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.FailureResult(
+                "Failed to send verification email. Please try again later.",
+                new List<string> { ex.Message });
+        }
+
+        return ServiceResult<string>.SuccessResult(
+            $"Verification email sent to {user.NormalizedEmail}",
+            "Please check your email and enter the 6-digit OTP to verify your account.");
+    }
+
+    /// <summary>
+    /// Generate a random 6-digit OTP.
+    /// </summary>
+    private string GenerateOtp()
+    {
+        var random = new Random();
+        return random.Next(100000, 999999).ToString();
+    }
+
+    /// <summary>
+    /// Generate a secure temporary password (12 characters with letters, numbers, special chars).
+    /// </summary>
+    private string GenerateTemporaryPassword()
+    {
+        const string lowercase = "abcdefghijklmnopqrstuvwxyz";
+        const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string digits = "0123456789";
+        const string special = "@#$%";
+        const string allChars = lowercase + uppercase + digits + special;
+
+        var random = new Random();
+        var password = new char[12];
+        
+        // Ensure at least one of each type
+        password[0] = uppercase[random.Next(uppercase.Length)];
+        password[1] = lowercase[random.Next(lowercase.Length)];
+        password[2] = digits[random.Next(digits.Length)];
+        password[3] = special[random.Next(special.Length)];
+        
+        // Fill the rest randomly
+        for (int i = 4; i < 12; i++)
+        {
+            password[i] = allChars[random.Next(allChars.Length)];
+        }
+        
+        // Shuffle the password
+        for (int i = password.Length - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (password[i], password[j]) = (password[j], password[i]);
+        }
+        
+        return new string(password);
+    }
+
+    /// <summary>
+    /// Helper method to send verification email after user registration.
+    /// Call this method after creating a user account.
+    /// </summary>
+    private async Task SendVerificationEmailAsync(User user)
+    {
+        // Generate OTP
+        var otp = GenerateOtp();
+        var expiresAt = DateTime.UtcNow.AddMinutes(_emailSettings.OtpExpirationMinutes);
+
+        // Update user with OTP
+        await _userRepository.UpdateEmailVerificationAsync(user, otp, expiresAt);
+
+        // Generate verification link
+        var verificationLink = $"https://your-frontend-url.com/verify-email?email={Uri.EscapeDataString(user.NormalizedEmail!)}&otp={otp}";
+
+        // Send verification email
+        await _emailService.SendEmailVerificationAsync(
+            user.NormalizedEmail!,
+            user.FullName ?? "User",
+            otp,
+            verificationLink);
     }
 }
