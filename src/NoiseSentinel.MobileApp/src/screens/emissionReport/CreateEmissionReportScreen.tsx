@@ -1,25 +1,25 @@
-import React, { useState, useEffect } from "react";
+import { Scan } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { Scan } from "lucide-react-native";
-import { Header } from "../../components/common/Header";
-import { Input } from "../../components/common/Input";
+import Toast from "react-native-toast-message";
+import emissionReportApi from "../../api/emissionReportApi";
+import iotDeviceApi from "../../api/iotDeviceApi";
 import { Button } from "../../components/common/Button";
 import { Card } from "../../components/common/Card";
+import { Header } from "../../components/common/Header";
+import { Input } from "../../components/common/Input";
+import { CreateEmissionReportDto } from "../../models/EmissionReport";
 import { colors } from "../../styles/colors";
 import { spacing } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
-import emissionReportApi from "../../api/emissionReportApi";
-import iotDeviceApi from "../../api/iotDeviceApi";
-import { CreateEmissionReportDto } from "../../models/EmissionReport";
 import { SOUND_THRESHOLD } from "../../utils/constants";
-import Toast from "react-native-toast-message";
 
 interface CreateEmissionReportScreenProps {
   navigation: any;
@@ -191,20 +191,30 @@ export const CreateEmissionReportScreen: React.FC<
       ) : (
         <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
           {/* Device Info - Always show paired device */}
-          <Card style={styles.deviceCard} variant="outlined">
-            <Text style={styles.deviceLabel}>Paired Device:</Text>
-            <Text style={styles.deviceValue}>
-              🔗 {deviceName} (ID: {pairedDeviceId})
-            </Text>
-            <Text style={styles.deviceHint}>
-              Device ID is fixed for this report
-            </Text>
+          <Card style={styles.deviceCard}>
+            <View style={styles.deviceHeader}>
+              <View style={styles.deviceIconContainer}>
+                <Text style={styles.deviceIcon}>📡</Text>
+              </View>
+              <View style={styles.deviceInfo}>
+                <Text style={styles.deviceLabel}>Paired Device</Text>
+                <Text style={styles.deviceValue}>
+                  {deviceName}
+                </Text>
+                <Text style={styles.deviceId}>ID: {pairedDeviceId}</Text>
+              </View>
+            </View>
+            <View style={styles.deviceBadge}>
+              <Text style={styles.deviceBadgeText}>🔒 Fixed for Report</Text>
+            </View>
           </Card>
 
           {/* Scan Button */}
-          <Card>
+          <Card style={styles.scanCard}>
             <View style={styles.sectionTitleContainer}>
-              <Scan size={20} color={colors.primary[600]} strokeWidth={2.5} />
+              <View style={styles.iconBadge}>
+                <Scan size={18} color={colors.white} strokeWidth={2.5} />
+              </View>
               <Text style={styles.sectionTitle}>Scan Vehicle Emissions</Text>
             </View>
             <Button
@@ -216,15 +226,22 @@ export const CreateEmissionReportScreen: React.FC<
               style={styles.scanButton}
             />
             {scanned && (
-              <Text style={styles.scanNote}>
-                ℹ️ Scanned data is locked and cannot be modified
-              </Text>
+              <View style={styles.scanSuccessBadge}>
+                <Text style={styles.scanNote}>
+                  ✓ Scanned data is locked and cannot be modified
+                </Text>
+              </View>
             )}
           </Card>
 
           {/* Required Fields */}
           <Card>
-            <Text style={styles.sectionTitle}>📊 Emission Readings</Text>
+            <View style={styles.sectionTitleContainer}>
+              <View style={[styles.iconBadge, styles.soundIconBadge]}>
+                <Text style={styles.iconEmoji}>📊</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Sound Level</Text>
+            </View>
 
             <Input
               label="Sound Level (dBA)"
@@ -239,7 +256,10 @@ export const CreateEmissionReportScreen: React.FC<
             />
 
             {soundLevel && !errors.soundLevel && (
-              <View style={styles.soundStatus}>
+              <View style={[
+                styles.soundStatus,
+                parseFloat(soundLevel) > SOUND_THRESHOLD ? styles.soundStatusViolation : styles.soundStatusSafe
+              ]}>
                 <Text
                   style={[
                     styles.soundStatusText,
@@ -254,53 +274,109 @@ export const CreateEmissionReportScreen: React.FC<
 
           {/* Emission Readings - Locked after scan */}
           <Card>
-            <Text style={styles.sectionTitle}>🧪 Emission Readings</Text>
+            <View style={styles.sectionTitleContainer}>
+              <View style={[styles.iconBadge, styles.emissionIconBadge]}>
+                <Text style={styles.iconEmoji}>🧪</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Emission Readings</Text>
+            </View>
 
-            <Input
-              label="CO (Carbon Monoxide)"
-              placeholder="Click 'Start Scan' to capture"
-              value={co}
-              onChangeText={setCo}
-              keyboardType="decimal-pad"
-              editable={!scanned}
-            />
+            {/* Table Header */}
+            <View style={styles.tableContainer}>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableHeaderText, styles.parameterColumn]}>
+                  Parameter
+                </Text>
+                <Text style={[styles.tableHeaderText, styles.valueColumn]}>
+                  Value
+                </Text>
+              </View>
 
-            <Input
-              label="CO2 (Carbon Dioxide)"
-              placeholder="Click 'Start Scan' to capture"
-              value={co2}
-              onChangeText={setCo2}
-              keyboardType="decimal-pad"
-              editable={!scanned}
-            />
+              {/* Table Rows */}
+              <View style={[styles.tableRow, styles.tableRowEven]}>
+                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                  <Text style={styles.tableCellLabel}>CO</Text>
+                  <Text style={styles.tableCellSublabel}>Carbon Monoxide</Text>
+                </View>
+                <View style={[styles.valueColumn, styles.tableInputContainer]}>
+                  <Input
+                    placeholder={scanned ? "-" : "Scan"}
+                    value={co}
+                    onChangeText={setCo}
+                    keyboardType="decimal-pad"
+                    editable={!scanned}
+                    style={styles.tableInput}
+                  />
+                </View>
+              </View>
 
-            <Input
-              label="HC (Hydrocarbons)"
-              placeholder="Click 'Start Scan' to capture"
-              value={hc}
-              onChangeText={setHc}
-              keyboardType="decimal-pad"
-              editable={!scanned}
-            />
+              <View style={styles.tableRow}>
+                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                  <Text style={styles.tableCellLabel}>CO2</Text>
+                  <Text style={styles.tableCellSublabel}>Carbon Dioxide</Text>
+                </View>
+                <View style={[styles.valueColumn, styles.tableInputContainer]}>
+                  <Input
+                    placeholder={scanned ? "-" : "Scan"}
+                    value={co2}
+                    onChangeText={setCo2}
+                    keyboardType="decimal-pad"
+                    editable={!scanned}
+                    style={styles.tableInput}
+                  />
+                </View>
+              </View>
 
-            <Input
-              label="NOx (Nitrogen Oxides)"
-              placeholder="Click 'Start Scan' to capture"
-              value={nox}
-              onChangeText={setNox}
-              keyboardType="decimal-pad"
-              editable={!scanned}
-            />
+              <View style={[styles.tableRow, styles.tableRowEven]}>
+                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                  <Text style={styles.tableCellLabel}>HC</Text>
+                  <Text style={styles.tableCellSublabel}>Hydrocarbons</Text>
+                </View>
+                <View style={[styles.valueColumn, styles.tableInputContainer]}>
+                  <Input
+                    placeholder={scanned ? "-" : "Scan"}
+                    value={hc}
+                    onChangeText={setHc}
+                    keyboardType="decimal-pad"
+                    editable={!scanned}
+                    style={styles.tableInput}
+                  />
+                </View>
+              </View>
 
-            <Input
-              label="ML Classification"
-              placeholder="Click 'Start Scan' to capture"
-              value={mlClassification}
-              onChangeText={setMlClassification}
-              multiline
-              numberOfLines={2}
-              editable={!scanned}
-            />
+              <View style={styles.tableRow}>
+                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                  <Text style={styles.tableCellLabel}>NOx</Text>
+                  <Text style={styles.tableCellSublabel}>Nitrogen Oxides</Text>
+                </View>
+                <View style={[styles.valueColumn, styles.tableInputContainer]}>
+                  <Input
+                    placeholder={scanned ? "-" : "Scan"}
+                    value={nox}
+                    onChangeText={setNox}
+                    keyboardType="decimal-pad"
+                    editable={!scanned}
+                    style={styles.tableInput}
+                  />
+                </View>
+              </View>
+
+              <View style={[styles.tableRow, styles.tableRowEven, styles.lastRow]}>
+                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                  <Text style={styles.tableCellLabel}>ML Classification</Text>
+                  <Text style={styles.tableCellSublabel}>Auto-detected</Text>
+                </View>
+                <View style={[styles.valueColumn, styles.tableInputContainer]}>
+                  <Input
+                    placeholder={scanned ? "-" : "Scan"}
+                    value={mlClassification}
+                    onChangeText={setMlClassification}
+                    editable={!scanned}
+                    style={styles.tableInput}
+                  />
+                </View>
+              </View>
+            </View>
           </Card>
 
           <Button
@@ -334,46 +410,126 @@ const styles = StyleSheet.create({
   },
   deviceCard: {
     marginBottom: spacing.md,
+    backgroundColor: colors.primary[50],
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+  },
+  deviceHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.sm,
+  },
+  deviceIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary[500],
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: spacing.md,
+  },
+  deviceIcon: {
+    fontSize: 24,
+  },
+  deviceInfo: {
+    flex: 1,
   },
   deviceLabel: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    color: colors.primary[700],
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs / 2,
   },
   deviceValue: {
     ...typography.h4,
-    color: colors.primary[500],
-    marginBottom: spacing.xs,
+    color: colors.primary[900],
+    fontWeight: "700",
+    marginBottom: spacing.xs / 2,
   },
-  deviceHint: {
+  deviceId: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontStyle: "italic",
+    color: colors.primary[600],
+    fontWeight: "500",
+  },
+  deviceBadge: {
+    backgroundColor: colors.primary[100],
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: spacing.xs,
+    alignSelf: "flex-start",
+  },
+  deviceBadgeText: {
+    ...typography.bodySmall,
+    color: colors.primary[700],
+    fontWeight: "600",
+    fontSize: 11,
+  },
+  scanCard: {
+    marginBottom: spacing.md,
+    backgroundColor: colors.accent[50],
+    borderWidth: 1,
+    borderColor: colors.accent[200],
+  },
+  iconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary[500],
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: spacing.sm,
+  },
+  soundIconBadge: {
+    backgroundColor: colors.success[500],
+  },
+  emissionIconBadge: {
+    backgroundColor: colors.accent[500],
+  },
+  iconEmoji: {
+    fontSize: 16,
   },
   sectionTitleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
     marginBottom: spacing.md,
   },
   sectionTitle: {
     ...typography.h4,
     color: colors.textPrimary,
+    fontWeight: "700",
   },
   scanButton: {
-    marginBottom: spacing.sm,
+    marginBottom: 0,
+  },
+  scanSuccessBadge: {
+    backgroundColor: colors.success[50],
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: spacing.sm,
+    marginTop: spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.success[500],
   },
   scanNote: {
     ...typography.bodySmall,
-    color: colors.info[600],
-    textAlign: "center",
-    marginTop: spacing.sm,
+    color: colors.success[700],
+    fontWeight: "600",
   },
   soundStatus: {
-    backgroundColor: colors.gray100,
     padding: spacing.md,
     borderRadius: spacing.sm,
     marginTop: spacing.sm,
+    borderLeftWidth: 4,
+  },
+  soundStatusSafe: {
+    backgroundColor: colors.success[50],
+    borderLeftColor: colors.success[500],
+  },
+  soundStatusViolation: {
+    backgroundColor: colors.error[50],
+    borderLeftColor: colors.error[500],
   },
   soundStatusText: {
     ...typography.body,
@@ -382,6 +538,70 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginVertical: spacing.lg,
+  },
+  tableContainer: {
+    marginTop: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    borderRadius: spacing.md,
+    overflow: "hidden",
+  },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: colors.primary[600],
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  tableHeaderText: {
+    ...typography.bodySmall,
+    fontWeight: "700",
+    color: colors.white,
+    textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    fontSize: 11,
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+    backgroundColor: colors.white,
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    minHeight: 70,
+  },
+  tableRowEven: {
+    backgroundColor: colors.neutral[50],
+  },
+  lastRow: {
+    borderBottomWidth: 0,
+  },
+  tableCellContainer: {
+    justifyContent: "center",
+  },
+  tableCellLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: "700",
+    marginBottom: spacing.xs / 2,
+  },
+  tableCellSublabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    fontSize: 11,
+  },
+  parameterColumn: {
+    flex: 1.3,
+  },
+  valueColumn: {
+    flex: 1,
+  },
+  tableInputContainer: {
+    paddingLeft: spacing.sm,
+  },
+  tableInput: {
+    marginBottom: 0,
   },
 });
 
