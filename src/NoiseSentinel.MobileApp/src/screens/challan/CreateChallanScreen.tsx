@@ -944,7 +944,7 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     gap: 8,
     marginBottom: 12,
   },
@@ -952,7 +952,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchButtonWrapper: {
-    marginBottom: 12,
+    paddingTop: 24,
   },
   reviewTitle: {
     fontSize: 16,
