@@ -132,7 +132,7 @@ export const CreateEmissionReportScreen: React.FC<
 
       Toast.show({
         type: "success",
-        text1: "Report Generated!",
+        text1: "Report Submitted!",
         text2: response.isViolation
           ? `⚠️ Violation Detected! (${response.soundLevelDBa} dBA)`
           : `✓ No Violation (${response.soundLevelDBa} dBA)`,
@@ -179,7 +179,7 @@ export const CreateEmissionReportScreen: React.FC<
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Header
-        title="Generate Report"
+        title="Submit Report"
         showBack
         onBackPress={() => navigation.goBack()}
       />
@@ -373,6 +373,8 @@ export const CreateEmissionReportScreen: React.FC<
                     onChangeText={setMlClassification}
                     editable={!scanned}
                     style={styles.tableInput}
+                    multiline
+                    numberOfLines={2}
                   />
                 </View>
               </View>
@@ -380,7 +382,7 @@ export const CreateEmissionReportScreen: React.FC<
           </Card>
 
           <Button
-            title={loading ? "Generating..." : "Generate Report"}
+            title={loading ? "Submitting..." : "Submit Emissions Report"}
             onPress={handleSubmit}
             loading={loading}
             disabled={loading || !scanned}
@@ -576,6 +578,8 @@ const styles = StyleSheet.create({
   },
   lastRow: {
     borderBottomWidth: 0,
+    minHeight: 90,
+    alignItems: "flex-start",
   },
   tableCellContainer: {
     justifyContent: "center",

@@ -1,22 +1,24 @@
+import { CommonActions } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
   Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
+import challanApi from "../../api/challanApi";
+import { Button } from "../../components/common/Button";
+import { Card } from "../../components/common/Card";
+import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { Header } from "../../components/common/Header";
 import { Loading } from "../../components/common/Loading";
-import { ErrorMessage } from "../../components/common/ErrorMessage";
-import { Card } from "../../components/common/Card";
-import { colors } from "../../styles/colors";
-import { spacing, borderRadius } from "../../styles/spacing";
-import { typography } from "../../styles/typography";
-import challanApi from "../../api/challanApi";
 import { ChallanResponseDto } from "../../models/Challan";
+import { colors } from "../../styles/colors";
+import { borderRadius, spacing } from "../../styles/spacing";
+import { typography } from "../../styles/typography";
 import { formatters } from "../../utils/formatters";
 
 interface ChallanDetailScreenProps {
@@ -312,6 +314,23 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
           </Text>
         </Card>
       </ScrollView>
+
+      {/* Footer with Home Button */}
+      <View style={styles.footer}>
+        <Button
+          title="🏠 Go to Home"
+          onPress={() => {
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "MainTabs", params: { screen: "Dashboard" } }],
+              })
+            );
+          }}
+          fullWidth
+          variant="primary"
+        />
+      </View>
     </View>
   );
 };
@@ -467,6 +486,12 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textSecondary,
     fontStyle: "italic",
+  },
+  footer: {
+    padding: spacing.md,
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
   },
 });
 

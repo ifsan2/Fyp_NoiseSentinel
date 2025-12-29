@@ -1,16 +1,16 @@
+import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  View,
-  Image,
   TouchableOpacity,
+  View,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
 import accusedApi from "../../api/accusedApi";
 import challanApi from "../../api/challanApi";
@@ -24,8 +24,6 @@ import { Input } from "../../components/common/Input";
 import { CreateChallanDto } from "../../models/Challan";
 import { ViolationListItemDto } from "../../models/Violation";
 import { colors } from "../../styles/colors";
-import { borderRadius, spacing } from "../../styles/spacing";
-import { typography } from "../../styles/typography";
 import { validation } from "../../utils/validation";
 
 interface CreateChallanScreenProps {
@@ -493,20 +491,16 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
         visibilityTime: 2000,
       });
 
-      // Navigate back to home after successful creation
+      // Navigate to the created challan's detail page or My Challans list
       setTimeout(() => {
-        // Check if we're in a tab navigator or stack navigator
-        const parentNav = navigation.getParent();
-        if (parentNav) {
-          // We're in a tab navigator inside MainTabs stack
-          // First navigate to Dashboard tab
-          navigation.navigate("Dashboard");
-        } else {
-          // We're in the main stack (from emission report flow)
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "MainTabs" }],
+        if (response.challanId) {
+          // Navigate to the challan detail screen
+          navigation.navigate("ChallanDetail", { 
+            challanId: response.challanId 
           });
+        } else {
+          // Fallback: Navigate to My Challans list
+          navigation.navigate("MyChallans");
         }
       }, 1500);
     } catch (error: any) {
@@ -859,7 +853,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Header
-        title="Create Challan"
+        title="Submit Challan"
         subtitle={`Step ${step} of 4`}
         showBack
         onBackPress={handleBack}
@@ -882,7 +876,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
           />
         ) : (
           <Button
-            title={loading ? "Creating Challan..." : "Create Challan"}
+            title={loading ? "Submitting Challan..." : "Submit Challan"}
             onPress={handleSubmit}
             loading={loading}
             disabled={loading}
