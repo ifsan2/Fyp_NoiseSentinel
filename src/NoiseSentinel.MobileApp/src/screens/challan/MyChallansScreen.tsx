@@ -13,6 +13,7 @@ import { Header } from "../../components/common/Header";
 import { Loading } from "../../components/common/Loading";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { ChallanCard } from "../../components/challan/ChallanCard";
+import { getChallanType, CHALLAN_TYPE } from "../../utils/challanTypeHelper";
 import { colors } from "../../styles/colors";
 import { spacing, borderRadius } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
@@ -74,17 +75,33 @@ export const MyChallansScreen: React.FC<MyChallansScreenProps> = ({
           c.accusedName?.toLowerCase().includes(query) ||
           c.vehiclePlateNumber?.toLowerCase().includes(query) ||
           c.violationType?.toLowerCase().includes(query) ||
-          c.challanId.toString().includes(query)
+          c.challanId.toString().includes(query),
       );
     }
 
-    // Then apply status filter
+    // Then apply status/type filter
     if (activeFilter === "All") {
       setFilteredChallans(result);
     } else if (activeFilter === "Overdue") {
       setFilteredChallans(result.filter((c) => c.isOverdue));
     } else if (activeFilter === "FIR") {
       setFilteredChallans(result.filter((c) => c.hasFir));
+    } else if (activeFilter === CHALLAN_TYPE.TRAFFIC) {
+      setFilteredChallans(
+        result.filter(
+          (c) =>
+            getChallanType(c.violationType, c.emissionReportId) ===
+            CHALLAN_TYPE.TRAFFIC,
+        ),
+      );
+    } else if (activeFilter === CHALLAN_TYPE.NON_TRAFFIC) {
+      setFilteredChallans(
+        result.filter(
+          (c) =>
+            getChallanType(c.violationType, c.emissionReportId) ===
+            CHALLAN_TYPE.NON_TRAFFIC,
+        ),
+      );
     } else {
       setFilteredChallans(result.filter((c) => c.status === activeFilter));
     }
@@ -100,6 +117,8 @@ export const MyChallansScreen: React.FC<MyChallansScreenProps> = ({
 
   const filters = [
     "All",
+    CHALLAN_TYPE.TRAFFIC,
+    CHALLAN_TYPE.NON_TRAFFIC,
     CHALLAN_STATUS.UNPAID,
     CHALLAN_STATUS.PAID,
     "Overdue",

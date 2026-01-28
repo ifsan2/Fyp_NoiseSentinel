@@ -1,5 +1,6 @@
 import { VehicleInputDto } from "./Vehicle";
 import { AccusedInputDto } from "./Accused";
+import { getChallanType, ChallanType } from "../utils/challanTypeHelper";
 
 export interface CreateChallanDto {
   violationId: number;
@@ -48,6 +49,9 @@ export interface ChallanResponseDto {
   integrityStatus: string;
   hasFir: boolean;
   firId?: number;
+
+  // Computed property helper
+  get challanType(): ChallanType;
 }
 
 export interface ChallanListItemDto {
@@ -62,4 +66,10 @@ export interface ChallanListItemDto {
   status: string;
   isOverdue: boolean;
   hasFir: boolean;
+
+  // Computed property helper
+  get challanType(): ChallanType;
 }
+
+// Helper export
+export { getChallanType, ChallanType } from "../utils/challanTypeHelper";

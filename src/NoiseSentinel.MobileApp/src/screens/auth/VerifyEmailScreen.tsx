@@ -90,13 +90,13 @@ const VerifyEmailScreen = () => {
       if (authData.mustChangePassword) {
         Alert.alert(
           "Email Verified!",
-          "Your email has been verified. Please change your temporary password."
+          "Your email has been verified. Please change your temporary password.",
         );
         // AppNavigator will automatically show ChangePassword screen
       } else {
         Alert.alert(
           "Email Verified!",
-          "Your email has been verified successfully."
+          "Your email has been verified successfully.",
         );
         // AppNavigator will automatically show MainNavigator
       }
@@ -106,7 +106,7 @@ const VerifyEmailScreen = () => {
         "Verification Failed",
         error.response?.data?.message ||
           error.message ||
-          "Invalid or expired OTP. Please try again."
+          "Invalid or expired OTP. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ const VerifyEmailScreen = () => {
         "Resend Failed",
         error.response?.data?.message ||
           error.message ||
-          "Failed to resend OTP. Please try again."
+          "Failed to resend OTP. Please try again.",
       );
     } finally {
       setResendLoading(false);
@@ -317,15 +317,16 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 8,
+    alignItems: "center",
   },
   otpInput: {
-    flex: 1,
+    width: 50,
+    height: 60,
     backgroundColor: "#fff",
     borderWidth: 2,
     borderColor: "#ddd",
     borderRadius: 8,
-    padding: 16,
+    marginHorizontal: 4,
     fontSize: 24,
     fontWeight: "600",
     textAlign: "center",

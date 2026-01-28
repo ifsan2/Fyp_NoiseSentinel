@@ -6,7 +6,7 @@ export const API_CONFIG = {
   BASE_URL: __DEV__
     ? "http://localhost:5200/api" // Development - localhost for web, change to device IP for mobile
     : "https://your-production-api.com/api", // Production
-  TIMEOUT: 30000,
+  TIMEOUT: 60000, // Increased to 60 seconds for image uploads
 };
 
 // Storage Keys

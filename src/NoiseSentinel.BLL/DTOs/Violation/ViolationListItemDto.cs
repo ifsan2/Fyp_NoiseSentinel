@@ -1,4 +1,6 @@
-﻿namespace NoiseSentinel.BLL.DTOs.Violation;
+﻿using NoiseSentinel.BLL.Helpers;
+
+namespace NoiseSentinel.BLL.DTOs.Violation;
 
 /// <summary>
 /// DTO for violation list item (summary view).
@@ -12,4 +14,7 @@ public class ViolationListItemDto
     public string? SectionOfLaw { get; set; }
     public bool IsCognizable { get; set; }
     public int TotalChallans { get; set; }
+    
+    // Computed property: Violation category (Traffic or Non-Traffic)
+    public string Category => ChallanTypeHelper.GetViolationCategory(ViolationType);
 }

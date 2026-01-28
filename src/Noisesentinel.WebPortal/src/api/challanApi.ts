@@ -7,9 +7,8 @@ class ChallanApi {
    * Get all challans
    */
   async getAllChallans(): Promise<ChallanDto[]> {
-    const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      "/Challan/list"
-    );
+    const response =
+      await apiClient.get<ApiResponse<ChallanDto[]>>("/Challan/list");
     return response.data.data || [];
   }
 
@@ -18,7 +17,7 @@ class ChallanApi {
    */
   async getChallanById(id: number): Promise<ChallanDto> {
     const response = await apiClient.get<ApiResponse<ChallanDto>>(
-      `/Challan/${id}`
+      `/Challan/${id}`,
     );
     return response.data.data!;
   }
@@ -28,7 +27,7 @@ class ChallanApi {
    */
   async getChallansByStation(stationId: number): Promise<ChallanDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      `/Challan/station/${stationId}`
+      `/Challan/station/${stationId}`,
     );
     return response.data.data || [];
   }
@@ -38,7 +37,17 @@ class ChallanApi {
    */
   async getChallansByStatus(status: string): Promise<ChallanDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      `/Challan/status/${status}`
+      `/Challan/status/${status}`,
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get challans by type (Traffic or Non-Traffic)
+   */
+  async getChallansByType(type: string): Promise<ChallanDto[]> {
+    const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
+      `/Challan/type/${type}`,
     );
     return response.data.data || [];
   }
@@ -47,9 +56,8 @@ class ChallanApi {
    * Get overdue challans
    */
   async getOverdueChallans(): Promise<ChallanDto[]> {
-    const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      "/Challan/overdue"
-    );
+    const response =
+      await apiClient.get<ApiResponse<ChallanDto[]>>("/Challan/overdue");
     return response.data.data || [];
   }
 
@@ -58,7 +66,7 @@ class ChallanApi {
    */
   async getChallansByVehicle(vehicleId: number): Promise<ChallanDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      `/Challan/vehicle/${vehicleId}`
+      `/Challan/vehicle/${vehicleId}`,
     );
     return response.data.data || [];
   }
@@ -68,7 +76,7 @@ class ChallanApi {
    */
   async getChallansByAccused(accusedId: number): Promise<ChallanDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanDto[]>>(
-      `/Challan/accused/${accusedId}`
+      `/Challan/accused/${accusedId}`,
     );
     return response.data.data || [];
   }
@@ -79,14 +87,14 @@ class ChallanApi {
    */
   async searchChallansByPlateAndCnic(
     plateNumber: string,
-    cnic: string
+    cnic: string,
   ): Promise<ChallanDto[]> {
     const response = await apiClient.post<ApiResponse<ChallanDto[]>>(
       "/Challan/public/search",
       {
         plateNumber,
         cnic,
-      }
+      },
     );
     return response.data.data || [];
   }

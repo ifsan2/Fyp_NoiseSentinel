@@ -1,4 +1,5 @@
 ﻿using System;
+using NoiseSentinel.BLL.Helpers;
 
 namespace NoiseSentinel.BLL.DTOs.Challan;
 
@@ -59,4 +60,7 @@ public class ChallanResponseDto
     public string IntegrityStatus => "Verified - Digitally Signed from Emission Report";
     public bool HasFir { get; set; }
     public int? FirId { get; set; }
+    
+    // Computed property: Determines challan type without DB changes
+    public string ChallanType => ChallanTypeHelper.GetChallanType(ViolationType, EmissionReportId.HasValue);
 }

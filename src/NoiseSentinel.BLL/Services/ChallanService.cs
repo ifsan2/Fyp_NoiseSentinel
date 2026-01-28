@@ -91,8 +91,18 @@ public class ChallanService : IChallanService
                 $"Violation with ID {dto.ViolationId} not found.");
         }
 
+        // Check if this is a non-traffic violation that requires emission report
+        var violationCategory = ChallanTypeHelper.GetViolationCategory(violation.ViolationType);
+        if (violationCategory == ChallanTypeHelper.NON_TRAFFIC && !dto.EmissionReportId.HasValue)
+        {
+            return ServiceResult<ChallanResponseDto>.FailureResult(
+                $"Emission Report is required for non-traffic violations (Noise/Emission violations). " +
+                $"This violation '{violation.ViolationType}' is categorized as non-traffic. " +
+                "Please provide an EmissionReportId.");
+        }
+
         // ========================================================================
-        // STEP 3: VALIDATE EMISSION REPORT (OPTIONAL)
+        // STEP 3: VALIDATE EMISSION REPORT (OPTIONAL FOR TRAFFIC, REQUIRED FOR NON-TRAFFIC)
         // ========================================================================
 
         int? emissionReportId = dto.EmissionReportId;
@@ -255,30 +265,41 @@ public class ChallanService : IChallanService
         // STEP 10: SEND EMAIL NOTIFICATION TO ACCUSED (IF EMAIL EXISTS)
         // ========================================================================
 
-        try
+        // Send email in the background (fire-and-forget) with timeout to avoid blocking challan creation
+        var accusedEmail = createdChallan!.Accused?.Email;
+        if (!string.IsNullOrEmpty(accusedEmail))
         {
-            var accusedEmail = createdChallan!.Accused?.Email;
-            if (!string.IsNullOrEmpty(accusedEmail))
+            _ = Task.Run(async () =>
             {
-                await _emailService.SendChallanCreatedEmailAsync(
-                    toEmail: accusedEmail,
-                    accusedName: createdChallan.Accused?.FullName ?? "Sir/Madam",
-                    challanId: challanId.ToString(),
-                    vehiclePlateNo: createdChallan.Vehicle?.PlateNumber ?? "N/A",
-                    violationType: violation.ViolationType ?? "Violation",
-                    penaltyAmount: violation.PenaltyAmount ?? 0,
-                    issueDate: issueDateTime,
-                    dueDate: dueDateTime,
-                    officerName: createdChallan.Officer?.User?.FullName ?? "Officer",
-                    stationName: createdChallan.Officer?.Station?.StationName ?? "Police Station"
-                );
-                _logger.LogInformation("Challan email notification sent to {Email} for Challan #{ChallanId}", accusedEmail, challanId);
-            }
-        }
-        catch (Exception ex)
-        {
-            // Log but don't fail the challan creation
-            _logger.LogWarning(ex, "Failed to send challan email notification for Challan #{ChallanId}", challanId);
+                try
+                {
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    var emailTask = _emailService.SendChallanCreatedEmailAsync(
+                        toEmail: accusedEmail,
+                        accusedName: createdChallan.Accused?.FullName ?? "Sir/Madam",
+                        challanId: challanId.ToString(),
+                        vehiclePlateNo: createdChallan.Vehicle?.PlateNumber ?? "N/A",
+                        violationType: violation.ViolationType ?? "Violation",
+                        penaltyAmount: violation.PenaltyAmount ?? 0,
+                        issueDate: issueDateTime,
+                        dueDate: dueDateTime,
+                        officerName: createdChallan.Officer?.User?.FullName ?? "Officer",
+                        stationName: createdChallan.Officer?.Station?.StationName ?? "Police Station"
+                    );
+                    
+                    await Task.WhenAny(emailTask, Task.Delay(Timeout.Infinite, cts.Token));
+                    
+                    if (emailTask.IsCompletedSuccessfully)
+                    {
+                        _logger.LogInformation("Challan email notification sent to {Email} for Challan #{ChallanId}", accusedEmail, challanId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail the challan creation
+                    _logger.LogWarning(ex, "Failed to send challan email notification for Challan #{ChallanId}", challanId);
+                }
+            });
         }
 
         var message = violation.IsCognizable == true
@@ -539,5 +560,29 @@ public class ChallanService : IChallanService
         return ServiceResult<IEnumerable<ChallanListItemDto>>.SuccessResult(
             response,
             $"Found {response.Count} challan(s) matching the criteria.");
+    }
+
+    public async Task<ServiceResult<IEnumerable<ChallanListItemDto>>> GetChallansByTypeAsync(string challanType)
+    {
+        // Validate challan type
+        if (challanType != ChallanTypeHelper.TRAFFIC && challanType != ChallanTypeHelper.NON_TRAFFIC)
+        {
+            return ServiceResult<IEnumerable<ChallanListItemDto>>.FailureResult(
+                $"Invalid challan type. Must be '{ChallanTypeHelper.TRAFFIC}' or '{ChallanTypeHelper.NON_TRAFFIC}'.");
+        }
+
+        var challans = await _challanRepository.GetByTypeAsync(challanType);
+
+        if (!challans.Any())
+        {
+            return ServiceResult<IEnumerable<ChallanListItemDto>>.FailureResult(
+                $"No {challanType.ToLower()} challans found.");
+        }
+
+        var response = challans.Select(MapToChallanListItemDto).ToList();
+
+        return ServiceResult<IEnumerable<ChallanListItemDto>>.SuccessResult(
+            response,
+            $"Found {response.Count} {challanType.ToLower()} challan(s).");
     }
 }

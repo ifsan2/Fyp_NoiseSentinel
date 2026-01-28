@@ -15,7 +15,9 @@ import { Card } from "../../components/common/Card";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { Header } from "../../components/common/Header";
 import { Loading } from "../../components/common/Loading";
+import { ChallanTypeBadge } from "../../components/challan/ChallanTypeBadge";
 import { ChallanResponseDto } from "../../models/Challan";
+import { getChallanType } from "../../utils/challanTypeHelper";
 import { colors } from "../../styles/colors";
 import { borderRadius, spacing } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
@@ -128,7 +130,16 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
 
         {/* Vehicle & Violation */}
         <Card variant="elevated">
-          <Text style={styles.cardTitle}>🚗 Vehicle & Violation</Text>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>🚗 Vehicle & Violation</Text>
+            <ChallanTypeBadge
+              type={getChallanType(
+                challan.violationType,
+                challan.emissionReportId,
+              )}
+              size="small"
+            />
+          </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Plate Number:</Text>
             <Text style={styles.value}>{challan.vehiclePlateNumber}</Text>
@@ -256,8 +267,8 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
               {challan.daysUntilDue > 0
                 ? `${challan.daysUntilDue} days`
                 : challan.daysUntilDue === 0
-                ? "Today"
-                : `${Math.abs(challan.daysUntilDue)} days overdue`}
+                  ? "Today"
+                  : `${Math.abs(challan.daysUntilDue)} days overdue`}
             </Text>
           </View>
         </Card>
@@ -324,7 +335,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
               CommonActions.reset({
                 index: 0,
                 routes: [{ name: "MainTabs", params: { screen: "Dashboard" } }],
-              })
+              }),
             );
           }}
           fullWidth
@@ -493,6 +504,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border.light,
   },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.sm,
+  },
 });
-
-

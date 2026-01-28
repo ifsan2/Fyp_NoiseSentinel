@@ -1,4 +1,5 @@
 ﻿using System;
+using NoiseSentinel.BLL.Helpers;
 
 namespace NoiseSentinel.BLL.DTOs.Challan;
 
@@ -42,4 +43,7 @@ public class ChallanListItemDto
     // Additional fields
     public bool IsCognizable { get; set; }
     public int? OfficerId { get; set; }
+    
+    // Computed property: Determines challan type without DB changes
+    public string ChallanType => ChallanTypeHelper.GetChallanType(ViolationType, EmissionReportId.HasValue);
 }

@@ -52,6 +52,12 @@ public interface IChallanService
     Task<ServiceResult<IEnumerable<ChallanListItemDto>>> GetChallansByStatusAsync(string status);
 
     /// <summary>
+    /// Get challans by type (Traffic or Non-Traffic).
+    /// Note: This is computed based on ViolationType and EmissionReportId.
+    /// </summary>
+    Task<ServiceResult<IEnumerable<ChallanListItemDto>>> GetChallansByTypeAsync(string challanType);
+
+    /// <summary>
     /// Get challans by date range.
     /// </summary>
     Task<ServiceResult<IEnumerable<ChallanListItemDto>>> GetChallansByDateRangeAsync(

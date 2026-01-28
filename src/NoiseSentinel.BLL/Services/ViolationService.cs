@@ -118,7 +118,7 @@ public class ViolationService : IViolationService
             PenaltyAmount = v.PenaltyAmount ?? 0,
             SectionOfLaw = v.SectionOfLaw,
             IsCognizable = v.IsCognizable ?? false,
-            TotalChallans = v.Challans?.Count ?? 0
+            TotalChallans = 0 // Not loaded for performance
         }).ToList();
 
         return ServiceResult<IEnumerable<ViolationListItemDto>>.SuccessResult(response);
@@ -136,7 +136,7 @@ public class ViolationService : IViolationService
             PenaltyAmount = v.PenaltyAmount ?? 0,
             SectionOfLaw = v.SectionOfLaw,
             IsCognizable = v.IsCognizable ?? false,
-            TotalChallans = v.Challans?.Count ?? 0
+            TotalChallans = 0 // Not loaded for performance
         }).ToList();
 
         return ServiceResult<IEnumerable<ViolationListItemDto>>.SuccessResult(response);

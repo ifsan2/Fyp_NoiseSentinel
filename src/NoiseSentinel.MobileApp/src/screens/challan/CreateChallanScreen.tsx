@@ -12,17 +12,26 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { Scan } from "lucide-react-native";
 import accusedApi from "../../api/accusedApi";
 import challanApi from "../../api/challanApi";
 import vehicleApi from "../../api/vehicleApi";
 import violationApi from "../../api/violationApi";
+import emissionReportApi from "../../api/emissionReportApi";
+import iotDeviceApi from "../../api/iotDeviceApi";
 import { ViolationSelector } from "../../components/challan/ViolationSelector";
+import { ChallanTypeBadge } from "../../components/challan/ChallanTypeBadge";
 import { Button } from "../../components/common/Button";
 import { Card } from "../../components/common/Card";
 import { Header } from "../../components/common/Header";
 import { Input } from "../../components/common/Input";
 import { CreateChallanDto } from "../../models/Challan";
 import { ViolationListItemDto } from "../../models/Violation";
+import {
+  getChallanType,
+  isEmissionReportRecommended,
+  getViolationCategory,
+} from "../../utils/challanTypeHelper";
 import { colors } from "../../styles/colors";
 import { validation } from "../../utils/validation";
 
@@ -35,8 +44,14 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
   navigation,
   route,
 }) => {
+  // Route params
+  const challanType = route.params?.challanType; // "Traffic" or "Non-Traffic"
+  const violationCategory = route.params?.violationCategory; // "Noise" or "Emission"
+  const deviceId = route.params?.deviceId;
   const emissionReportId = route.params?.emissionReportId;
 
+  // Determine initial step based on challan type
+  // Both Traffic and Non-Traffic: Start with violation selection (step 1)
   const [step, setStep] = useState(1);
   const [violations, setViolations] = useState<ViolationListItemDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,6 +59,22 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
   // Step 1: Violation
   const [selectedViolation, setSelectedViolation] =
     useState<ViolationListItemDto | null>(null);
+
+  // For Non-Traffic: Device scan data
+  const [pairedDeviceId, setPairedDeviceId] = useState<number | null>(
+    deviceId || null,
+  );
+  const [deviceName, setDeviceName] = useState("");
+  const [soundLevel, setSoundLevel] = useState("");
+  const [co, setCo] = useState("");
+  const [co2, setCo2] = useState("");
+  const [hc, setHc] = useState("");
+  const [nox, setNox] = useState("");
+  const [mlClassification, setMlClassification] = useState("");
+  const [scanned, setScanned] = useState(false);
+  const [createdEmissionReportId, setCreatedEmissionReportId] = useState<
+    number | null
+  >(emissionReportId || null);
 
   // Step 2: Vehicle
   const [vehicleSearchPlate, setVehicleSearchPlate] = useState("");
@@ -76,10 +107,17 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
   const [errors, setErrors] = useState<any>({});
 
   useEffect(() => {
-    loadViolations();
+    if (challanType === "Traffic") {
+      loadViolations();
+    } else if (challanType === "Non-Traffic") {
+      loadViolations();
+      if (pairedDeviceId) {
+        loadDeviceInfo();
+      }
+    }
 
     // Prevent back button if emissionReportId exists
-    if (emissionReportId) {
+    if (emissionReportId || createdEmissionReportId) {
       const unsubscribe = navigation.addListener("beforeRemove", (e: any) => {
         // Prevent default back action
         e.preventDefault();
@@ -95,54 +133,79 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
               style: "destructive",
               onPress: () => navigation.dispatch(e.data.action),
             },
-          ]
+          ],
         );
       });
 
       return unsubscribe;
     }
-  }, [navigation, emissionReportId]);
+  }, [challanType, navigation, emissionReportId, createdEmissionReportId]);
+
+  const loadDeviceInfo = async () => {
+    if (!pairedDeviceId) return;
+
+    try {
+      const device = await iotDeviceApi.getDeviceById(pairedDeviceId);
+      if (device) {
+        setDeviceName(device.deviceName);
+      }
+    } catch (error) {
+      console.error("Error loading device info:", error);
+    }
+  };
 
   const loadViolations = async () => {
     try {
+      setLoading(true);
       const allViolations = await violationApi.getAllViolations();
 
-      // Filter based on whether this is from emission report or direct challan
-      if (emissionReportId) {
-        // From emission report → Only show COGNIZABLE violations
-        const cognizableViolations = allViolations.filter(
-          (v) => v.isCognizable === true
-        );
-        setViolations(cognizableViolations);
+      console.log("📋 All Violations:", allViolations);
+      console.log("🏷️ Challan Type:", challanType);
 
-        if (cognizableViolations.length === 0) {
+      if (challanType === "Traffic") {
+        // Traffic: Show only traffic violations (no noise/emission keywords)
+        const trafficViolations = allViolations.filter((v) => {
+          const category = getViolationCategory(v.violationType);
+          console.log(`  - ${v.violationType} → ${category}`);
+          return category === "Traffic" && v.isCognizable === false;
+        });
+        console.log("🚦 Traffic Violations:", trafficViolations);
+        setViolations(trafficViolations);
+
+        if (trafficViolations.length === 0) {
           Toast.show({
             type: "warning",
-            text1: "No Cognizable Violations",
-            text2: "Please add cognizable violations in the system",
+            text1: "No Traffic Violations",
+            text2: "Please add traffic violations in the system",
           });
         }
-      } else {
-        // Direct challan → Only show NON-COGNIZABLE violations
-        const nonCognizableViolations = allViolations.filter(
-          (v) => v.isCognizable === false
-        );
-        setViolations(nonCognizableViolations);
+      } else if (challanType === "Non-Traffic") {
+        // Non-Traffic: Show all non-traffic violations (noise + emission)
+        const nonTrafficViolations = allViolations.filter((v) => {
+          const category = getViolationCategory(v.violationType);
+          console.log(`  - ${v.violationType} → ${category}`);
+          return category === "Non-Traffic";
+        });
+        console.log("🔊 Non-Traffic Violations:", nonTrafficViolations);
+        setViolations(nonTrafficViolations);
 
-        if (nonCognizableViolations.length === 0) {
+        if (nonTrafficViolations.length === 0) {
           Toast.show({
             type: "warning",
-            text1: "No Non-Cognizable Violations",
-            text2: "Please add non-cognizable violations in the system",
+            text1: "No Non-Traffic Violations",
+            text2: "Please add non-traffic violations in the system",
           });
         }
       }
     } catch (error) {
+      console.error("❌ Error loading violations:", error);
       Toast.show({
         type: "error",
         text1: "Error",
         text2: "Failed to load violations",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -153,7 +216,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       if (status !== "granted") {
         Alert.alert(
           "Permission Required",
-          "Sorry, we need camera roll permissions to upload evidence images."
+          "Sorry, we need camera roll permissions to upload evidence images.",
         );
         return false;
       }
@@ -208,7 +271,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     if (status !== "granted") {
       Alert.alert(
         "Permission Required",
-        "Sorry, we need camera permissions to take photos."
+        "Sorry, we need camera permissions to take photos.",
       );
       return;
     }
@@ -266,9 +329,8 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     }
 
     try {
-      const vehicle = await vehicleApi.getVehicleByPlateNumber(
-        vehicleSearchPlate
-      );
+      const vehicle =
+        await vehicleApi.getVehicleByPlateNumber(vehicleSearchPlate);
       setVehicleId(vehicle.vehicleId);
       setVehiclePlateNumber(vehicle.plateNumber);
       setVehicleMake(vehicle.make || "");
@@ -342,67 +404,234 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     }
   };
 
+  const handleScan = () => {
+    if (!selectedViolation) return;
+
+    // Determine category from selected violation type
+    const violationType = selectedViolation.violationType.toLowerCase();
+    const isNoise =
+      violationType.includes("noise") ||
+      violationType.includes("sound") ||
+      violationType.includes("silencer");
+
+    if (isNoise) {
+      // Noise: Only sound level
+      setSoundLevel("92.5");
+      setCo("");
+      setCo2("");
+      setHc("");
+      setNox("");
+      setMlClassification("Excessive Noise Detected");
+    } else {
+      // Emission: Only gases, no sound
+      setSoundLevel("");
+      setCo("2.3");
+      setCo2("14.7");
+      setHc("180");
+      setNox("850");
+      setMlClassification("Excessive Emissions Detected");
+    }
+    setScanned(true);
+
+    Toast.show({
+      type: "success",
+      text1: "Scan Complete",
+      text2: `${isNoise ? "Noise" : "Emission"} data captured successfully`,
+    });
+  };
+
+  const createEmissionReport = async (): Promise<number | null> => {
+    if (!pairedDeviceId || !scanned || !selectedViolation) return null;
+
+    try {
+      // Determine category from selected violation type
+      const violationType = selectedViolation.violationType.toLowerCase();
+      const isNoise =
+        violationType.includes("noise") ||
+        violationType.includes("sound") ||
+        violationType.includes("silencer");
+
+      const reportData: any = {
+        deviceId: pairedDeviceId,
+        mlClassification: mlClassification,
+        testDateTime: new Date().toISOString(),
+      };
+
+      // For Noise violations: send sound level, set gases to 0 or omit
+      if (isNoise) {
+        reportData.soundLevelDBa = soundLevel ? parseFloat(soundLevel) : 0;
+        // Don't send gas values for noise violations (backend accepts null/undefined for optional fields)
+      }
+      // For Emission violations: send gases, set sound to 0
+      else {
+        reportData.soundLevelDBa = 0; // Required by backend, send 0 for emission-only
+        // Send gas measurements
+        if (co) reportData.co = parseFloat(co);
+        if (co2) reportData.co2 = parseFloat(co2);
+        if (hc) reportData.hc = parseFloat(hc);
+        if (nox) reportData.nox = parseFloat(nox);
+      }
+
+      const report = await emissionReportApi.createEmissionReport(reportData);
+      return report.emissionReportId;
+    } catch (error) {
+      console.error("Error creating emission report:", error);
+      throw error;
+    }
+  };
+
   const validateStep = (currentStep: number): boolean => {
     const newErrors: any = {};
 
-    switch (currentStep) {
-      case 1:
-        if (!selectedViolation) {
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: "Please select a violation",
-          });
-          return false;
-        }
-        break;
+    // For Traffic: steps are 1 (violation) → 2 (vehicle) → 3 (accused) → 4 (evidence)
+    // For Non-Traffic: steps are 1 (violation) → 2 (vehicle) → 3 (accused) → 4 (scan) → 5 (evidence)
 
-      case 2:
-        if (!vehiclePlateNumber.trim()) {
-          newErrors.vehiclePlateNumber = "Plate number is required";
-        }
-        if (!vehicleId && !vehicleMake.trim()) {
-          newErrors.vehicleMake = "Make/Model is required for new vehicle";
-        }
-        break;
+    if (challanType === "Traffic") {
+      switch (currentStep) {
+        case 1:
+          if (!selectedViolation) {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Please select a violation",
+            });
+            return false;
+          }
+          break;
 
-      case 3:
-        if (!accusedCnic.trim()) {
-          newErrors.accusedCnic = "CNIC is required";
-        } else if (!validation.cnic(accusedCnic)) {
-          newErrors.accusedCnic = "Invalid CNIC format";
-        }
+        case 2:
+          if (!vehiclePlateNumber.trim()) {
+            newErrors.vehiclePlateNumber = "Plate number is required";
+          }
+          if (!vehicleId && !vehicleMake.trim()) {
+            newErrors.vehicleMake = "Make/Model is required for new vehicle";
+          }
+          break;
 
-        if (!accusedId) {
-          if (!accusedFullName.trim())
-            newErrors.accusedFullName = "Full name required";
-          if (!accusedCity.trim()) newErrors.accusedCity = "City required";
-          if (!accusedProvince.trim())
-            newErrors.accusedProvince = "Province required";
-          if (!accusedAddress.trim())
-            newErrors.accusedAddress = "Address required";
-          if (!accusedContact.trim())
-            newErrors.accusedContact = "Contact required";
-        }
-        break;
+        case 3:
+          if (!accusedCnic.trim()) {
+            newErrors.accusedCnic = "CNIC is required";
+          } else if (!validation.cnic(accusedCnic)) {
+            newErrors.accusedCnic = "Invalid CNIC format";
+          }
+
+          if (!accusedId) {
+            if (!accusedFullName.trim())
+              newErrors.accusedFullName = "Full name required";
+            if (!accusedCity.trim()) newErrors.accusedCity = "City required";
+            if (!accusedProvince.trim())
+              newErrors.accusedProvince = "Province required";
+            if (!accusedAddress.trim())
+              newErrors.accusedAddress = "Address required";
+            if (!accusedContact.trim())
+              newErrors.accusedContact = "Contact required";
+          }
+          break;
+      }
+    } else {
+      // Non-Traffic flow
+      switch (currentStep) {
+        case 1: // Violation (first)
+          if (!selectedViolation) {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Please select a violation",
+            });
+            return false;
+          }
+          break;
+
+        case 2: // Vehicle
+          if (!vehiclePlateNumber.trim()) {
+            newErrors.vehiclePlateNumber = "Plate number is required";
+          }
+          if (!vehicleId && !vehicleMake.trim()) {
+            newErrors.vehicleMake = "Make/Model is required for new vehicle";
+          }
+          break;
+
+        case 3: // Accused
+          if (!accusedCnic.trim()) {
+            newErrors.accusedCnic = "CNIC is required";
+          } else if (!validation.cnic(accusedCnic)) {
+            newErrors.accusedCnic = "Invalid CNIC format";
+          }
+
+          if (!accusedId) {
+            if (!accusedFullName.trim())
+              newErrors.accusedFullName = "Full name required";
+            if (!accusedCity.trim()) newErrors.accusedCity = "City required";
+            if (!accusedProvince.trim())
+              newErrors.accusedProvince = "Province required";
+            if (!accusedAddress.trim())
+              newErrors.accusedAddress = "Address required";
+            if (!accusedContact.trim())
+              newErrors.accusedContact = "Contact required";
+          }
+          break;
+
+        case 4: // Scan
+          if (!scanned) {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Please scan device data first",
+            });
+            return false;
+          }
+          break;
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (validateStep(step)) {
-      setStep(step + 1);
+  const handleNext = async () => {
+    if (!validateStep(step)) return;
+
+    // For Non-Traffic, after scan (step 4), create emission report before moving to evidence
+    if (
+      challanType === "Non-Traffic" &&
+      step === 4 &&
+      scanned &&
+      !createdEmissionReportId
+    ) {
+      try {
+        setLoading(true);
+        const reportId = await createEmissionReport();
+        if (reportId) {
+          setCreatedEmissionReportId(reportId);
+          Toast.show({
+            type: "success",
+            text1: "Report Created",
+            text2: `Emission Report #${reportId} created successfully`,
+          });
+        }
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to create emission report",
+        });
+        return;
+      } finally {
+        setLoading(false);
+      }
     }
+
+    setStep(step + 1);
   };
 
   const handleBack = () => {
-    if (step > 1) {
+    const minStep = 1; // Both flows start at step 1 now
+
+    if (step > minStep) {
       setStep(step - 1);
     } else {
       // If emissionReportId exists, show confirmation
-      if (emissionReportId) {
+      if (emissionReportId || createdEmissionReportId) {
         Alert.alert(
           "Cancel Challan Creation?",
           "An emission report has been generated. The report will remain in the system without a challan. Are you sure you want to cancel?",
@@ -413,7 +642,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
               style: "destructive",
               onPress: () => navigation.goBack(),
             },
-          ]
+          ],
         );
       } else {
         navigation.goBack();
@@ -430,8 +659,8 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       // Build the data object, only including defined fields
       const data: CreateChallanDto = {
         violationId: selectedViolation!.violationId,
-        // EmissionReportId is optional - null for direct challans, set for emission report challans
-        emissionReportId: emissionReportId || null,
+        // EmissionReportId - use created one for Non-Traffic or existing one
+        emissionReportId: createdEmissionReportId || emissionReportId || null,
       };
 
       // Add vehicle info - either ID or input
@@ -495,8 +724,8 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       setTimeout(() => {
         if (response.challanId) {
           // Navigate to the challan detail screen
-          navigation.navigate("ChallanDetail", { 
-            challanId: response.challanId 
+          navigation.navigate("ChallanDetail", {
+            challanId: response.challanId,
           });
         } else {
           // Fallback: Navigate to My Challans list
@@ -507,11 +736,11 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       console.error("❌ Create Challan Error:", error);
       console.error(
         "❌ Response Data:",
-        JSON.stringify(error.response?.data, null, 2)
+        JSON.stringify(error.response?.data, null, 2),
       );
       console.error(
         "❌ Validation Errors:",
-        JSON.stringify(error.response?.data?.errors, null, 2)
+        JSON.stringify(error.response?.data?.errors, null, 2),
       );
 
       // Show validation errors if available
@@ -534,30 +763,55 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     }
   };
 
-  const renderStepIndicator = () => (
-    <View style={styles.stepIndicator}>
-      {[1, 2, 3, 4].map((s) => (
-        <View
-          key={s}
-          style={[
-            styles.stepDot,
-            step >= s && styles.stepDotActive,
-            step === s && styles.stepDotCurrent,
-          ]}
-        >
-          <Text
-            style={[styles.stepNumber, step >= s && styles.stepNumberActive]}
+  const renderStepIndicator = () => {
+    // Traffic: 4 steps, Non-Traffic: 5 steps
+    const steps = challanType === "Traffic" ? [1, 2, 3, 4] : [1, 2, 3, 4, 5];
+
+    return (
+      <View style={styles.stepIndicator}>
+        {steps.map((s) => (
+          <View
+            key={s}
+            style={[
+              styles.stepDot,
+              step >= s && styles.stepDotActive,
+              step === s && styles.stepDotCurrent,
+            ]}
           >
-            {s}
-          </Text>
-        </View>
-      ))}
-    </View>
-  );
+            <Text
+              style={[styles.stepNumber, step >= s && styles.stepNumberActive]}
+            >
+              {s}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   const renderStep1 = () => (
     <ScrollView style={styles.stepContent}>
       <Text style={styles.stepTitle}>Step 1: Select Violation</Text>
+
+      {selectedViolation && (
+        <View style={styles.challanTypeContainer}>
+          <Text style={styles.challanTypeLabel}>Challan Type:</Text>
+          <ChallanTypeBadge
+            type={getChallanType(
+              selectedViolation.violationType,
+              emissionReportId,
+            )}
+            size="large"
+          />
+          {isEmissionReportRecommended(selectedViolation.violationType) &&
+            !emissionReportId && (
+              <Text style={styles.warningText}>
+                ⚠️ This is a Non-Traffic violation. Emission report is required.
+              </Text>
+            )}
+        </View>
+      )}
+
       <ViolationSelector
         violations={violations}
         selectedViolationId={selectedViolation?.violationId}
@@ -750,6 +1004,132 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     </ScrollView>
   );
 
+  const renderScanStep = () => {
+    if (!selectedViolation) return null;
+
+    // Determine category from selected violation type
+    const violationType = selectedViolation.violationType.toLowerCase();
+    const isNoise =
+      violationType.includes("noise") ||
+      violationType.includes("sound") ||
+      violationType.includes("silencer");
+    const category = isNoise ? "Noise" : "Emission";
+
+    return (
+      <ScrollView style={styles.stepContent}>
+        <Text style={styles.stepTitle}>Step 4: Device Scan</Text>
+
+        <Card>
+          <Text style={styles.cardTitle}>📡 IoT Device Information</Text>
+          {pairedDeviceId ? (
+            <View style={styles.deviceInfo}>
+              <Text style={styles.deviceLabel}>Device ID:</Text>
+              <Text style={styles.deviceValue}>{pairedDeviceId}</Text>
+              <Text style={styles.deviceLabel}>Category:</Text>
+              <Text style={styles.deviceValue}>
+                {isNoise ? "🔊 Noise Monitor" : "💨 Emission Analyzer"}
+              </Text>
+              <Text style={styles.deviceLabel}>Status:</Text>
+              <Text style={[styles.deviceValue, styles.deviceActive]}>
+                ✓ Connected
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.warningText}>
+              ⚠️ No device paired. Please pair a device first.
+            </Text>
+          )}
+        </Card>
+
+        {!scanned && pairedDeviceId && (
+          <Card>
+            <Text style={styles.cardTitle}>
+              {isNoise ? "🔊 Scan Sound Level" : "💨 Scan Emission Levels"}
+            </Text>
+            <Text style={styles.helperText}>
+              {isNoise
+                ? "Position the device near the vehicle's exhaust to measure sound levels"
+                : "Connect the device to measure emission gas levels"}
+            </Text>
+            <Button
+              title="Start Scan"
+              onPress={handleScan}
+              fullWidth
+              variant="primary"
+            />
+          </Card>
+        )}
+
+        {scanned && (
+          <Card>
+            <Text style={[styles.cardTitle, styles.successText]}>
+              ✓ Scan Complete
+            </Text>
+
+            {isNoise && (
+              <View style={styles.scanResults}>
+                <View style={styles.scanResultRow}>
+                  <Text style={styles.scanLabel}>Sound Level:</Text>
+                  <Text
+                    style={[
+                      styles.scanValue,
+                      soundLevel && parseFloat(soundLevel) > 85
+                        ? styles.scanValueDanger
+                        : styles.scanValueNormal,
+                    ]}
+                  >
+                    {soundLevel} dB
+                  </Text>
+                </View>
+                {soundLevel && parseFloat(soundLevel) > 85 && (
+                  <Text style={styles.warningText}>
+                    ⚠️ Sound level exceeds legal limit (85 dB)
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {!isNoise && (
+              <View style={styles.scanResults}>
+                <View style={styles.scanResultRow}>
+                  <Text style={styles.scanLabel}>CO (Carbon Monoxide):</Text>
+                  <Text style={styles.scanValue}>{co} ppm</Text>
+                </View>
+                <View style={styles.scanResultRow}>
+                  <Text style={styles.scanLabel}>CO₂ (Carbon Dioxide):</Text>
+                  <Text style={styles.scanValue}>{co2} ppm</Text>
+                </View>
+                <View style={styles.scanResultRow}>
+                  <Text style={styles.scanLabel}>HC (Hydrocarbons):</Text>
+                  <Text style={styles.scanValue}>{hc} ppm</Text>
+                </View>
+                <View style={styles.scanResultRow}>
+                  <Text style={styles.scanLabel}>NOx (Nitrogen Oxides):</Text>
+                  <Text style={styles.scanValue}>{nox} ppm</Text>
+                </View>
+                {mlClassification && (
+                  <View style={styles.classificationContainer}>
+                    <Text style={styles.scanLabel}>Classification:</Text>
+                    <Text
+                      style={[
+                        styles.classificationText,
+                        mlClassification === "Pass"
+                          ? styles.classificationPass
+                          : styles.classificationFail,
+                      ]}
+                    >
+                      {mlClassification}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </Card>
+        )}
+      </ScrollView>
+    );
+  };
+
   const renderStep4 = () => (
     <ScrollView style={styles.stepContent} keyboardShouldPersistTaps="handled">
       <Text style={styles.stepTitle}>Step 4: Evidence & Bank Details</Text>
@@ -847,27 +1227,47 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     </ScrollView>
   );
 
+  // Determine total steps and final step based on challan type
+  const totalSteps = challanType === "Traffic" ? 4 : 5;
+  const finalStep = totalSteps;
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Header
-        title="Submit Challan"
-        subtitle={`Step ${step} of 4`}
+        title={`Submit ${challanType} Challan`}
+        subtitle={`Step ${step} of ${totalSteps}`}
         showBack
         onBackPress={handleBack}
       />
 
       {renderStepIndicator()}
 
-      {step === 1 && renderStep1()}
-      {step === 2 && renderStep2()}
-      {step === 3 && renderStep3()}
-      {step === 4 && renderStep4()}
+      {/* Traffic Flow: Steps 1-4 (Violation → Vehicle → Accused → Evidence) */}
+      {challanType === "Traffic" && (
+        <>
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+          {step === 4 && renderStep4()}
+        </>
+      )}
+
+      {/* Non-Traffic Flow: Steps 1-5 (Violation → Vehicle → Accused → Scan → Evidence) */}
+      {challanType === "Non-Traffic" && (
+        <>
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+          {step === 4 && renderScanStep()}
+          {step === 5 && renderStep4()}
+        </>
+      )}
 
       <View style={styles.footer}>
-        {step < 4 ? (
+        {step < finalStep ? (
           <Button
             title="Next"
             onPress={handleNext}
@@ -1035,5 +1435,90 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.border.light,
+  },
+  challanTypeContainer: {
+    backgroundColor: colors.background.secondary,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  challanTypeLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text.primary,
+  },
+  warningText: {
+    fontSize: 13,
+    color: colors.error[700],
+    fontWeight: "500",
+    marginTop: 4,
+  },
+  deviceInfo: {
+    gap: 8,
+  },
+  deviceLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.text.secondary,
+    marginTop: 8,
+  },
+  deviceValue: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: colors.text.primary,
+  },
+  deviceActive: {
+    color: colors.success[700],
+  },
+  successText: {
+    color: colors.success[700],
+  },
+  scanResults: {
+    marginTop: 12,
+    gap: 12,
+  },
+  scanResultRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  scanLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text.secondary,
+  },
+  scanValue: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.text.primary,
+  },
+  scanValueDanger: {
+    color: colors.error[700],
+  },
+  scanValueNormal: {
+    color: colors.success[700],
+  },
+  classificationContainer: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  classificationText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  classificationPass: {
+    color: colors.success[700],
+  },
+  classificationFail: {
+    color: colors.error[700],
   },
 });

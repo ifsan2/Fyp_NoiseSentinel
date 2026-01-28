@@ -1,5 +1,7 @@
 // Challan DTOs (if not already exists)
 
+import { getChallanType, ChallanType } from "@/utils/challanTypeHelper";
+
 export interface ChallanDto {
   challanId: number;
 
@@ -64,6 +66,9 @@ export interface ChallanDto {
   daysOverdue?: number;
   isOverdue?: boolean;
   integrityStatus?: string;
+
+  // Helper method to get challan type
+  get challanType(): ChallanType;
 }
 
 export interface ChallanSearchFilter {
@@ -71,6 +76,7 @@ export interface ChallanSearchFilter {
   stationIds?: number[];
   status?: string[];
   violationIds?: number[];
+  challanType?: string; // "Traffic" or "Non-Traffic"
   isOverdue?: boolean;
   hasFir?: boolean;
   dateRange?: {

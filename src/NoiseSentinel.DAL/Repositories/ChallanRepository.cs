@@ -54,6 +54,8 @@ public class ChallanRepository : IChallanRepository
             .Include(c => c.Vehicle)
             .Include(c => c.Violation)
             .Include(c => c.EmissionReport)
+            .AsSplitQuery()
+            .AsNoTracking()
             .OrderByDescending(c => c.IssueDateTime)
             .ToListAsync();
     }
@@ -70,6 +72,8 @@ public class ChallanRepository : IChallanRepository
             .Include(c => c.Violation)
             .Include(c => c.EmissionReport)
             .Where(c => c.OfficerId == officerId)
+            .AsSplitQuery()
+            .AsNoTracking()
             .OrderByDescending(c => c.IssueDateTime)
             .ToListAsync();
     }
@@ -86,6 +90,8 @@ public class ChallanRepository : IChallanRepository
             .Include(c => c.Violation)
             .Include(c => c.EmissionReport)
             .Where(c => c.Officer!.StationId == stationId)
+            .AsSplitQuery()
+            .AsNoTracking()
             .OrderByDescending(c => c.IssueDateTime)
             .ToListAsync();
     }
@@ -102,6 +108,8 @@ public class ChallanRepository : IChallanRepository
             .Include(c => c.Violation)
             .Include(c => c.EmissionReport)
             .Where(c => c.VehicleId == vehicleId)
+            .AsSplitQuery()
+            .AsNoTracking()
             .OrderByDescending(c => c.IssueDateTime)
             .ToListAsync();
     }
@@ -118,6 +126,8 @@ public class ChallanRepository : IChallanRepository
             .Include(c => c.Violation)
             .Include(c => c.EmissionReport)
             .Where(c => c.AccusedId == accusedId)
+            .AsSplitQuery()
+            .AsNoTracking()
             .OrderByDescending(c => c.IssueDateTime)
             .ToListAsync();
     }
@@ -134,6 +144,8 @@ public class ChallanRepository : IChallanRepository
             .Include(c => c.Violation)
             .Include(c => c.EmissionReport)
             .Where(c => c.Status != null && c.Status.ToLower() == status.ToLower())
+            .AsSplitQuery()
+            .AsNoTracking()
             .OrderByDescending(c => c.IssueDateTime)
             .ToListAsync();
     }
@@ -289,5 +301,40 @@ public class ChallanRepository : IChallanRepository
         }
 
         return await query.OrderByDescending(c => c.IssueDateTime).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Challan>> GetByTypeAsync(string challanType)
+    {
+        // Keywords that indicate non-traffic violations (noise/emission related)
+        var nonTrafficKeywords = new[] { "noise", "emission", "sound", "silencer", "pollution",
+            "exhaust", "decibel", "dba", "modified", "loud", "co2", "carbon", "smoke", "environmental" };
+
+        var allChallans = await _context.Challans
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.User)
+            .Include(c => c.Officer)
+                .ThenInclude(o => o!.Station)
+            .Include(c => c.Accused)
+            .Include(c => c.Vehicle)
+            .Include(c => c.Violation)
+            .Include(c => c.EmissionReport)
+            .OrderByDescending(c => c.IssueDateTime)
+            .ToListAsync();
+
+        // Filter by type using inline logic
+        var filteredChallans = allChallans.Where(c =>
+        {
+            // If has emission report, it's definitely non-traffic
+            if (c.EmissionReportId.HasValue)
+                return challanType == "Non-Traffic";
+
+            // Check violation type keywords
+            var violationType = c.Violation?.ViolationType?.ToLower() ?? "";
+            var isNonTraffic = nonTrafficKeywords.Any(keyword => violationType.Contains(keyword));
+
+            return isNonTraffic ? challanType == "Non-Traffic" : challanType == "Traffic";
+        }).ToList();
+
+        return filteredChallans;
     }
 }

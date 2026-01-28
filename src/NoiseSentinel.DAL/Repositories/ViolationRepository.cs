@@ -37,7 +37,7 @@ public class ViolationRepository : IViolationRepository
     public async Task<IEnumerable<Violation>> GetAllAsync()
     {
         return await _context.Violations
-            .Include(v => v.Challans)  // Include for challan count
+            .AsNoTracking()
             .OrderBy(v => v.ViolationType)
             .ToListAsync();
     }
@@ -45,8 +45,8 @@ public class ViolationRepository : IViolationRepository
     public async Task<IEnumerable<Violation>> GetCognizableViolationsAsync()
     {
         return await _context.Violations
-            .Include(v => v.Challans)
             .Where(v => v.IsCognizable == true)
+            .AsNoTracking()
             .OrderBy(v => v.ViolationType)
             .ToListAsync();
     }
@@ -54,9 +54,9 @@ public class ViolationRepository : IViolationRepository
     public async Task<IEnumerable<Violation>> GetByTypeAsync(string violationType)
     {
         return await _context.Violations
-            .Include(v => v.Challans)
             .Where(v => v.ViolationType != null &&
                         v.ViolationType.ToLower().Contains(violationType.ToLower()))
+            .AsNoTracking()
             .OrderBy(v => v.ViolationType)
             .ToListAsync();
     }

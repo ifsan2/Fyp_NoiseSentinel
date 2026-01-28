@@ -1,10 +1,10 @@
-import apiClient from './axios.config';
+import apiClient from "./axios.config";
 import {
   CreateChallanDto,
   ChallanResponseDto,
   ChallanListItemDto,
-} from '../models/Challan';
-import { ApiResponse } from '../models/ApiResponse';
+} from "../models/Challan";
+import { ApiResponse } from "../models/ApiResponse";
 
 class ChallanApi {
   /**
@@ -12,8 +12,8 @@ class ChallanApi {
    */
   async createChallan(data: CreateChallanDto): Promise<ChallanResponseDto> {
     const response = await apiClient.post<ApiResponse<ChallanResponseDto>>(
-      '/Challan/create',
-      data
+      "/Challan/create",
+      data,
     );
     return response.data.data!;
   }
@@ -23,7 +23,7 @@ class ChallanApi {
    */
   async getMyChallans(): Promise<ChallanListItemDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanListItemDto[]>>(
-      '/Challan/my-challans'
+      "/Challan/my-challans",
     );
     return response.data.data || [];
   }
@@ -33,7 +33,7 @@ class ChallanApi {
    */
   async getChallanById(id: number): Promise<ChallanResponseDto> {
     const response = await apiClient.get<ApiResponse<ChallanResponseDto>>(
-      `/Challan/${id}`
+      `/Challan/${id}`,
     );
     return response.data.data!;
   }
@@ -43,7 +43,7 @@ class ChallanApi {
    */
   async getChallansByVehicle(vehicleId: number): Promise<ChallanListItemDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanListItemDto[]>>(
-      `/Challan/vehicle/${vehicleId}`
+      `/Challan/vehicle/${vehicleId}`,
     );
     return response.data.data || [];
   }
@@ -53,7 +53,17 @@ class ChallanApi {
    */
   async getChallansByAccused(accusedId: number): Promise<ChallanListItemDto[]> {
     const response = await apiClient.get<ApiResponse<ChallanListItemDto[]>>(
-      `/Challan/accused/${accusedId}`
+      `/Challan/accused/${accusedId}`,
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get challans by type (Traffic or Non-Traffic)
+   */
+  async getChallansByType(type: string): Promise<ChallanListItemDto[]> {
+    const response = await apiClient.get<ApiResponse<ChallanListItemDto[]>>(
+      `/Challan/type/${type}`,
     );
     return response.data.data || [];
   }

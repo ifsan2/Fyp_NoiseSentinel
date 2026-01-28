@@ -99,16 +99,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       onPress: () => navigation.navigate("PairDevice"),
     },
     {
-      title: "Generate Report",
-      IconComponent: BarChart3,
-      color: colors.accent[600],
-      onPress: () => navigation.navigate("CreateEmissionReport"),
-    },
-    {
       title: "Create Challan",
       IconComponent: FileText,
       color: colors.success[600],
-      onPress: () => navigation.navigate("CreateChallan"),
+      onPress: () => navigation.navigate("ChallanTypeSelection"),
     },
     {
       title: "My Challans",

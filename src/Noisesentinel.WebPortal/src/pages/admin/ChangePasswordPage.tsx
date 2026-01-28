@@ -129,6 +129,7 @@ export const ChangePasswordPage: React.FC = () => {
                           type={showCurrentPassword ? "text" : "password"}
                           label="Current Password"
                           placeholder="Enter current password"
+                          fullWidth
                           error={!!errors.currentPassword}
                           helperText={errors.currentPassword?.message}
                           required
@@ -177,6 +178,7 @@ export const ChangePasswordPage: React.FC = () => {
                         type={showNewPassword ? "text" : "password"}
                         label="New Password"
                         placeholder="Enter new password"
+                        fullWidth
                         error={!!errors.newPassword}
                         helperText={
                           errors.newPassword?.message ||
@@ -223,6 +225,7 @@ export const ChangePasswordPage: React.FC = () => {
                         type={showConfirmPassword ? "text" : "password"}
                         label="Confirm New Password"
                         placeholder="Re-enter new password"
+                        fullWidth
                         error={!!errors.confirmPassword}
                         helperText={errors.confirmPassword?.message}
                         required

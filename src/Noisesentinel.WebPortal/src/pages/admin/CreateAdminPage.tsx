@@ -40,7 +40,7 @@ export const CreateAdminPage: React.FC = () => {
       const response = await authApi.createAdmin(data);
 
       setSuccessMessage(
-        `Admin account "${response.username}" created successfully!`
+        `Admin account "${response.username}" created successfully!`,
       );
       enqueueSnackbar("Admin created successfully!", {
         variant: "success",
@@ -110,6 +110,7 @@ export const CreateAdminPage: React.FC = () => {
                     {...field}
                     label="Full Name"
                     placeholder="e.g., System Administrator"
+                    fullWidth
                     error={!!errors.fullName}
                     helperText={errors.fullName?.message}
                     required
@@ -138,6 +139,7 @@ export const CreateAdminPage: React.FC = () => {
                     type="email"
                     label="Email"
                     placeholder="e.g., admin2@noisesentinel.com"
+                    fullWidth
                     error={!!errors.email}
                     helperText={errors.email?.message}
                     required
@@ -169,6 +171,7 @@ export const CreateAdminPage: React.FC = () => {
                     {...field}
                     label="Username"
                     placeholder="e.g., admin2"
+                    fullWidth
                     error={!!errors.username}
                     helperText={
                       errors.username?.message ||

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NoiseSentinel.BLL.DTOs.Challan;
 using NoiseSentinel.BLL.Services.Interfaces;
+using NoiseSentinel.BLL.Helpers;
 using NoiseSentinel.DAL.Contexts;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -370,6 +371,50 @@ public class ChallanController : ControllerBase
             message = $"Challans with status '{status}' retrieved successfully",
             count = result.Data?.Count() ?? 0,
             data = result.Data
+        });
+    }
+
+    /// <summary>
+    /// Get challans by type (Traffic or Non-Traffic).
+    /// </summary>
+    /// <remarks>
+    /// **Authorization Required:** Station Authority
+    /// 
+    /// Filter challans by type based on violation category and emission report presence.
+    /// 
+    /// **Type Options:**
+    /// - Traffic: Regular traffic violations (speeding, signal jumping, etc.)
+    /// - Non-Traffic: Noise/Emission violations (requires emission report)
+    /// 
+    /// Sample: GET /api/challan/type/Non-Traffic
+    /// </remarks>
+    /// <param name="type">Challan type (Traffic or Non-Traffic)</param>
+    /// <returns>List of challans with specified type</returns>
+    /// <response code="200">Returns challans</response>
+    /// <response code="400">Invalid type</response>
+    /// <response code="401">Unauthorized</response>
+    [HttpGet("type/{type}")]
+    [Authorize(Policy = "StationAuthorityOnly")]
+    [ProducesResponseType(typeof(ChallanListItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetChallansByType(string type)
+    {
+        var result = await _challanService.GetChallansByTypeAsync(type);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new
+        {
+            message = $"{type} challans retrieved successfully",
+            count = result.Data?.Count() ?? 0,
+            data = result.Data,
+            note = type == ChallanTypeHelper.NON_TRAFFIC 
+                ? "Non-Traffic challans are noise/emission violations" 
+                : "Traffic challans are regular traffic violations"
         });
     }
 

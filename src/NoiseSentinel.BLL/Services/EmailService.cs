@@ -92,6 +92,9 @@ public class EmailService : IEmailService
 
             using var client = new SmtpClient();
             
+            // Set timeout to 10 seconds to avoid long waits
+            client.Timeout = 10000;
+            
             // Connect to SMTP server
             await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, 
                 _emailSettings.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);

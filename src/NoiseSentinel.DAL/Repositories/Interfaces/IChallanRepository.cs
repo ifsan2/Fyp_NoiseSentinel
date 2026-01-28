@@ -50,6 +50,12 @@ public interface IChallanRepository
     Task<IEnumerable<Challan>> GetByStatusAsync(string status);
 
     /// <summary>
+    /// Get challans by type (Traffic or Non-Traffic).
+    /// Note: This is computed based on ViolationType and EmissionReportId.
+    /// </summary>
+    Task<IEnumerable<Challan>> GetByTypeAsync(string challanType);
+
+    /// <summary>
     /// Get challans by date range.
     /// </summary>
     Task<IEnumerable<Challan>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);

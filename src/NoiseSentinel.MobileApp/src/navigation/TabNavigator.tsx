@@ -1,7 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { DashboardScreen } from "../screens/dashboard/DashboardScreen";
-import { CreateChallanScreen } from "../screens/challan/CreateChallanScreen";
+import { ChallanTypeSelectionScreen } from "../screens/challan/ChallanTypeSelectionScreen";
 import { MyChallansScreen } from "../screens/challan/MyChallansScreen";
 import { ProfileScreen } from "../screens/profile/ProfileScreen";
 import { GlassTabBar } from "../components/navigation/GlassTabBar";
@@ -28,7 +28,7 @@ export const TabNavigator: React.FC = () => {
       />
       <Tab.Screen
         name="Scan"
-        component={CreateChallanScreen}
+        component={ChallanTypeSelectionScreen}
         options={{ title: "Scan" }}
       />
       <Tab.Screen
