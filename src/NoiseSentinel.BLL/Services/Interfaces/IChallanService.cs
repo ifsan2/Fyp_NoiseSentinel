@@ -77,4 +77,12 @@ public interface IChallanService
     /// Advanced search: Search challans by multiple criteria (Station Authority only).
     /// </summary>
     Task<ServiceResult<IEnumerable<ChallanListItemDto>>> SearchChallansAsync(ChallanSearchDto searchDto);
+
+    /// <summary>
+    /// Update challan status (for payment - mark as Paid).
+    /// </summary>
+    /// <param name="challanId">Challan ID to update</param>
+    /// <param name="newStatus">New status (e.g., "Paid")</param>
+    /// <returns>Service result with success/failure</returns>
+    Task<ServiceResult<bool>> UpdateChallanStatusAsync(int challanId, string newStatus);
 }

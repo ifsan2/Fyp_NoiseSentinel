@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NoiseSentinel.BLL.Common;
+using NoiseSentinel.BLL.Configuration;
 using NoiseSentinel.BLL.DTOs.Challan;
 using NoiseSentinel.BLL.Helpers;
 using NoiseSentinel.BLL.Services.Interfaces;
@@ -29,6 +31,7 @@ public class ChallanService : IChallanService
     private readonly NoiseSentinelDbContext _context;
     private readonly IEmailService _emailService;
     private readonly ILogger<ChallanService> _logger;
+    private readonly BankSettings _bankSettings;
 
     public ChallanService(
         IChallanRepository challanRepository,
@@ -39,7 +42,8 @@ public class ChallanService : IChallanService
         IPoliceofficerRepository policeofficerRepository,
         NoiseSentinelDbContext context,
         IEmailService emailService,
-        ILogger<ChallanService> logger)
+        ILogger<ChallanService> logger,
+        IOptions<BankSettings> bankSettings)
     {
         _challanRepository = challanRepository;
         _violationRepository = violationRepository;
@@ -50,6 +54,7 @@ public class ChallanService : IChallanService
         _context = context;
         _emailService = emailService;
         _logger = logger;
+        _bankSettings = bankSettings.Value;
     }
 
     public async Task<ServiceResult<ChallanResponseDto>> CreateChallanAsync(
@@ -247,7 +252,7 @@ public class ChallanService : IChallanService
             IssueDateTime = issueDateTime,
             DueDateTime = dueDateTime,
             Status = "Unpaid",
-            BankDetails = dto.BankDetails ?? "Account: XXXXXXXXXX, Bank: HBL",
+            BankDetails = dto.BankDetails ?? _bankSettings.GetFormattedDetails(),
             DigitalSignatureValue = digitalSignatureValue
         };
 
@@ -584,5 +589,42 @@ public class ChallanService : IChallanService
         return ServiceResult<IEnumerable<ChallanListItemDto>>.SuccessResult(
             response,
             $"Found {response.Count} {challanType.ToLower()} challan(s).");
+    }
+
+    /// <summary>
+    /// Update challan status (for payment - mark as Paid).
+    /// </summary>
+    public async Task<ServiceResult<bool>> UpdateChallanStatusAsync(int challanId, string newStatus)
+    {
+        try
+        {
+            var challan = await _context.Challans.FindAsync(challanId);
+
+            if (challan == null)
+            {
+                return ServiceResult<bool>.FailureResult($"Challan with ID {challanId} not found.");
+            }
+
+            // Validate status
+            var validStatuses = new[] { "Unpaid", "Paid", "Disputed", "Overdue" };
+            if (!validStatuses.Contains(newStatus, StringComparer.OrdinalIgnoreCase))
+            {
+                return ServiceResult<bool>.FailureResult(
+                    $"Invalid status. Valid statuses are: {string.Join(", ", validStatuses)}");
+            }
+
+            // Update status
+            challan.Status = newStatus;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Challan #{ChallanId} status updated to {Status}", challanId, newStatus);
+
+            return ServiceResult<bool>.SuccessResult(true, $"Challan status updated to {newStatus} successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating challan status for challan #{ChallanId}", challanId);
+            return ServiceResult<bool>.FailureResult($"Error updating challan status: {ex.Message}");
+        }
     }
 }

@@ -60,7 +60,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
     setRefreshing(false);
   };
 
-  if (loading) {
+  const handlePayment = () => {
     return (
       <View style={styles.container}>
         <Header
@@ -71,7 +71,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
         <Loading message="Loading challan..." fullScreen />
       </View>
     );
-  }
+  };
 
   if (error || !challan) {
     return (
@@ -509,5 +509,38 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: spacing.sm,
+  },
+  paymentCard: {
+    alignItems: "center",
+    padding: spacing.md,
+  },
+  paymentTitle: {
+    ...typography.h3,
+    color: colors.primary[600],
+    marginBottom: spacing.sm,
+  },
+  paymentAmount: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    fontWeight: "700",
+  },
+  bankInfoContainer: {
+    width: "100%",
+    backgroundColor: colors.background.secondary,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.md,
+  },
+  bankInfoTitle: {
+    ...typography.body,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  bankInfoText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
 });

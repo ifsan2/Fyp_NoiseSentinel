@@ -594,4 +594,73 @@ public class ChallanController : ControllerBase
             data = result.Data ?? new List<ChallanListItemDto>()
         });
     }
+
+    // ========================================================================
+    // CHALLAN STATUS UPDATE (FOR PAYMENT)
+    // ========================================================================
+
+    /// <summary>
+    /// Update challan payment status (for payment functionality).
+    /// </summary>
+    /// <remarks>
+    /// **Authorization Required:** Public (for accused to pay) or Station Authority
+    /// 
+    /// Allows updating the challan status, primarily used for marking as "Paid".
+    /// 
+    /// **Valid Statuses:**
+    /// - Unpaid
+    /// - Paid
+    /// - Disputed
+    /// - Overdue
+    /// 
+    /// **Sample Request:**
+    /// 
+    ///     PUT /api/challan/123/status
+    ///     {
+    ///         "status": "Paid"
+    ///     }
+    /// 
+    /// </remarks>
+    /// <param name="id">Challan ID</param>
+    /// <param name="request">Status update request</param>
+    /// <returns>Success or failure message</returns>
+    /// <response code="200">Status updated successfully</response>
+    /// <response code="400">Invalid status or challan not found</response>
+    /// <response code="401">Unauthorized</response>
+    [HttpPut("{id}/status")]
+    [AllowAnonymous] // Allow public access for accused to pay challans
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdateChallanStatus(int id, [FromBody] UpdateChallanStatusRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { message = "Invalid request", errors = ModelState });
+        }
+
+        var result = await _challanService.UpdateChallanStatusAsync(id, request.Status);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new
+        {
+            message = result.Message,
+            success = true
+        });
+    }
+}
+
+/// <summary>
+/// Request DTO for updating challan status.
+/// </summary>
+public class UpdateChallanStatusRequest
+{
+    /// <summary>
+    /// New status for the challan (Unpaid, Paid, Disputed, Overdue).
+    /// </summary>
+    public string Status { get; set; } = string.Empty;
 }

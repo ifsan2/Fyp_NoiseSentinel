@@ -77,6 +77,13 @@ builder.Services.Configure<JwtSettings>(jwtSettings);
 var emailSettings = builder.Configuration.GetSection("EmailSettings");
 builder.Services.Configure<EmailSettings>(emailSettings);
 
+// ============================================================================
+// BANK DETAILS CONFIGURATION
+// ============================================================================
+
+var bankSettings = builder.Configuration.GetSection("BankDetails");
+builder.Services.Configure<BankSettings>(bankSettings);
+
 var jwtConfig = jwtSettings.Get<JwtSettings>();
 if (jwtConfig == null || string.IsNullOrEmpty(jwtConfig.SecretKey))
 {

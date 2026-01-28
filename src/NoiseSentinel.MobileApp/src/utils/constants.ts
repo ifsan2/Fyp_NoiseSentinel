@@ -35,5 +35,18 @@ export const CHALLAN_STATUS = {
   DISPUTED: "Disputed",
 };
 
+// Bank Details - CONFIGURED FROM BACKEND (DO NOT MODIFY)
+// These details are fetched from appsettings.json on the backend
+// and automatically appended to challans during creation
+export const BANK_DETAILS = {
+  ACCOUNT_TITLE: "Noise Sentinel Traffic Management",
+  ACCOUNT_NUMBER: "03467038299-001",
+  BANK_NAME: "HBL",
+  BRANCH_CODE: "0346",
+  IBAN: "PK80HABB0003467038299001",
+  FORMATTED:
+    "Title: Noise Sentinel Traffic Management, Account: 03467038299-001, Bank: HBL, Branch: 0346, IBAN: PK80HABB0003467038299001",
+};
+
 // Date Formats
 export const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";

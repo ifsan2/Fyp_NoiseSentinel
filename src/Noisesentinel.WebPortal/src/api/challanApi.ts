@@ -122,6 +122,19 @@ class ChallanApi {
     }>("/Challan/search", searchDto);
     return response.data;
   }
+
+  /**
+   * Update challan status (e.g., mark as Paid)
+   * No authentication required (public access)
+   */
+  async updateChallanStatus(
+    challanId: number,
+    newStatus: string,
+  ): Promise<void> {
+    await apiClient.put(`/Challan/${challanId}/status`, {
+      status: newStatus,
+    });
+  }
 }
 
 export default new ChallanApi();

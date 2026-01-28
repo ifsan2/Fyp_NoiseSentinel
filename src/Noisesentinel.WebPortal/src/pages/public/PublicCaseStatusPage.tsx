@@ -28,6 +28,10 @@ import {
   Tabs,
   Tab,
   Link,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -53,6 +57,7 @@ import { useNavigate } from "react-router-dom";
 import publicStatusApi, {
   PublicCaseStatusResponseDto,
 } from "@/api/publicStatusApi";
+import challanApi from "@/api/challanApi";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggleButton } from "@/components/ThemeToggleButton";
 import { format } from "date-fns";
@@ -106,6 +111,11 @@ export const PublicCaseStatusPage: React.FC = () => {
   // Tab for results view
   const [tabValue, setTabValue] = useState(0);
 
+  // Payment dialog state
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedChallan, setSelectedChallan] = useState<any>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
   const steps = ["Enter Details", "Verify OTP", "View Status"];
 
   // Form for Step 1 - Request OTP
@@ -140,7 +150,7 @@ export const PublicCaseStatusPage: React.FC = () => {
           if (new Date(session.expiresAt) > new Date()) {
             // Try to fetch case status with stored token
             const statusResponse = await publicStatusApi.getCaseStatus(
-              session.accessToken
+              session.accessToken,
             );
 
             if (statusResponse.success && statusResponse.data) {
@@ -178,7 +188,7 @@ export const PublicCaseStatusPage: React.FC = () => {
   const saveSession = (
     token: string,
     data: OtpRequestFormData,
-    expiresAt: string
+    expiresAt: string,
   ) => {
     const session: StoredSession = {
       accessToken: token,
@@ -222,7 +232,7 @@ export const PublicCaseStatusPage: React.FC = () => {
       enqueueSnackbar(
         error.response?.data?.message ||
           "Failed to send OTP. Please check your details.",
-        { variant: "error" }
+        { variant: "error" },
       );
     } finally {
       setLoading(false);
@@ -249,7 +259,7 @@ export const PublicCaseStatusPage: React.FC = () => {
 
         // Fetch case status
         const statusResponse = await publicStatusApi.getCaseStatus(
-          response.accessToken
+          response.accessToken,
         );
         if (statusResponse.success && statusResponse.data) {
           setCaseStatus(statusResponse.data);
@@ -266,7 +276,7 @@ export const PublicCaseStatusPage: React.FC = () => {
       enqueueSnackbar(
         error.response?.data?.message ||
           "Invalid or expired OTP. Please try again.",
-        { variant: "error" }
+        { variant: "error" },
       );
     } finally {
       setLoading(false);
@@ -694,7 +704,7 @@ export const PublicCaseStatusPage: React.FC = () => {
                         }
                       </td>
                     </tr>
-                  `
+                  `,
                     )
                     .join("")}
                 </tbody>
@@ -747,7 +757,7 @@ export const PublicCaseStatusPage: React.FC = () => {
                           : '<span class="badge badge-success">No</span>'
                       }</td>
                     </tr>
-                  `
+                  `,
                     )
                     .join("")}
                 </tbody>
@@ -803,7 +813,7 @@ export const PublicCaseStatusPage: React.FC = () => {
                       <div class="info-item">
                         <label>Next Hearing</label>
                         <span style="color: #d97706;">${formatDateForPrint(
-                          caseItem.hearingDate
+                          caseItem.hearingDate,
                         )}</span>
                       </div>
                     `
@@ -836,14 +846,14 @@ export const PublicCaseStatusPage: React.FC = () => {
                           <div class="statement-header">
                             <strong>${stmt.statementBy}</strong>
                             <span>${formatDateForPrint(
-                              stmt.statementDate
+                              stmt.statementDate,
                             )}</span>
                           </div>
                           <div class="statement-text">${
                             stmt.statementText
                           }</div>
                         </div>
-                      `
+                      `,
                         )
                         .join("")}
                     </div>
@@ -852,7 +862,7 @@ export const PublicCaseStatusPage: React.FC = () => {
                   }
                 </div>
               </div>
-            `
+            `,
                     )
                     .join("")
             }
@@ -920,7 +930,7 @@ export const PublicCaseStatusPage: React.FC = () => {
         JSON.stringify({
           plateNumber: formData.vehicleNo,
           cnic: formData.cnic,
-        })
+        }),
       );
     }
     navigate("/search-challans");
@@ -942,6 +952,57 @@ export const PublicCaseStatusPage: React.FC = () => {
     setFormData(null);
     requestForm.reset();
     verifyForm.reset();
+  };
+
+  // ============================================================================
+  // PAYMENT HANDLING
+  // ============================================================================
+
+  const handleOpenPaymentDialog = (challan: any) => {
+    setSelectedChallan(challan);
+    setPaymentDialogOpen(true);
+  };
+
+  const handleClosePaymentDialog = () => {
+    setPaymentDialogOpen(false);
+    setSelectedChallan(null);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!selectedChallan) return;
+
+    try {
+      setPaymentLoading(true);
+      await challanApi.updateChallanStatus(selectedChallan.challanId, "Paid");
+
+      // Update the local case status
+      if (caseStatus) {
+        const updatedChallans = caseStatus.challans.map((c) =>
+          c.challanId === selectedChallan.challanId
+            ? { ...c, status: "Paid" }
+            : c,
+        );
+        const updatedStatus = {
+          ...caseStatus,
+          challans: updatedChallans,
+          unpaidChallans: updatedChallans.filter((c) => c.status !== "Paid")
+            .length,
+        };
+        setCaseStatus(updatedStatus);
+      }
+
+      enqueueSnackbar("Payment confirmed successfully!", {
+        variant: "success",
+      });
+      handleClosePaymentDialog();
+    } catch (error: any) {
+      enqueueSnackbar(
+        error.response?.data?.message || "Failed to update payment status",
+        { variant: "error" },
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   // ============================================================================
@@ -1659,6 +1720,7 @@ export const PublicCaseStatusPage: React.FC = () => {
                           Penalty
                         </TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Action</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1726,6 +1788,20 @@ export const PublicCaseStatusPage: React.FC = () => {
                                 />
                               )}
                             </Box>
+                          </TableCell>
+                          <TableCell>
+                            {challan.status.toLowerCase() === "unpaid" && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="primary"
+                                startIcon={<MoneyIcon />}
+                                onClick={() => handleOpenPaymentDialog(challan)}
+                                sx={{ textTransform: "none" }}
+                              >
+                                Pay Now
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1839,7 +1915,7 @@ export const PublicCaseStatusPage: React.FC = () => {
                               size="small"
                               icon={<ScheduleIcon />}
                               label={`Hearing: ${formatDate(
-                                caseItem.hearingDate
+                                caseItem.hearingDate,
                               )}`}
                               variant="outlined"
                               color="primary"
@@ -2084,6 +2160,182 @@ export const PublicCaseStatusPage: React.FC = () => {
           </Box>
         </Box>
       </Container>
+
+      {/* Payment Confirmation Dialog */}
+      <Dialog
+        open={paymentDialogOpen}
+        onClose={handleClosePaymentDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <MoneyIcon color="primary" />
+            Confirm Challan Payment
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedChallan && (
+            <Box>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Please make payment to the following bank account, then click
+                "Confirm Payment" below.
+              </Alert>
+
+              <Card variant="outlined" sx={{ mb: 2 }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom color="primary">
+                    Challan #{selectedChallan.challanId}
+                  </Typography>
+                  <Grid container spacing={1}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Violation
+                      </Typography>
+                      <Typography variant="body2" fontWeight={500}>
+                        {selectedChallan.violationType}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Amount
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        color="primary"
+                      >
+                        {formatCurrency(selectedChallan.penaltyAmount)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Station
+                      </Typography>
+                      <Typography variant="body2" fontWeight={500}>
+                        {selectedChallan.stationName}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary">
+                        Due Date
+                      </Typography>
+                      <Typography variant="body2" fontWeight={500}>
+                        {formatDate(selectedChallan.dueDateTime)}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                Bank Account Details
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  bgcolor:
+                    theme.palette.mode === "dark" ? "grey.900" : "grey.50",
+                }}
+              >
+                <Grid container spacing={1.5}>
+                  <Grid item xs={12}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
+                      Account Title
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      Noise Sentinel Traffic Management
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
+                      Account Number
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      03467038299-001
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
+                      Bank
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      HBL
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
+                      Branch Code
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      0346
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
+                      IBAN
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      PK80HABB0003467038299001
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>Note:</strong> After making the bank transfer, click
+                  "Confirm Payment" to update the challan status. Keep your
+                  transaction receipt for record purposes.
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePaymentDialog} disabled={paymentLoading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmPayment}
+            variant="contained"
+            color="primary"
+            disabled={paymentLoading}
+            startIcon={
+              paymentLoading ? (
+                <CircularProgress size={20} />
+              ) : (
+                <CheckCircleIcon />
+              )
+            }
+          >
+            {paymentLoading ? "Processing..." : "Confirm Payment"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

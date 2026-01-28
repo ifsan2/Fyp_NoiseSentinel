@@ -34,6 +34,7 @@ import {
 } from "../../utils/challanTypeHelper";
 import { colors } from "../../styles/colors";
 import { validation } from "../../utils/validation";
+import { BANK_DETAILS } from "../../utils/constants";
 
 interface CreateChallanScreenProps {
   navigation: any;
@@ -102,7 +103,6 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
   // Step 4: Evidence & Bank
   const [evidencePath, setEvidencePath] = useState("");
   const [evidenceImage, setEvidenceImage] = useState<string | null>(null);
-  const [bankDetails, setBankDetails] = useState("");
 
   const [errors, setErrors] = useState<any>({});
 
@@ -703,9 +703,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       if (evidencePath) {
         data.evidencePath = evidencePath;
       }
-      if (bankDetails) {
-        data.bankDetails = bankDetails;
-      }
+      // Bank details will be auto-appended by backend from appsettings.json
 
       console.log("📤 Submitting Challan:", JSON.stringify(data, null, 2));
 
@@ -1172,15 +1170,29 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       </Card>
 
       <Card>
-        <Text style={styles.cardTitle}>🏦 Bank Details (Optional)</Text>
-        <Input
-          label="Bank Account Details"
-          placeholder="e.g., Account: 1234567890, Bank: HBL"
-          value={bankDetails}
-          onChangeText={setBankDetails}
-          multiline
-          numberOfLines={2}
-        />
+        <Text style={styles.cardTitle}>🏦 Bank Account Details</Text>
+        <View style={styles.bankDetailsContainer}>
+          <Text style={styles.bankDetailsLabel}>Account Title:</Text>
+          <Text style={styles.bankDetailsValue}>
+            {BANK_DETAILS.ACCOUNT_TITLE}
+          </Text>
+
+          <Text style={styles.bankDetailsLabel}>Account Number:</Text>
+          <Text style={styles.bankDetailsValue}>
+            {BANK_DETAILS.ACCOUNT_NUMBER}
+          </Text>
+
+          <Text style={styles.bankDetailsLabel}>Bank:</Text>
+          <Text style={styles.bankDetailsValue}>{BANK_DETAILS.BANK_NAME}</Text>
+
+          <Text style={styles.bankDetailsLabel}>Branch Code:</Text>
+          <Text style={styles.bankDetailsValue}>
+            {BANK_DETAILS.BRANCH_CODE}
+          </Text>
+
+          <Text style={styles.bankDetailsLabel}>IBAN:</Text>
+          <Text style={styles.bankDetailsValue}>{BANK_DETAILS.IBAN}</Text>
+        </View>
       </Card>
 
       {/* Review Summary */}
@@ -1520,5 +1532,23 @@ const styles = StyleSheet.create({
   },
   classificationFail: {
     color: colors.error[700],
+  },
+  bankDetailsContainer: {
+    backgroundColor: colors.background.secondary,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  bankDetailsLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.text.secondary,
+    marginTop: 8,
+  },
+  bankDetailsValue: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: colors.text.primary,
+    marginTop: 2,
   },
 });
