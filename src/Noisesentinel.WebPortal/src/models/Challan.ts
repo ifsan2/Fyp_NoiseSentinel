@@ -39,7 +39,16 @@ export interface ChallanDto {
   // Emission Report (Evidence)
   emissionReportId?: number;
   deviceName?: string;
+
+  // Sound/Noise data (for noise violations)
   soundLevelDBa?: number;
+
+  // Emission gas data (for emission/pollution violations)
+  co?: number;
+  co2?: number;
+  hc?: number;
+  nox?: number;
+
   mlClassification?: string;
   emissionTestDateTime?: string;
 

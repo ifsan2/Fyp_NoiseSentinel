@@ -1,16 +1,10 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-} from 'react-native';
-import { ViolationListItemDto } from '../../models/Violation';
-import { colors } from '../../styles/colors';
-import { spacing, borderRadius } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
-import { formatters } from '../../utils/formatters';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { ViolationListItemDto } from "../../models/Violation";
+import { colors } from "../../styles/colors";
+import { spacing, borderRadius } from "../../styles/spacing";
+import { typography } from "../../styles/typography";
+import { formatters } from "../../utils/formatters";
 
 interface ViolationSelectorProps {
   violations: ViolationListItemDto[];
@@ -23,17 +17,26 @@ export const ViolationSelector: React.FC<ViolationSelectorProps> = ({
   selectedViolationId,
   onSelect,
 }) => {
-  const renderViolation = ({ item }: { item: ViolationListItemDto }) => {
+  const renderViolation = (item: ViolationListItemDto) => {
     const isSelected = item.violationId === selectedViolationId;
 
     return (
       <TouchableOpacity
-        style={[styles.violationCard, isSelected && styles.violationCardSelected]}
+        key={item.violationId}
+        style={[
+          styles.violationCard,
+          isSelected && styles.violationCardSelected,
+        ]}
         onPress={() => onSelect(item)}
         activeOpacity={0.7}
       >
         <View style={styles.violationHeader}>
-          <Text style={[styles.violationType, isSelected && styles.violationTypeSelected]}>
+          <Text
+            style={[
+              styles.violationType,
+              isSelected && styles.violationTypeSelected,
+            ]}
+          >
             {item.violationType}
           </Text>
           {item.isCognizable && (
@@ -63,14 +66,7 @@ export const ViolationSelector: React.FC<ViolationSelectorProps> = ({
     );
   };
 
-  return (
-    <FlatList
-      data={violations}
-      renderItem={renderViolation}
-      keyExtractor={(item) => item.violationId.toString()}
-      showsVerticalScrollIndicator={false}
-    />
-  );
+  return <View>{violations.map((item) => renderViolation(item))}</View>;
 };
 
 const styles = StyleSheet.create({
@@ -84,12 +80,12 @@ const styles = StyleSheet.create({
   },
   violationCardSelected: {
     bordercolor: colors.primary[600],
-    backgroundColor: colors.primary + '10',
+    backgroundColor: colors.primary + "10",
   },
   violationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: spacing.sm,
   },
   violationType: {
@@ -101,7 +97,7 @@ const styles = StyleSheet.create({
     color: colors.primary[600],
   },
   cognizableBadge: {
-    backgroundColor: colors.warning + '20',
+    backgroundColor: colors.warning + "20",
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
@@ -109,7 +105,7 @@ const styles = StyleSheet.create({
   cognizableText: {
     ...typography.caption,
     color: colors.warning[600],
-    fontWeight: '600',
+    fontWeight: "600",
   },
   violationDescription: {
     ...typography.bodySmall,
@@ -117,9 +113,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   violationFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   penaltyLabel: {
     ...typography.bodySmall,
@@ -134,12 +130,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[600],
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   selectedText: {
     ...typography.caption,
     color: colors.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
-

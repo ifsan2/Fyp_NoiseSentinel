@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Text,
   TextInput,
+  ScrollView,
 } from "react-native";
 import { Search, X } from "lucide-react-native";
 import { Header } from "../../components/common/Header";
@@ -171,11 +172,14 @@ export const MyChallansScreen: React.FC<MyChallansScreenProps> = ({
 
       {/* Filters */}
       <View style={styles.filtersContainer}>
-        <FlatList
+        <ScrollView
           horizontal
-          data={filters}
-          renderItem={({ item }) => (
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersList}
+        >
+          {filters.map((item) => (
             <TouchableOpacity
+              key={item}
               style={[
                 styles.filterButton,
                 activeFilter === item && styles.filterButtonActive,
@@ -191,11 +195,8 @@ export const MyChallansScreen: React.FC<MyChallansScreenProps> = ({
                 {item}
               </Text>
             </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersList}
-        />
+          ))}
+        </ScrollView>
       </View>
 
       {/* Challans List */}
@@ -229,9 +230,14 @@ const styles = StyleSheet.create({
   searchContainer: {
     backgroundColor: colors.white,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   searchInputWrapper: {
     flexDirection: "row",
@@ -239,6 +245,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray100,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
+    height: 44,
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -255,21 +262,39 @@ const styles = StyleSheet.create({
   filtersContainer: {
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.default,
+    borderBottomColor: colors.border.light,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 1,
   },
   filtersList: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    gap: spacing.sm,
   },
   filterButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: spacing.sm + 2,
     borderRadius: borderRadius.full,
     backgroundColor: colors.gray100,
     marginRight: spacing.sm,
+    minWidth: 70,
+    alignItems: "center",
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
   },
   filterButtonActive: {
     backgroundColor: colors.primary[500],
+    elevation: 2,
+    shadowColor: colors.primary[500],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
   },
   filterText: {
     ...typography.bodySmall,

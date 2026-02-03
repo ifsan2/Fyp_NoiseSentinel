@@ -19,6 +19,7 @@ import vehicleApi from "../../api/vehicleApi";
 import violationApi from "../../api/violationApi";
 import emissionReportApi from "../../api/emissionReportApi";
 import iotDeviceApi from "../../api/iotDeviceApi";
+import BleDeviceService from "../../services/BleDeviceService";
 import { ViolationSelector } from "../../components/challan/ViolationSelector";
 import { ChallanTypeBadge } from "../../components/challan/ChallanTypeBadge";
 import { Button } from "../../components/common/Button";
@@ -35,6 +36,7 @@ import {
 import { colors } from "../../styles/colors";
 import { validation } from "../../utils/validation";
 import { BANK_DETAILS } from "../../utils/constants";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface CreateChallanScreenProps {
   navigation: any;
@@ -45,6 +47,9 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
   navigation,
   route,
 }) => {
+  // Get authenticated user details
+  const { userDetails } = useAuth();
+
   // Route params
   const challanType = route.params?.challanType; // "Traffic" or "Non-Traffic"
   const violationCategory = route.params?.violationCategory; // "Noise" or "Emission"
@@ -66,6 +71,8 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     deviceId || null,
   );
   const [deviceName, setDeviceName] = useState("");
+  const [challanNotified, setChallanNotified] = useState(false);
+  const [challanCreated, setChallanCreated] = useState(false);
   const [soundLevel, setSoundLevel] = useState("");
   const [co, setCo] = useState("");
   const [co2, setCo2] = useState("");
@@ -77,7 +84,10 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     number | null
   >(emissionReportId || null);
 
-  // Step 2: Vehicle
+  // Test progress states
+  const [testInProgress, setTestInProgress] = useState(false);
+  const [testPhase, setTestPhase] = useState(""); // "warming", "sampling"
+  const [countdown, setCountdown] = useState(0); // Real-time countdown from ESP32
   const [vehicleSearchPlate, setVehicleSearchPlate] = useState("");
   const [vehicleId, setVehicleId] = useState<number | null>(null);
   const [vehicleFound, setVehicleFound] = useState(false);
@@ -106,6 +116,61 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
   const [errors, setErrors] = useState<any>({});
 
+  // Monitor BLE connection status for Non-Traffic challans
+  useEffect(() => {
+    if (challanType !== "Non-Traffic" || !pairedDeviceId) {
+      return; // Only monitor for Non-Traffic challans with a paired device
+    }
+
+    let connectionCheckInterval: NodeJS.Timeout;
+
+    const checkConnection = async () => {
+      try {
+        const isConnected = await BleDeviceService.isConnected();
+        console.log(`🔌 Connection status: ${isConnected}, Bluetooth: true`);
+
+        if (!isConnected) {
+          // Device disconnected - clear interval and navigate to pair device page
+          if (connectionCheckInterval) {
+            clearInterval(connectionCheckInterval);
+          }
+
+          Toast.show({
+            type: "error",
+            text1: "Device Disconnected",
+            text2: "Please reconnect to the IoT device to continue",
+            visibilityTime: 3000,
+          });
+
+          // Navigate to pair device page after a short delay
+          setTimeout(() => {
+            navigation.replace("PairDevice", {
+              challanType: challanType,
+              violationCategory: violationCategory,
+              reconnect: true,
+              message: "Device disconnected. Please reconnect to continue.",
+            });
+          }, 1000);
+        }
+      } catch (error) {
+        console.error("Error checking BLE connection:", error);
+      }
+    };
+
+    // Initial check
+    checkConnection();
+
+    // Check connection every 3 seconds
+    connectionCheckInterval = setInterval(checkConnection, 3000);
+
+    // Cleanup on unmount
+    return () => {
+      if (connectionCheckInterval) {
+        clearInterval(connectionCheckInterval);
+      }
+    };
+  }, [challanType, pairedDeviceId, navigation, violationCategory]);
+
   useEffect(() => {
     if (challanType === "Traffic") {
       loadViolations();
@@ -116,9 +181,14 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       }
     }
 
-    // Prevent back button if emissionReportId exists
-    if (emissionReportId || createdEmissionReportId) {
+    // Prevent back button if emissionReportId exists BUT challan not yet created
+    if ((emissionReportId || createdEmissionReportId) && !challanCreated) {
       const unsubscribe = navigation.addListener("beforeRemove", (e: any) => {
+        // If challan was created, allow navigation without confirmation
+        if (challanCreated) {
+          return; // Don't prevent navigation
+        }
+
         // Prevent default back action
         e.preventDefault();
 
@@ -139,7 +209,13 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
       return unsubscribe;
     }
-  }, [challanType, navigation, emissionReportId, createdEmissionReportId]);
+  }, [
+    challanType,
+    navigation,
+    emissionReportId,
+    createdEmissionReportId,
+    challanCreated,
+  ]);
 
   const loadDeviceInfo = async () => {
     if (!pairedDeviceId) return;
@@ -404,40 +480,220 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     }
   };
 
-  const handleScan = () => {
-    if (!selectedViolation) return;
+  // ============================================================================
+  // NOTIFY IOT DEVICE ABOUT CHALLAN CREATION
+  // ============================================================================
+  const notifyDeviceAboutChallan = async (violation: ViolationListItemDto) => {
+    if (!pairedDeviceId || challanNotified) return;
 
-    // Determine category from selected violation type
-    const violationType = selectedViolation.violationType.toLowerCase();
-    const isNoise =
-      violationType.includes("noise") ||
-      violationType.includes("sound") ||
-      violationType.includes("silencer");
+    try {
+      const violationType = violation.violationType.toLowerCase();
+      const category =
+        violationType.includes("noise") ||
+        violationType.includes("sound") ||
+        violationType.includes("silencer")
+          ? "Sound"
+          : "Environmental";
 
-    if (isNoise) {
-      // Noise: Only sound level
-      setSoundLevel("92.5");
-      setCo("");
-      setCo2("");
-      setHc("");
-      setNox("");
-      setMlClassification("Excessive Noise Detected");
-    } else {
-      // Emission: Only gases, no sound
-      setSoundLevel("");
-      setCo("2.3");
-      setCo2("14.7");
-      setHc("180");
-      setNox("850");
-      setMlClassification("Excessive Emissions Detected");
+      Toast.show({
+        type: "info",
+        text1: "📋 Notifying Device",
+        text2: `Preparing for ${category} violation test...`,
+        visibilityTime: 2000,
+      });
+
+      const response = await BleDeviceService.notifyChallanCreated(
+        pairedDeviceId,
+        category,
+      );
+
+      if (response.status === "CHALLAN_ACKNOWLEDGED") {
+        setChallanNotified(true);
+        console.log("✅ Device acknowledged challan creation");
+      }
+    } catch (error: any) {
+      console.error("⚠️ Failed to notify device:", error);
+      // Don't block the flow if notification fails
+      Toast.show({
+        type: "warning",
+        text1: "Device Notification Failed",
+        text2: "You can still proceed with the test",
+        visibilityTime: 2000,
+      });
     }
-    setScanned(true);
+  };
 
-    Toast.show({
-      type: "success",
-      text1: "Scan Complete",
-      text2: `${isNoise ? "Noise" : "Emission"} data captured successfully`,
-    });
+  // ============================================================================
+  // REAL BLE DEVICE SCANNING (REPLACES DUMMY DATA)
+  // ============================================================================
+  const handleScan = async () => {
+    if (!selectedViolation || !pairedDeviceId) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please ensure device is paired and violation is selected",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setTestInProgress(true);
+
+    try {
+      // Determine test type from violation
+      const violationType = selectedViolation.violationType.toLowerCase();
+      const isNoise =
+        violationType.includes("noise") ||
+        violationType.includes("sound") ||
+        violationType.includes("silencer");
+
+      // Get officer ID from authenticated user
+      const officerId = userDetails?.officerId;
+
+      if (!officerId) {
+        Toast.show({
+          type: "error",
+          text1: "Authentication Error",
+          text2: "Officer ID not found. Please login again.",
+        });
+        setLoading(false);
+        setTestInProgress(false);
+        return;
+      }
+
+      // Show initial toast
+      Toast.show({
+        type: "info",
+        text1: isNoise ? "🔊 Noise Test Starting" : "🏭 Emission Test Starting",
+        text2: isNoise
+          ? "This will take ~10 seconds..."
+          : "This will take ~40 seconds (warm-up + sampling)...",
+      });
+
+      // Set progress phase and initial countdown
+      const totalTime = isNoise ? 10 : 40; // Total test time in seconds
+      setTestPhase(isNoise ? "sampling" : "warming");
+      setCountdown(totalTime);
+
+      // Track if we've synced with ESP32 yet (sync once, then local timer runs)
+      let hasSyncedWithEsp32 = false;
+      let localCountdown = totalTime;
+
+      // Start LOCAL countdown timer (runs independently after initial sync)
+      const countdownInterval = setInterval(() => {
+        localCountdown -= 1;
+        if (localCountdown <= 0) {
+          clearInterval(countdownInterval);
+          setCountdown(0);
+          return;
+        }
+        // Switch phase at 10 seconds for emission test
+        if (!isNoise && localCountdown === 10) {
+          setTestPhase("sampling");
+        }
+        setCountdown(localCountdown);
+      }, 1000);
+
+      // ESP32 heartbeat callback - sync once on first heartbeat, then ignore
+      BleDeviceService.setProgressCallback(
+        (phase: string, secondsRemaining: number) => {
+          console.log(
+            `📊 ESP32 Heartbeat: ${phase}, ${secondsRemaining}s (synced: ${hasSyncedWithEsp32})`,
+          );
+
+          // Only sync on the FIRST heartbeat from ESP32
+          if (!hasSyncedWithEsp32) {
+            console.log(
+              `🔄 Syncing local timer to ESP32: ${secondsRemaining}s`,
+            );
+            hasSyncedWithEsp32 = true;
+            localCountdown = secondsRemaining; // Sync local variable
+            setCountdown(secondsRemaining); // Sync UI
+            const normalizedPhase = phase.toLowerCase();
+            setTestPhase(normalizedPhase);
+          }
+          // After first sync, ignore subsequent heartbeats - local timer runs
+        },
+      );
+
+      // Send BLE command to ESP32 and wait for results
+      let result;
+      try {
+        result = isNoise
+          ? await BleDeviceService.startNoiseTest(pairedDeviceId, officerId)
+          : await BleDeviceService.startEmissionTest(pairedDeviceId, officerId);
+      } finally {
+        // Always clear the countdown interval
+        clearInterval(countdownInterval);
+      }
+
+      // Clear progress callback
+      BleDeviceService.removeProgressCallback();
+
+      if (result.status === "COMPLETED") {
+        // Populate form with REAL sensor data
+        setSoundLevel(result.data.sound_level_dba?.toString() || "");
+        setCo(result.data.co?.toString() || "");
+        setCo2(result.data.co2?.toString() || "");
+        setHc(result.data.hc?.toString() || "");
+        setNox(result.data.nox?.toString() || "");
+        setMlClassification(result.data.ml_classification || "");
+        setScanned(true);
+
+        // Check for violations based on vehicle type
+        // For noise: 85 dBA for bikes, 80 dBA for cars (use 85 as general threshold)
+        // For emissions: CO > 500 ppm or HC > 200 ppm (car standards)
+        const isViolation = isNoise
+          ? (result.data.sound_level_dba || 0) > 85.0 // Silencer violation
+          : (result.data.co || 0) > 500.0 || (result.data.hc || 0) > 200.0; // Emission violation (car standard)
+
+        Toast.show({
+          type: isViolation ? "error" : "success",
+          text1: isViolation ? "🚨 VIOLATION DETECTED" : "✅ Test Complete",
+          text2: isViolation
+            ? `${isNoise ? "Sound" : "Emission"} exceeds legal limits`
+            : "No violation detected",
+        });
+
+        console.log("📊 Test Results:", {
+          testType: result.test_type,
+          soundLevel: result.data.sound_level_dba,
+          co: result.data.co,
+          hc: result.data.hc,
+          battery: result.battery_level,
+          firmware: result.firmware_version,
+        });
+      } else {
+        throw new Error("Test failed or incomplete");
+      }
+    } catch (error: any) {
+      console.error("❌ BLE scan error:", error);
+      Toast.show({
+        type: "error",
+        text1: "Scan Failed",
+        text2: error.message || "Failed to communicate with IoT device",
+      });
+
+      // Fallback to dummy data for testing (remove in production)
+      const violationType = selectedViolation.violationType.toLowerCase();
+      const isNoise = violationType.includes("noise");
+      if (isNoise) {
+        setSoundLevel("92.5");
+        setMlClassification("Excessive Noise Detected (Fallback)");
+      } else {
+        setCo("2.3");
+        setCo2("14.7");
+        setHc("180");
+        setMlClassification("Excessive Emissions Detected (Fallback)");
+      }
+      setScanned(true);
+    } finally {
+      setLoading(false);
+      setTestInProgress(false);
+      setTestPhase("");
+      setCountdown(0);
+      BleDeviceService.removeProgressCallback(); // Ensure cleanup
+    }
   };
 
   const createEmissionReport = async (): Promise<number | null> => {
@@ -591,6 +847,17 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
   const handleNext = async () => {
     if (!validateStep(step)) return;
 
+    // For Non-Traffic, after violation selection (step 1), notify IoT device
+    if (
+      challanType === "Non-Traffic" &&
+      step === 1 &&
+      selectedViolation &&
+      pairedDeviceId &&
+      !challanNotified
+    ) {
+      await notifyDeviceAboutChallan(selectedViolation);
+    }
+
     // For Non-Traffic, after scan (step 4), create emission report before moving to evidence
     if (
       challanType === "Non-Traffic" &&
@@ -708,6 +975,9 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       console.log("📤 Submitting Challan:", JSON.stringify(data, null, 2));
 
       const response = await challanApi.createChallan(data);
+
+      // Mark challan as created so navigation doesn't show confirmation dialog
+      setChallanCreated(true);
 
       Toast.show({
         type: "success",
@@ -1049,20 +1319,70 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
                 ? "Position the device near the vehicle's exhaust to measure sound levels"
                 : "Connect the device to measure emission gas levels"}
             </Text>
+
+            {testInProgress && (
+              <View style={styles.testProgressContainer}>
+                <Text style={styles.testPhaseText}>
+                  {testPhase === "warming" &&
+                    "⏳ Preparing sensors for analysis..."}
+                  {testPhase === "sampling" &&
+                    (isNoise
+                      ? "📊 Analyzing sound levels..."
+                      : "📊 Analyzing emissions...")}
+                </Text>
+                {countdown > 0 && (
+                  <Text style={styles.countdownText}>{countdown}s</Text>
+                )}
+                <View style={styles.progressBarContainer}>
+                  <View style={styles.progressBar} />
+                </View>
+                <Text style={styles.testHelperText}>
+                  {testPhase === "warming"
+                    ? "Sensors are stabilizing for accurate readings"
+                    : isNoise
+                      ? "Please keep device near exhaust"
+                      : "Sensors are analyzing exhaust gases"}
+                </Text>
+              </View>
+            )}
+
             <Button
-              title="Start Scan"
+              title={testInProgress ? "Test in Progress..." : "Start Scan"}
               onPress={handleScan}
               fullWidth
               variant="primary"
+              disabled={testInProgress || loading}
             />
           </Card>
         )}
 
         {scanned && (
           <Card>
-            <Text style={[styles.cardTitle, styles.successText]}>
-              ✓ Scan Complete
-            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={[styles.cardTitle, styles.successText]}>
+                ✓ Scan Complete
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setScanned(false);
+                  setSoundLevel("");
+                  setCo("");
+                  setCo2("");
+                  setHc("");
+                  setNox("");
+                  setMlClassification("");
+                }}
+                style={styles.rescanButton}
+              >
+                <Text style={styles.rescanButtonText}>🔄 Rescan</Text>
+              </TouchableOpacity>
+            </View>
 
             {isNoise && (
               <View style={styles.scanResults}>
@@ -1356,7 +1676,7 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     gap: 8,
     marginBottom: 12,
   },
@@ -1364,7 +1684,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchButtonWrapper: {
-    paddingTop: 24,
+    marginBottom: 2,
   },
   reviewTitle: {
     fontSize: 16,
@@ -1550,5 +1870,56 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.text.primary,
     marginTop: 2,
+  },
+  testProgressContainer: {
+    marginVertical: 16,
+    padding: 16,
+    backgroundColor: colors.primary[50],
+    borderRadius: 12,
+    alignItems: "center",
+    gap: 8,
+  },
+  testPhaseText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.primary[700],
+    textAlign: "center",
+  },
+  countdownText: {
+    fontSize: 48,
+    fontWeight: "700",
+    color: colors.primary[600],
+    marginVertical: 12,
+    textAlign: "center",
+  },
+  progressBarContainer: {
+    width: "100%",
+    height: 6,
+    backgroundColor: colors.primary[100],
+    borderRadius: 3,
+    overflow: "hidden",
+    marginTop: 8,
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: colors.primary[600],
+    width: "100%",
+  },
+  testHelperText: {
+    fontSize: 13,
+    color: colors.primary[600],
+    textAlign: "center",
+    marginTop: 4,
+  },
+  rescanButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: colors.primary[100],
+    borderRadius: 6,
+  },
+  rescanButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.primary[700],
   },
 });

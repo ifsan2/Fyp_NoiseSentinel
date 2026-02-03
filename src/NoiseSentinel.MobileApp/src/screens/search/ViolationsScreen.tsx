@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,28 +6,30 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
-} from 'react-native';
-import { Header } from '../../components/common/Header';
-import { Loading } from '../../components/common/Loading';
-import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { Card } from '../../components/common/Card';
-import { colors } from '../../styles/colors';
-import { spacing, borderRadius } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
-import violationApi from '../../api/violationApi';
-import { ViolationListItemDto } from '../../models/Violation';
-import { formatters } from '../../utils/formatters';
+} from "react-native";
+import { Header } from "../../components/common/Header";
+import { Loading } from "../../components/common/Loading";
+import { ErrorMessage } from "../../components/common/ErrorMessage";
+import { Card } from "../../components/common/Card";
+import { colors } from "../../styles/colors";
+import { spacing, borderRadius } from "../../styles/spacing";
+import { typography } from "../../styles/typography";
+import violationApi from "../../api/violationApi";
+import { ViolationListItemDto } from "../../models/Violation";
+import { formatters } from "../../utils/formatters";
 
 interface ViolationsScreenProps {
   navigation: any;
 }
 
-export const ViolationsScreen: React.FC<ViolationsScreenProps> = ({ navigation }) => {
+export const ViolationsScreen: React.FC<ViolationsScreenProps> = ({
+  navigation,
+}) => {
   const [violations, setViolations] = useState<ViolationListItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'cognizable'>('all');
+  const [filter, setFilter] = useState<"all" | "cognizable">("all");
 
   useEffect(() => {
     loadViolations();
@@ -39,7 +41,7 @@ export const ViolationsScreen: React.FC<ViolationsScreenProps> = ({ navigation }
       const data = await violationApi.getAllViolations();
       setViolations(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load violations');
+      setError(err.response?.data?.message || "Failed to load violations");
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export const ViolationsScreen: React.FC<ViolationsScreenProps> = ({ navigation }
   };
 
   const getFilteredViolations = () => {
-    if (filter === 'cognizable') {
+    if (filter === "cognizable") {
       return violations.filter((v) => v.isCognizable);
     }
     return violations;
@@ -93,7 +95,8 @@ export const ViolationsScreen: React.FC<ViolationsScreenProps> = ({ navigation }
       {item.isCognizable && (
         <View style={styles.cognizableInfo}>
           <Text style={styles.cognizableInfoText}>
-            ℹ️ This violation is cognizable - FIR can be filed by Station Authority
+            ℹ️ This violation is cognizable - FIR can be filed by Station
+            Authority
           </Text>
         </View>
       )}
@@ -124,19 +127,32 @@ export const ViolationsScreen: React.FC<ViolationsScreenProps> = ({ navigation }
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
         <TouchableOpacity
-          style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
-          onPress={() => setFilter('all')}
+          style={[styles.filterTab, filter === "all" && styles.filterTabActive]}
+          onPress={() => setFilter("all")}
         >
-          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
+          <Text
+            style={[
+              styles.filterText,
+              filter === "all" && styles.filterTextActive,
+            ]}
+          >
             All ({violations.length})
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.filterTab, filter === 'cognizable' && styles.filterTabActive]}
-          onPress={() => setFilter('cognizable')}
+          style={[
+            styles.filterTab,
+            filter === "cognizable" && styles.filterTabActive,
+          ]}
+          onPress={() => setFilter("cognizable")}
         >
-          <Text style={[styles.filterText, filter === 'cognizable' && styles.filterTextActive]}>
+          <Text
+            style={[
+              styles.filterText,
+              filter === "cognizable" && styles.filterTextActive,
+            ]}
+          >
             Cognizable ({violations.filter((v) => v.isCognizable).length})
           </Text>
         </TouchableOpacity>
@@ -168,25 +184,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.secondary,
   },
   filterContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.default,
+    borderBottomColor: colors.border.light,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   filterTab: {
     flex: 1,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
+    paddingVertical: spacing.md + 2,
+    alignItems: "center",
     borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
+    borderBottomColor: "transparent",
   },
   filterTabActive: {
     borderBottomColor: colors.primary[600],
+    backgroundColor: colors.primary[50],
   },
   filterText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    fontWeight: '600',
+    ...typography.bodyMedium,
+    color: colors.text.secondary,
+    fontWeight: "600",
   },
   filterTextActive: {
     color: colors.primary[600],
@@ -196,11 +218,16 @@ const styles = StyleSheet.create({
   },
   violationCard: {
     marginBottom: spacing.md,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   violationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: spacing.sm,
   },
   violationType: {
@@ -209,7 +236,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cognizableBadge: {
-    backgroundColor: colors.warning[500] + '20',
+    backgroundColor: colors.warning[500] + "20",
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
@@ -218,7 +245,7 @@ const styles = StyleSheet.create({
   cognizableText: {
     ...typography.caption,
     color: colors.warning[600],
-    fontWeight: '700',
+    fontWeight: "700",
   },
   description: {
     ...typography.body,
@@ -234,9 +261,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   penaltyContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   penaltyLabel: {
     ...typography.body,
@@ -257,7 +284,7 @@ const styles = StyleSheet.create({
   },
   cognizableInfo: {
     marginTop: spacing.sm,
-    backgroundColor: colors.info[500] + '10',
+    backgroundColor: colors.info[500] + "10",
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
   },
@@ -266,4 +293,3 @@ const styles = StyleSheet.create({
     color: colors.info[600],
   },
 });
-

@@ -97,7 +97,7 @@ export const PublicChallanSearchPage: React.FC = () => {
 
       const results = await challanApi.searchChallansByPlateAndCnic(
         plateNumber,
-        cnic
+        cnic,
       );
 
       setChallans(results);
@@ -116,7 +116,7 @@ export const PublicChallanSearchPage: React.FC = () => {
       console.error("Search error:", error);
       enqueueSnackbar(
         error.response?.data?.message || "Failed to search challans",
-        { variant: "error" }
+        { variant: "error" },
       );
       setHasSearched(true);
       setChallans([]);
@@ -132,7 +132,7 @@ export const PublicChallanSearchPage: React.FC = () => {
 
       const results = await challanApi.searchChallansByPlateAndCnic(
         data.plateNumber,
-        data.cnic
+        data.cnic,
       );
 
       setChallans(results);
@@ -151,7 +151,7 @@ export const PublicChallanSearchPage: React.FC = () => {
       console.error("Search error:", error);
       enqueueSnackbar(
         error.response?.data?.message || "Failed to search challans",
-        { variant: "error" }
+        { variant: "error" },
       );
       setHasSearched(true);
       setChallans([]);
@@ -505,7 +505,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                 <div class="info-box">
                   <div class="info-label">Due Date:</div>
                   <div class="info-value"><strong>${formatDate(
-                    challan.dueDateTime
+                    challan.dueDateTime,
                   )}</strong></div>
                 </div>
                 <div class="info-box" style="margin-top: 5px;">
@@ -517,7 +517,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                 <div class="info-box" style="margin-top: 5px;">
                   <div class="info-label">Extended due date:</div>
                   <div class="info-value">${formatDate(
-                    challan.dueDateTime
+                    challan.dueDateTime,
                   )}</div>
                 </div>
               </div>
@@ -542,10 +542,10 @@ export const PublicChallanSearchPage: React.FC = () => {
                 <td class="value-cell" colspan="2">${
                   challan.accusedAddress || challan.accusedCity || "N/A"
                 }${
-      challan.accusedCity && challan.accusedProvince
-        ? `, ${challan.accusedProvince}`
-        : ""
-    }</td>
+                  challan.accusedCity && challan.accusedProvince
+                    ? `, ${challan.accusedProvince}`
+                    : ""
+                }</td>
                 <td class="label-cell">Contact</td>
                 <td class="value-cell">${challan.accusedContact || "N/A"}</td>
               </tr>
@@ -596,7 +596,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                 <div>
                   <div class="info-label">Issue Date:</div>
                   <div class="info-value"><strong>${formatDate(
-                    challan.issueDateTime
+                    challan.issueDateTime,
                   )}</strong></div>
                 </div>
                 <div>
@@ -623,21 +623,68 @@ export const PublicChallanSearchPage: React.FC = () => {
                 ? `
             <!-- Emission Report Section -->
             <div class="emission-section">
-              <h3>EMISSION TEST REPORT</h3>
+              <h3>${
+                (challan.co !== undefined && challan.co !== null) ||
+                (challan.co2 !== undefined && challan.co2 !== null) ||
+                (challan.hc !== undefined && challan.hc !== null) ||
+                (challan.nox !== undefined && challan.nox !== null)
+                  ? "EMISSION TEST REPORT"
+                  : "NOISE TEST REPORT"
+              }</h3>
               <table style="width: 100%; margin-top: 5px;">
                 <tr>
                   <td class="label-cell">Device Name:</td>
                   <td class="value-cell">${challan.deviceName || "N/A"}</td>
-                  <td class="label-cell">Sound Level (dBA):</td>
-                  <td class="value-cell"><strong>${
-                    challan.soundLevelDBa || "N/A"
-                  }</strong></td>
+                  ${
+                    challan.soundLevelDBa &&
+                    !(challan.co || challan.co2 || challan.hc || challan.nox)
+                      ? `<td class="label-cell">Sound Level (dBA):</td>
+                       <td class="value-cell"><strong>${challan.soundLevelDBa}</strong></td>`
+                      : `<td class="label-cell">Classification:</td>
+                       <td class="value-cell">${challan.mlClassification || "N/A"}</td>`
+                  }
+                </tr>
+                ${
+                  (challan.co !== undefined && challan.co !== null) ||
+                  (challan.co2 !== undefined && challan.co2 !== null) ||
+                  (challan.hc !== undefined && challan.hc !== null) ||
+                  (challan.nox !== undefined && challan.nox !== null)
+                    ? `
+                <tr>
+                  ${
+                    challan.co !== undefined && challan.co !== null
+                      ? `<td class="label-cell">CO:</td><td class="value-cell"><strong>${challan.co.toFixed(2)} ppm</strong></td>`
+                      : `<td class="label-cell"></td><td class="value-cell"></td>`
+                  }
+                  ${
+                    challan.co2 !== undefined && challan.co2 !== null
+                      ? `<td class="label-cell">CO₂:</td><td class="value-cell"><strong>${challan.co2.toFixed(2)} %</strong></td>`
+                      : `<td class="label-cell"></td><td class="value-cell"></td>`
+                  }
                 </tr>
                 <tr>
-                  <td class="label-cell">Classification:</td>
-                  <td class="value-cell">${
-                    challan.mlClassification || "N/A"
-                  }</td>
+                  ${
+                    challan.hc !== undefined && challan.hc !== null
+                      ? `<td class="label-cell">HC:</td><td class="value-cell"><strong>${challan.hc.toFixed(2)} ppm</strong></td>`
+                      : `<td class="label-cell"></td><td class="value-cell"></td>`
+                  }
+                  ${
+                    challan.nox !== undefined && challan.nox !== null
+                      ? `<td class="label-cell">NOx:</td><td class="value-cell"><strong>${challan.nox.toFixed(2)} ppm</strong></td>`
+                      : `<td class="label-cell"></td><td class="value-cell"></td>`
+                  }
+                </tr>
+                `
+                    : ``
+                }
+                <tr>
+                  ${
+                    challan.soundLevelDBa &&
+                    !(challan.co || challan.co2 || challan.hc || challan.nox)
+                      ? `<td class="label-cell">Classification:</td>
+                       <td class="value-cell">${challan.mlClassification || "N/A"}</td>`
+                      : `<td class="label-cell"></td><td class="value-cell"></td>`
+                  }
                   <td class="label-cell">Test Date:</td>
                   <td class="value-cell">${
                     challan.emissionTestDateTime
@@ -746,10 +793,10 @@ export const PublicChallanSearchPage: React.FC = () => {
                   <td style="border: 1px solid #000; padding: 5px;">${
                     challan.accusedAddress || challan.accusedCity || "N/A"
                   }${
-      challan.accusedCity && challan.accusedProvince
-        ? `, ${challan.accusedProvince}`
-        : ""
-    }</td>
+                    challan.accusedCity && challan.accusedProvince
+                      ? `, ${challan.accusedProvince}`
+                      : ""
+                  }</td>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000; padding: 5px;"><strong>Contact:</strong></td>
@@ -766,7 +813,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                 <tr>
                   <td style="border: 1px solid #000; padding: 5px;"><strong>Due Date:</strong></td>
                   <td style="border: 1px solid #000; padding: 5px;" colspan="2">${formatDate(
-                    challan.dueDateTime
+                    challan.dueDateTime,
                   )}</td>
                 </tr>
                 <tr>
@@ -1381,7 +1428,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                                   <Typography variant="body2" fontWeight={500}>
                                     {challan.vehicleMakeYear
                                       ? new Date(
-                                          challan.vehicleMakeYear
+                                          challan.vehicleMakeYear,
                                         ).getFullYear()
                                       : "N/A"}
                                   </Typography>
@@ -1468,7 +1515,16 @@ export const PublicChallanSearchPage: React.FC = () => {
                                   gutterBottom
                                   sx={{ fontWeight: 600 }}
                                 >
-                                  Emission Test Report
+                                  {(challan.co !== undefined &&
+                                    challan.co !== null) ||
+                                  (challan.co2 !== undefined &&
+                                    challan.co2 !== null) ||
+                                  (challan.hc !== undefined &&
+                                    challan.hc !== null) ||
+                                  (challan.nox !== undefined &&
+                                    challan.nox !== null)
+                                    ? "Emission Test Report"
+                                    : "Noise Test Report"}
                                 </Typography>
                                 <Box
                                   sx={{
@@ -1502,21 +1558,106 @@ export const PublicChallanSearchPage: React.FC = () => {
                                       {challan.deviceName || "N/A"}
                                     </Typography>
                                   </Box>
-                                  <Box>
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                    >
-                                      Sound Level (dBA)
-                                    </Typography>
-                                    <Typography
-                                      variant="body2"
-                                      fontWeight={700}
-                                      color="error"
-                                    >
-                                      {challan.soundLevelDBa || "N/A"}
-                                    </Typography>
-                                  </Box>
+
+                                  {/* Show Sound Level for noise violations */}
+                                  {challan.soundLevelDBa &&
+                                    !(
+                                      challan.co ||
+                                      challan.co2 ||
+                                      challan.hc ||
+                                      challan.nox
+                                    ) && (
+                                      <Box>
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                        >
+                                          Sound Level (dBA)
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          fontWeight={700}
+                                          color="error"
+                                        >
+                                          {challan.soundLevelDBa}
+                                        </Typography>
+                                      </Box>
+                                    )}
+
+                                  {/* Show Emission gases for pollution violations */}
+                                  {challan.co !== undefined &&
+                                    challan.co !== null && (
+                                      <Box>
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                        >
+                                          CO (ppm)
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          fontWeight={700}
+                                          color="error"
+                                        >
+                                          {challan.co.toFixed(2)}
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                  {challan.co2 !== undefined &&
+                                    challan.co2 !== null && (
+                                      <Box>
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                        >
+                                          CO₂ (%)
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          fontWeight={700}
+                                          color="error"
+                                        >
+                                          {challan.co2.toFixed(2)}
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                  {challan.hc !== undefined &&
+                                    challan.hc !== null && (
+                                      <Box>
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                        >
+                                          HC (ppm)
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          fontWeight={700}
+                                          color="error"
+                                        >
+                                          {challan.hc.toFixed(2)}
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                  {challan.nox !== undefined &&
+                                    challan.nox !== null && (
+                                      <Box>
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                        >
+                                          NOx (ppm)
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          fontWeight={700}
+                                          color="error"
+                                        >
+                                          {challan.nox.toFixed(2)}
+                                        </Typography>
+                                      </Box>
+                                    )}
+
                                   <Box>
                                     <Typography
                                       variant="caption"
@@ -1544,7 +1685,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                                     >
                                       {challan.emissionTestDateTime
                                         ? formatDate(
-                                            challan.emissionTestDateTime
+                                            challan.emissionTestDateTime,
                                           )
                                         : "N/A"}
                                     </Typography>
@@ -1589,7 +1730,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                                       bgcolor: "#f5f5f5",
                                     }}
                                     onError={(
-                                      e: React.SyntheticEvent<HTMLImageElement>
+                                      e: React.SyntheticEvent<HTMLImageElement>,
                                     ) => {
                                       const target = e.currentTarget;
                                       target.style.display = "none";

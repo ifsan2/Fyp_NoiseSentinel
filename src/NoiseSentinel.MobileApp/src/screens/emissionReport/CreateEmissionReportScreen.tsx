@@ -198,9 +198,7 @@ export const CreateEmissionReportScreen: React.FC<
               </View>
               <View style={styles.deviceInfo}>
                 <Text style={styles.deviceLabel}>Paired Device</Text>
-                <Text style={styles.deviceValue}>
-                  {deviceName}
-                </Text>
+                <Text style={styles.deviceValue}>{deviceName}</Text>
                 <Text style={styles.deviceId}>ID: {pairedDeviceId}</Text>
               </View>
             </View>
@@ -256,10 +254,14 @@ export const CreateEmissionReportScreen: React.FC<
             />
 
             {soundLevel && !errors.soundLevel && (
-              <View style={[
-                styles.soundStatus,
-                parseFloat(soundLevel) > SOUND_THRESHOLD ? styles.soundStatusViolation : styles.soundStatusSafe
-              ]}>
+              <View
+                style={[
+                  styles.soundStatus,
+                  parseFloat(soundLevel) > SOUND_THRESHOLD
+                    ? styles.soundStatusViolation
+                    : styles.soundStatusSafe,
+                ]}
+              >
                 <Text
                   style={[
                     styles.soundStatusText,
@@ -294,7 +296,9 @@ export const CreateEmissionReportScreen: React.FC<
 
               {/* Table Rows */}
               <View style={[styles.tableRow, styles.tableRowEven]}>
-                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                <View
+                  style={[styles.tableCellContainer, styles.parameterColumn]}
+                >
                   <Text style={styles.tableCellLabel}>CO</Text>
                   <Text style={styles.tableCellSublabel}>Carbon Monoxide</Text>
                 </View>
@@ -311,7 +315,9 @@ export const CreateEmissionReportScreen: React.FC<
               </View>
 
               <View style={styles.tableRow}>
-                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                <View
+                  style={[styles.tableCellContainer, styles.parameterColumn]}
+                >
                   <Text style={styles.tableCellLabel}>CO2</Text>
                   <Text style={styles.tableCellSublabel}>Carbon Dioxide</Text>
                 </View>
@@ -328,7 +334,9 @@ export const CreateEmissionReportScreen: React.FC<
               </View>
 
               <View style={[styles.tableRow, styles.tableRowEven]}>
-                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                <View
+                  style={[styles.tableCellContainer, styles.parameterColumn]}
+                >
                   <Text style={styles.tableCellLabel}>HC</Text>
                   <Text style={styles.tableCellSublabel}>Hydrocarbons</Text>
                 </View>
@@ -345,7 +353,9 @@ export const CreateEmissionReportScreen: React.FC<
               </View>
 
               <View style={styles.tableRow}>
-                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+                <View
+                  style={[styles.tableCellContainer, styles.parameterColumn]}
+                >
                   <Text style={styles.tableCellLabel}>NOx</Text>
                   <Text style={styles.tableCellSublabel}>Nitrogen Oxides</Text>
                 </View>
@@ -361,8 +371,12 @@ export const CreateEmissionReportScreen: React.FC<
                 </View>
               </View>
 
-              <View style={[styles.tableRow, styles.tableRowEven, styles.lastRow]}>
-                <View style={[styles.tableCellContainer, styles.parameterColumn]}>
+              <View
+                style={[styles.tableRow, styles.tableRowEven, styles.lastRow]}
+              >
+                <View
+                  style={[styles.tableCellContainer, styles.parameterColumn]}
+                >
                   <Text style={styles.tableCellLabel}>ML Classification</Text>
                   <Text style={styles.tableCellSublabel}>Auto-detected</Text>
                 </View>
@@ -608,5 +622,3 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
 });
-
-

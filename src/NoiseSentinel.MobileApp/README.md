@@ -1,54 +1,35 @@
-# NoiseSentinel Mobile App
+# NoiseSentinel Mobile App (Police Officer App)
 
-A React Native mobile application designed **exclusively for Police Officers** to manage traffic noise violations, issue challans, and work with IoT emission monitoring devices in the field.
+React Native mobile application for police officers to issue traffic violation challans using IoT sensor data.
 
-> **Note:** Admins, Court Authorities, Station Authorities, and Judges use the [Web Portal](../Noisesentinel.WebPortal/README.md) instead.
+## 📱 Overview
 
-## 📋 Table of Contents
+This is the **field officer app** for the NoiseSentinel Traffic Management System. Police officers use this app to:
 
-- [Overview](#overview)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Features](#features)
-- [Officer Workflow](#officer-workflow)
-- [Screens & Navigation](#screens--navigation)
-- [Authentication](#authentication)
-- [API Integration](#api-integration)
-- [Getting Started](#getting-started)
-- [Build & Deployment](#build--deployment)
+- 📡 Connect to IoT devices via Bluetooth (BLE)
+- 🔊 Measure noise levels (silencer violations)
+- 💨 Test vehicle emissions (CO, HC, NOx)
+- 🚗 Search vehicles and accused persons
+- 📝 Create challans with digital evidence
+- 📊 View issued challan history
 
----
-
-## 🎯 Overview
-
-The NoiseSentinel Mobile App empowers Police Officers to:
-
-- **Pair with IoT devices** for emission/noise monitoring
-- **Generate emission reports** with ML-based violation detection
-- **Issue challans** with digital signatures and evidence
-- **Search vehicles and accused** by plate number or CNIC
-- **Track issued challans** with status filters
+**Note:** This app is NOT for accused persons or public users. Accused/public access is via the Web Portal only.
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Category             | Technology                                        |
-| -------------------- | ------------------------------------------------- |
-| **Framework**        | React Native 0.72.10 with Expo SDK 49             |
-| **Language**         | TypeScript                                        |
-| **Navigation**       | React Navigation 6.x (Native Stack + Bottom Tabs) |
-| **State Management** | React Context API                                 |
-| **HTTP Client**      | Axios                                             |
-| **Secure Storage**   | expo-secure-store                                 |
-| **UI Icons**         | Lucide React Native                               |
-| **Fonts**            | Plus Jakarta Sans (Google Fonts)                  |
-| **Animation**        | react-native-reanimated 3.3.0                     |
-| **Gestures**         | react-native-gesture-handler                      |
-| **Image Handling**   | expo-image-picker                                 |
-| **Haptics**          | expo-haptics                                      |
-| **Notifications**    | react-native-toast-message                        |
-| **Date Handling**    | date-fns                                          |
+- **Framework:** React Native 0.72.10 + Expo SDK 49
+- **Language:** TypeScript 5.1.3
+- **Navigation:** React Navigation 6.x (Stack + Bottom Tabs)
+- **Bluetooth:** react-native-ble-plx 3.1.2
+- **HTTP Client:** Axios
+- **State:** React Context API
+- **Storage:** expo-secure-store (JWT tokens)
+- **UI Components:** Custom components + Lucide icons
+- **Fonts:** Plus Jakarta Sans
+- **Camera/Images:** expo-image-picker + expo-image-manipulator
+- **Notifications:** react-native-toast-message
 
 ---
 
@@ -56,302 +37,38 @@ The NoiseSentinel Mobile App empowers Police Officers to:
 
 ```
 NoiseSentinel.MobileApp/
-├── App.tsx                    # Root component with providers
-├── app.json                   # Expo configuration
-├── package.json
-├── app/
-│   ├── _layout.tsx            # Expo Router layout
-│   └── index.tsx              # Entry point
-└── src/
-    ├── api/                   # API service layer
-    │   ├── axios.config.ts    # Axios instance
-    │   ├── authApi.ts         # Authentication
-    │   ├── challanApi.ts      # Challan operations
-    │   ├── emissionReportApi.ts # Emission reports
-    │   ├── iotDeviceApi.ts    # Device pairing
-    │   ├── violationApi.ts    # Violation types
-    │   ├── vehicleApi.ts      # Vehicle search
-    │   ├── accusedApi.ts      # Accused search
-    │   └── userApi.ts         # User profile
-    │
-    ├── components/
-    │   ├── common/            # Shared UI components
-    │   │   ├── Button.tsx
-    │   │   ├── Card.tsx
-    │   │   ├── Input.tsx
-    │   │   ├── Header.tsx
-    │   │   ├── Loading.tsx
-    │   │   └── ErrorDisplay.tsx
-    │   ├── challan/           # Challan components
-    │   │   ├── ChallanCard.tsx
-    │   │   ├── ViolationPicker.tsx
-    │   │   ├── VehicleForm.tsx
-    │   │   └── AccusedForm.tsx
-    │   ├── device/            # Device components
-    │   │   ├── DeviceCard.tsx
-    │   │   └── PairedDeviceCard.tsx
-    │   └── navigation/
-    │       └── GlassTabBar.tsx # Custom bottom tab bar
-    │
-    ├── contexts/
-    │   └── AuthContext.tsx    # Authentication state
-    │
-    ├── models/                # TypeScript interfaces
-    │   ├── Challan.ts
-    │   ├── EmissionReport.ts
-    │   ├── IotDevice.ts
-    │   ├── Vehicle.ts
-    │   ├── Accused.ts
-    │   └── Violation.ts
-    │
-    ├── navigation/
-    │   ├── AppNavigator.tsx   # Root navigator
-    │   ├── AuthNavigator.tsx  # Auth screens
-    │   ├── MainNavigator.tsx  # Main app screens
-    │   └── TabNavigator.tsx   # Bottom tabs
-    │
-    ├── screens/
-    │   ├── auth/
-    │   │   ├── LoginScreen.tsx
-    │   │   ├── ForgotPasswordScreen.tsx
-    │   │   ├── VerifyOtpScreen.tsx
-    │   │   └── ChangePasswordScreen.tsx
-    │   ├── dashboard/
-    │   │   └── DashboardScreen.tsx
-    │   ├── challan/
-    │   │   ├── CreateChallanScreen.tsx
-    │   │   ├── MyChallansScreen.tsx
-    │   │   └── ChallanDetailScreen.tsx
-    │   ├── device/
-    │   │   ├── PairDeviceScreen.tsx
-    │   │   └── CreateEmissionReportScreen.tsx
-    │   ├── search/
-    │   │   ├── SearchVehicleScreen.tsx
-    │   │   └── SearchAccusedScreen.tsx
-    │   ├── violation/
-    │   │   └── ViolationsScreen.tsx
-    │   └── profile/
-    │       └── ProfileScreen.tsx
-    │
-    ├── services/
-    │   └── storage.ts         # Secure storage service
-    │
-    ├── styles/
-    │   ├── colors.ts          # Color palette
-    │   └── typography.ts      # Font styles
-    │
-    ├── types/
-    │   └── navigation.ts      # Navigation types
-    │
-    └── utils/
-        ├── constants.ts       # App constants
-        ├── formatters.ts      # Date/currency formatters
-        └── validation.ts      # Form validation
+├── src/
+│   ├── api/               # API clients (axios instances)
+│   │   ├── axios.config.ts
+│   │   ├── accusedApi.ts
+│   │   ├── authApi.ts
+│   │   ├── challanApi.ts
+│   │   ├── emissionReportApi.ts
+│   │   ├── iotDeviceApi.ts
+│   │   ├── vehicleApi.ts
+│   │   └── violationApi.ts
+│   ├── components/        # Reusable UI components
+│   │   ├── common/       # Button, Card, Input, Header, etc.
+│   │   ├── challan/      # Challan-specific components
+│   │   └── navigation/   # Bottom tab navigator
+│   ├── contexts/          # React Context (AuthContext)
+│   ├── models/            # TypeScript interfaces/types
+│   ├── screens/           # App screens
+│   │   ├── auth/         # Login, Register
+│   │   ├── challan/      # Create, Search, Detail screens
+│   │   ├── dashboard/    # Officer dashboard
+│   │   ├── emission/     # Emission report screens
+│   │   ├── iot/          # IoT device pairing
+│   │   ├── profile/      # Officer profile
+│   │   └── search/       # Vehicle/Accused search
+│   ├── styles/            # Theme, colors, typography
+│   └── utils/             # Helpers, formatters, constants
+├── assets/                # Images, icons, fonts
+├── app.json              # Expo config
+├── package.json          # Dependencies
+├── tsconfig.json         # TypeScript config
+└── README.md             # This file
 ```
-
----
-
-## ⭐ Features
-
-### 📱 Dashboard
-
-- **Quick Stats**: Total challans issued, today's count
-- **Quick Actions**: Device pairing, create challan, view history
-- **Search Actions**: Vehicle lookup, accused lookup, violations list
-
-### 🔗 IoT Device Pairing
-
-- View available devices for pairing
-- Pair with calibrated noise monitoring device
-- View currently paired device details
-- Unpair device when done
-
-### 📊 Emission Report Generation
-
-- Requires paired IoT device
-- **Scan** captures simulated sensor data:
-  - Sound Level (dBA)
-  - CO, CO2, HC, NOx levels
-  - ML Classification result
-- Sound threshold: **85.0 dBA**
-- Digital signature for evidence integrity
-- Creates report linked to device
-
-### 📝 Challan Creation
-
-Multi-step wizard:
-
-| Step | Content                                        |
-| ---- | ---------------------------------------------- |
-| 1️⃣   | Select Violation Type                          |
-| 2️⃣   | Vehicle Information (search or create)         |
-| 3️⃣   | Accused Information (search by CNIC or create) |
-| 4️⃣   | Evidence Image + Bank Details                  |
-
-**Business Logic**:
-
-- From Emission Report → Only **Cognizable** violations shown
-- Direct Challan → Only **Non-Cognizable** violations shown
-- Auto-creates vehicle/accused if not found
-- Image evidence upload (base64)
-
-### 📋 Challan Management
-
-- View all issued challans
-- **Filters**: All, Unpaid, Paid, Overdue, FIR
-- **Search**: By name, plate, violation, challan ID
-- View challan details with digital signature
-
-### 🔍 Search Features
-
-- **Vehicle Search**: By plate number
-- **Accused Search**: By CNIC
-- **Violations**: View all violation types with fines
-
----
-
-## 👮 Officer Workflow
-
-### Complete Enforcement Flow
-
-```
-1. Pair Device → 2. Scan Emission → 3. Generate Report → 4. Create Challan
-```
-
-### Workflow Diagram
-
-```
-┌─────────────────┐
-│   Pair Device   │ ← Select from available devices
-└────────┬────────┘
-         ▼
-┌─────────────────┐
-│  Scan Emission  │ ← IoT device captures readings
-└────────┬────────┘
-         ▼
-┌─────────────────┐
-│ Generate Report │ ← Sound level, ML classification
-└────────┬────────┘
-         ▼
-   ┌─────┴─────┐
-   │ Violation? │
-   └─────┬─────┘
-    Yes  │  No
-    ▼    └──→ Done
-┌─────────────────┐
-│ Create Challan  │ ← Select violation, vehicle, accused
-└────────┬────────┘
-         ▼
-┌─────────────────┐
-│  Add Evidence   │ ← Photo upload, bank details
-└────────┬────────┘
-         ▼
-┌─────────────────┐
-│ Challan Issued  │ ← Digital signature, email to accused
-└─────────────────┘
-```
-
----
-
-## 📱 Screens & Navigation
-
-### Tab Navigator (Bottom Tabs)
-
-| Tab        | Icon  | Screen                | Description       |
-| ---------- | ----- | --------------------- | ----------------- |
-| 🏠 Home    | Home  | `DashboardScreen`     | Officer dashboard |
-| 📜 History | Clock | `MyChallansScreen`    | Issued challans   |
-| 📷 Scan    | Scan  | `CreateChallanScreen` | Create challan    |
-| 👤 Profile | User  | `ProfileScreen`       | Settings & logout |
-
-### Authentication Screens
-
-| Screen                 | Purpose                |
-| ---------------------- | ---------------------- |
-| `LoginScreen`          | Officer login          |
-| `ForgotPasswordScreen` | Request password reset |
-| `VerifyOtpScreen`      | Email OTP verification |
-| `ChangePasswordScreen` | Change/reset password  |
-
-### Main Screens
-
-| Screen                       | Purpose                         |
-| ---------------------------- | ------------------------------- |
-| `DashboardScreen`            | Overview with stats and actions |
-| `PairDeviceScreen`           | IoT device pairing              |
-| `CreateEmissionReportScreen` | Generate emission report        |
-| `CreateChallanScreen`        | Multi-step challan wizard       |
-| `MyChallansScreen`           | View issued challans            |
-| `ChallanDetailScreen`        | Challan details                 |
-| `SearchVehicleScreen`        | Search by plate                 |
-| `SearchAccusedScreen`        | Search by CNIC                  |
-| `ViolationsScreen`           | View violation types            |
-
----
-
-## 🔐 Authentication
-
-### Login Flow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                       Login Flow                            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  1. Enter username/password                                 │
-│         ↓                                                   │
-│  2. Validate role === "Police Officer"                      │
-│         ├── Other role → Block access                       │
-│         └── Police Officer → Continue                       │
-│         ↓                                                   │
-│  3. Check: requiresEmailVerification?                       │
-│         ├── Yes → Redirect to OTP screen                    │
-│         └── No → Continue                                   │
-│         ↓                                                   │
-│  4. Store JWT token securely                                │
-│         ↓                                                   │
-│  5. Check: mustChangePassword?                              │
-│         ├── Yes → Force password change                     │
-│         └── No → Go to Dashboard                            │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Token Storage
-
-- **Mobile**: `expo-secure-store` (encrypted)
-- **Web**: `localStorage`
-- Token key: `auth_token`
-- User data key: `user_data`
-
----
-
-## 🔌 API Integration
-
-### Configuration
-
-```typescript
-// src/api/axios.config.ts
-const BASE_URL = "http://localhost:5200/api";
-const TIMEOUT = 30000;
-```
-
-### API Endpoints Used
-
-| Service             | Endpoints                                     |
-| ------------------- | --------------------------------------------- |
-| **Auth**            | `/login`, `/verify-email`, `/change-password` |
-| **Challan**         | `/create`, `/officer/{id}`, `/{id}`           |
-| **Emission Report** | `/create`, `/list`, `/{id}`                   |
-| **IoT Device**      | `/available`, `/pair`, `/unpair`, `/{id}`     |
-| **Vehicle**         | `/plate/{plateNo}`, `/{id}`                   |
-| **Accused**         | `/cnic/{cnic}`, `/{id}`                       |
-| **Violation**       | `/list`, `/cognizable`                        |
-
-### Request/Response Interceptors
-
-- **Request**: Auto-attaches JWT Bearer token
-- **Response**: Handles errors (401 → logout, 403, 404, 500)
 
 ---
 
@@ -359,153 +76,455 @@ const TIMEOUT = 30000;
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
+- Node.js 18+ and npm/yarn
 - Expo CLI (`npm install -g expo-cli`)
-- Running [Backend API](../NoiseSentinel.WebApi/README.md)
-- iOS Simulator (Mac) or Android Emulator or physical device
+- Android Studio (for Android) or Xcode (for iOS)
+- Physical Android/iOS device (recommended) or emulator
 
 ### Installation
 
-1. **Navigate to mobile app directory**
+1. **Clone and navigate:**
 
    ```bash
-   cd src/NoiseSentinel.MobileApp
+   cd NoiseSentinel.MobileApp
    ```
 
-2. **Install dependencies**
+2. **Install dependencies:**
 
    ```bash
    npm install
    ```
 
-3. **Configure API URL**
-
+3. **Configure API endpoint:**
    Edit `src/api/axios.config.ts`:
 
    ```typescript
-   const BASE_URL = "http://YOUR_IP:5200/api";
+   const API_BASE_URL = "http://YOUR_BACKEND_IP:5200/api";
    ```
 
-   > Use your machine's IP address instead of `localhost` for physical devices
+   Replace with your backend server address.
 
-4. **Start Expo development server**
+4. **Start development server:**
 
    ```bash
    npm start
-   # or
-   npx expo start --clear
    ```
 
-5. **Run on device/emulator**
-   - Press `a` for Android emulator
-   - Press `i` for iOS simulator
-   - Press `w` for web browser
-   - Scan QR code with Expo Go app on physical device
+5. **Run on device:**
+   - Scan QR code with Expo Go app (Android/iOS)
+   - OR press `a` for Android emulator
+   - OR press `i` for iOS simulator
+
+### Development Build (Recommended for BLE)
+
+Expo Go doesn't support native BLE modules. Use development builds:
+
+```bash
+# Android
+npx expo run:android
+
+# iOS
+npx expo run:ios
+```
 
 ---
 
-## 📦 Build & Deployment
+## 🔐 Authentication
 
-### Development
+### Login Process
 
-```bash
-npm start              # Start Expo server
-npm run android        # Run on Android
-npm run ios            # Run on iOS (Mac only)
-npm run web            # Run on web browser
+1. Officer enters **Badge Number** and **Password**
+2. API returns JWT access token (valid 24 hours)
+3. Token stored in `expo-secure-store`
+4. Auto-refresh on app restart if token valid
+
+### Authorization
+
+- All API requests include `Authorization: Bearer <token>`
+- Configured in `axios.config.ts` interceptor
+- Automatic logout on 401 Unauthorized
+
+### First-Time Setup
+
+Officers must register via:
+
+1. Admin creates officer account in Web Portal
+2. Admin provides temporary password
+3. Officer logs in and changes password
+
+---
+
+## 📡 IoT Device Integration (BLE)
+
+### Supported Devices
+
+- ESP32-based IoT sensors (firmware: IOT-FRM-01)
+- BLE Service UUID: `0000FFE0-0000-1000-8000-00805F9B34FB`
+- Max range: ~10 meters
+
+### Pairing Flow
+
+1. **Dashboard** → Tap "Pair IoT Device"
+2. App scans for nearby BLE devices
+3. Select device from list (e.g., "IOT-FRM-01")
+4. Device pairs and shows status (Red → Yellow → Green LEDs)
+5. Officer can now run noise/emission tests
+
+### Device Operations
+
+- **Noise Test:** 10 seconds, returns dBA measurement
+- **Emission Test:** 40 seconds (30s warmup + 10s sampling)
+  - Returns: CO, HC, NOx, CO2 levels
+  - ML Classification (e.g., "High CO Detected")
+
+### BLE Protocol
+
+JSON-based command/response via BLE characteristics:
+
+```json
+// Command (App → Device)
+{
+  "command": "START_EMISSION_TEST",
+  "device_id": 1,
+  "officer_id": 42
+}
+
+// Response (Device → App)
+{
+  "status": "COMPLETED",
+  "test_type": "EMISSION",
+  "data": {
+    "co": 152.3,
+    "hc": 245.7,
+    "nox": 73.71,
+    "ml_classification": "High CO"
+  }
+}
 ```
 
-### Clean Start
+See [ESP32_Firmware README](../ESP32_Firmware/README.md) for details.
+
+---
+
+## 📝 Challan Workflow
+
+### Creating a Challan
+
+#### **Option 1: Traffic Challan (Manual)**
+
+1. **Dashboard** → "Create Traffic Challan"
+2. Select violation type (from backend)
+3. Search/add vehicle (plate number)
+4. Search/add accused (CNIC)
+5. Upload evidence photo
+6. Submit → Challan created
+
+#### **Option 2: Non-Traffic Challan (IoT-Based)**
+
+1. **Pair IoT device** via BLE
+2. **Create Non-Traffic Challan** → Select category:
+   - Noise Violation (silencer)
+   - Emission Violation (exhaust gases)
+3. **Run Test:**
+   - Noise: 10s audio sampling
+   - Emission: 40s gas analysis
+4. System auto-creates **Emission Report** with:
+   - CO, HC, NOx, CO2 readings
+   - ML Classification
+   - Digital Signature (SHA256)
+5. Enter vehicle/accused details
+6. Upload evidence photo
+7. Submit → Challan + Emission Report created
+
+### Challan States
+
+- **Unpaid:** Newly issued
+- **Paid:** Payment confirmed (via web portal)
+- **Disputed:** Accused filed dispute
+- **Overdue:** Past due date
+
+---
+
+## 🔍 Search Features
+
+### Vehicle Search
+
+- Search by **plate number** (e.g., ABC-123)
+- Auto-complete suggestions
+- Shows: Make, model, color, owner details
+- Quick-add to challan
+
+### Accused Search
+
+- Search by **CNIC** (13 digits)
+- Shows: Name, address, contact
+- View challan history
+- Quick-add to challan
+
+### Challan Search
+
+- Filter by:
+  - Status (Unpaid, Paid, Disputed, Overdue)
+  - Challan Type (Traffic, Non-Traffic)
+  - Date range
+- Sort by issue date
+- View full details
+
+---
+
+## 🧩 Key Features
+
+### Dashboard
+
+- Quick stats: Issued today, total challans
+- IoT device pairing status
+- Quick actions: Create challan, scan device, search
+
+### Emission Reports
+
+- Linked to IoT device readings
+- Digital signature for tamper-proof data
+- View CO, HC, NOx, CO2 levels
+- ML classification (Normal/High/Critical)
+
+### Bank Account Display
+
+- **Read-only** bank account details shown on challan
+- Auto-populated from backend configuration
+- Accused pays via web portal (not mobile app)
+
+### Profile
+
+- View officer details (name, badge, station)
+- View statistics (total challans issued)
+- Logout
+
+---
+
+## 🎨 UI/UX
+
+### Design System
+
+- **Primary Color:** Blue (#1E3A8A)
+- **Success:** Green (#10B981)
+- **Warning:** Yellow (#F59E0B)
+- **Error:** Red (#EF4444)
+- **Typography:** Plus Jakarta Sans
+- **Component Library:** Custom-built (Button, Card, Input, Header)
+
+### Navigation
+
+- **Bottom Tabs:** Dashboard, Search, Create Challan, Profile
+- **Stack Navigation:** Detail screens, forms, settings
+- **Back Button:** Consistent header across screens
+
+### Feedback
+
+- Toast notifications (success/error)
+- Loading spinners
+- Haptic feedback (button presses)
+- Error messages with retry
+
+---
+
+## 📦 Dependencies
+
+### Core
+
+```json
+{
+  "expo": "~49.0.15",
+  "react": "18.2.0",
+  "react-native": "0.72.10",
+  "typescript": "^5.1.3"
+}
+```
+
+### Navigation
+
+```json
+{
+  "@react-navigation/native": "^6.1.18",
+  "@react-navigation/native-stack": "^6.9.17",
+  "@react-navigation/bottom-tabs": "^6.5.11"
+}
+```
+
+### Networking
+
+```json
+{
+  "axios": "^1.6.2",
+  "react-native-ble-plx": "^3.1.2"
+}
+```
+
+### UI/Utilities
+
+```json
+{
+  "lucide-react-native": "^0.554.0",
+  "react-native-toast-message": "^2.1.7",
+  "expo-image-picker": "~14.3.2",
+  "expo-secure-store": "~12.3.1",
+  "date-fns": "^2.30.0"
+}
+```
+
+---
+
+## 🏗️ Build & Deployment
+
+### Development Build
 
 ```bash
-npx expo start --clear
+# Android
+eas build --profile development --platform android
+
+# iOS
+eas build --profile development --platform ios
 ```
 
 ### Production Build
 
 ```bash
-# Create production build
-npx expo build:android
-npx expo build:ios
+# Android APK
+eas build --profile production --platform android
 
-# Or use EAS Build
-npx eas build --platform android
-npx eas build --platform ios
+# iOS IPA
+eas build --profile production --platform ios
 ```
 
----
+### EAS Configuration
 
-## 📱 Platform Support
+Create `eas.json`:
 
-| Platform | Status                              |
-| -------- | ----------------------------------- |
-| Android  | ✅ Supported                        |
-| iOS      | ✅ Supported                        |
-| Web      | ✅ Supported (via react-native-web) |
-
----
-
-## 🎨 Design System
-
-### Colors
-
-```typescript
-// Primary (Deep Navy)
-primary: '#0F172A'
-
-// Accent (Electric Indigo)
-accent: '#6366F1'
-
-// Background
-background: '#F8FAFC'
-
-// Text
-text: {
-  primary: '#1E293B',
-  secondary: '#475569',
-  tertiary: '#94A3B8'
+```json
+{
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
 }
 ```
 
-### Typography
+---
 
-- **Font Family**: Plus Jakarta Sans
-- **Heading**: 28px, Bold
-- **Subheading**: 20px, SemiBold
-- **Body**: 16px, Regular
+## 🐛 Troubleshooting
+
+### BLE Not Working
+
+- **Issue:** "Bluetooth unavailable" error
+- **Fix:** Ensure device has Bluetooth enabled
+- **Fix:** Use development build (not Expo Go)
+- **Fix:** Grant location permissions (required for BLE on Android)
+
+### API Connection Failed
+
+- **Issue:** Network error or timeout
+- **Fix:** Check `API_BASE_URL` in `axios.config.ts`
+- **Fix:** Ensure backend is running and accessible
+- **Fix:** Use device IP if testing on local network
+- **Fix:** Disable SSL verification for local dev (Android only)
+
+### Token Expired
+
+- **Issue:** 401 Unauthorized on API calls
+- **Fix:** Automatic logout triggered, re-login required
+- **Fix:** Check token expiration time (24 hours default)
+
+### Image Upload Fails
+
+- **Issue:** Large file size or network timeout
+- **Fix:** Images auto-compressed to max 1024x1024
+- **Fix:** Check network stability
+- **Fix:** Ensure backend accepts `multipart/form-data`
+
+### Device Not Scanning
+
+- **Issue:** No IoT devices found
+- **Fix:** Ensure ESP32 is powered on and advertising
+- **Fix:** Device name should be "IOT-FRM-01"
+- **Fix:** Move closer to device (BLE range ~10m)
+- **Fix:** Reset ESP32 (red LED should blink)
 
 ---
 
-## 🔧 Constants
+## 🔒 Security
 
-```typescript
-// Sound threshold for violations
-SOUND_THRESHOLD = 85.0; // dBA
-
-// Challan statuses
-CHALLAN_STATUS = {
-  UNPAID: "Unpaid",
-  PAID: "Paid",
-  DISPUTED: "Disputed",
-};
-```
+- JWT tokens stored in secure encrypted storage
+- No sensitive data in AsyncStorage
+- API requests use HTTPS in production
+- BLE communication: No encryption (future: pairing/bonding)
+- Image evidence: Uploaded to secure server storage
+- Challan data: Digital signatures prevent tampering
 
 ---
 
-## 📝 Scripts
+## 🚧 Known Issues
 
-| Script            | Description       |
-| ----------------- | ----------------- |
-| `npm start`       | Start Expo server |
-| `npm run android` | Run on Android    |
-| `npm run ios`     | Run on iOS        |
-| `npm run web`     | Run on web        |
+1. **BLE Background Mode:** Not fully supported on iOS (requires special permissions)
+2. **Offline Mode:** Not implemented (requires network connection)
+3. **Multi-language:** Only English supported currently
+4. **Dark Mode:** Not implemented
 
 ---
 
-## 🔗 Related Documentation
+## 🔄 Version History
 
-- [Main Project README](../../README.md)
-- [Backend API README](../NoiseSentinel.WebApi/README.md)
-- [Web Portal README](../Noisesentinel.WebPortal/README.md)
+**v1.0.0** (Current)
+
+- Initial release
+- BLE IoT device integration
+- Traffic and Non-Traffic challan creation
+- Vehicle/Accused search
+- Emission report integration
+- Payment functionality (web portal only)
+
+---
+
+## 📖 Related Documentation
+
+- [ESP32 Firmware](../ESP32_Firmware/README.md) - IoT device setup
+- [Web API](../NoiseSentinel.WebApi/README.md) - Backend API reference
+- [Web Portal](../Noisesentinel.WebPortal/README.md) - Admin/Court portal
+- [Payment Integration](../PAYMENT_FUNCTIONALITY_IMPLEMENTATION.md) - Payment system
+
+---
+
+## 👥 User Roles
+
+This app is for **Police Officers** only.
+
+Other roles use Web Portal:
+
+- **Admin:** User management, system config
+- **Station Authority:** FIR creation, case management
+- **Court Authority:** Court case handling
+- **Judge:** Court proceedings, decisions
+- **Accused/Public:** View case status, pay challans
+
+---
+
+## 💬 Support
+
+For technical issues:
+
+1. Check troubleshooting section above
+2. Enable debug logging in `axios.config.ts`
+3. Check Serial Monitor for ESP32 issues (115200 baud)
+4. Review API error messages in console
+
+---
+
+## 📄 License
+
+Part of NoiseSentinel Traffic Management System.  
+See main repository for license information.

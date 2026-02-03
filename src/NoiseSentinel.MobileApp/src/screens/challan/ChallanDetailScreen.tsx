@@ -60,7 +60,8 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
     setRefreshing(false);
   };
 
-  const handlePayment = () => {
+  // Show loading screen while fetching data
+  if (loading) {
     return (
       <View style={styles.container}>
         <Header
@@ -71,8 +72,9 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
         <Loading message="Loading challan..." fullScreen />
       </View>
     );
-  };
+  }
 
+  // Show error only after loading is complete
   if (error || !challan) {
     return (
       <View style={styles.container}>
@@ -190,21 +192,62 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
         </Card>
 
         {/* Emission Report Evidence - Only show if emission report exists */}
-        {challan.emissionReportId && (
+        {challan.emissionReportId ? (
           <Card>
             <Text style={styles.cardTitle}>📊 Emission Report Evidence</Text>
             <View style={styles.infoRow}>
               <Text style={styles.label}>Device:</Text>
               <Text style={styles.value}>{challan.deviceName || "N/A"}</Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Sound Level:</Text>
-              <Text style={[styles.value, styles.soundLevel]}>
-                {challan.soundLevelDBa
-                  ? formatters.formatSoundLevel(challan.soundLevelDBa)
-                  : "N/A"}
-              </Text>
-            </View>
+
+            {/* Show Sound Level for noise violations (soundLevelDBa exists and no emission gases) */}
+            {challan.soundLevelDBa != null &&
+            challan.co == null &&
+            challan.co2 == null &&
+            challan.hc == null &&
+            challan.nox == null ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Sound Level:</Text>
+                <Text style={[styles.value, styles.soundLevel]}>
+                  {formatters.formatSoundLevel(challan.soundLevelDBa)}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Show Emissions for pollution violations (emission gases exist) */}
+            {challan.co != null ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>CO:</Text>
+                <Text style={[styles.value, styles.soundLevel]}>
+                  {challan.co.toFixed(2)} ppm
+                </Text>
+              </View>
+            ) : null}
+            {challan.co2 != null ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>CO₂:</Text>
+                <Text style={[styles.value, styles.soundLevel]}>
+                  {challan.co2.toFixed(2)} %
+                </Text>
+              </View>
+            ) : null}
+            {challan.hc != null ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>HC:</Text>
+                <Text style={[styles.value, styles.soundLevel]}>
+                  {challan.hc.toFixed(2)} ppm
+                </Text>
+              </View>
+            ) : null}
+            {challan.nox != null ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>NOx:</Text>
+                <Text style={[styles.value, styles.soundLevel]}>
+                  {challan.nox.toFixed(2)} ppm
+                </Text>
+              </View>
+            ) : null}
+
             <View style={styles.infoRow}>
               <Text style={styles.label}>ML Classification:</Text>
               <Text style={styles.value}>
@@ -225,7 +268,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
               </Text>
             </View>
           </Card>
-        )}
+        ) : null}
 
         {/* Officer & Station */}
         <Card>

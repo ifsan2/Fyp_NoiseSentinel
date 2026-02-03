@@ -459,6 +459,10 @@ public class ChallanService : IChallanService
             EmissionReportId = challan.EmissionReportId,
             DeviceName = challan.EmissionReport?.Device?.DeviceName,
             SoundLevelDBa = challan.EmissionReport?.SoundLevelDBa,
+            Co = challan.EmissionReport?.Co,
+            Co2 = challan.EmissionReport?.Co2,
+            Hc = challan.EmissionReport?.Hc,
+            Nox = challan.EmissionReport?.Nox,
             MlClassification = challan.EmissionReport?.MlClassification,
             EmissionTestDateTime = challan.EmissionReport?.TestDateTime,
 

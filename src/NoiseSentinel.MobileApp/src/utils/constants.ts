@@ -1,10 +1,10 @@
 // API Configuration
 export const API_CONFIG = {
-  // For web browser testing: use http://localhost:5200
+  // For web browser testing: -- ipconfig | findstr "IPv4" -- use http://localhost:5200
   // For Android emulator: use http://10.0.2.2:5200/api
   // For real device: use your PC's IP (e.g., http://192.168.100.16:5200/api)
   BASE_URL: __DEV__
-    ? "http://localhost:5200/api" // Development - localhost for web, change to device IP for mobile
+    ? "http://192.168.100.16:5200/api" // Your computer's local IP - change if different
     : "https://your-production-api.com/api", // Production
   TIMEOUT: 60000, // Increased to 60 seconds for image uploads
 };
@@ -25,8 +25,17 @@ export const ROLES = {
   ADMIN: "Admin",
 };
 
-// Sound Level Threshold
-export const SOUND_THRESHOLD = 85.0; // dBA
+// Vehicle Noise & Emission Thresholds (Pakistan Standards)
+export const SOUND_THRESHOLD = 85.0; // dBA - Silencer violation threshold (bikes)
+export const SOUND_THRESHOLD_CAR = 80.0; // dBA - Car silencer limit
+
+// Emission Thresholds (EURO-2 equivalent)
+export const EMISSION_THRESHOLD = {
+  CO_CAR: 500.0, // ppm (0.5% for petrol cars)
+  HC_CAR: 200.0, // ppm
+  CO_BIKE: 4500.0, // ppm (4.5% for motorcycles)
+  HC_BIKE: 1200.0, // ppm
+};
 
 // Challan Status
 export const CHALLAN_STATUS = {

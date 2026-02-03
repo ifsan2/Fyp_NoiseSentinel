@@ -110,7 +110,7 @@ export const ViewChallansPage: React.FC = () => {
     } catch (error: any) {
       enqueueSnackbar(
         error.response?.data?.message || "Failed to load challans",
-        { variant: "error" }
+        { variant: "error" },
       );
     } finally {
       setLoading(false);
@@ -151,8 +151,8 @@ export const ViewChallansPage: React.FC = () => {
       firFilter === "with-fir"
         ? true
         : firFilter === "without-fir"
-        ? false
-        : undefined;
+          ? false
+          : undefined;
 
     const dateRange =
       startDate && endDate ? { start: startDate, end: endDate } : undefined;
@@ -164,7 +164,7 @@ export const ViewChallansPage: React.FC = () => {
       selectedStatuses.length > 0 ? selectedStatuses : undefined,
       isOverdue,
       hasFir,
-      dateRange
+      dateRange,
     );
   };
 
@@ -173,13 +173,13 @@ export const ViewChallansPage: React.FC = () => {
   // Calculate statistics
   const totalPenalties = filteredChallans.reduce(
     (sum, c) => sum + (c.penaltyAmount || 0),
-    0
+    0,
   );
   const unpaidCount = filteredChallans.filter(
-    (c) => c.status === "Unpaid"
+    (c) => c.status === "Unpaid",
   ).length;
   const overdueCount = filteredChallans.filter(
-    (c) => (c.daysOverdue || 0) > 0
+    (c) => (c.daysOverdue || 0) > 0,
   ).length;
   const withFirCount = filteredChallans.filter((c) => c.hasFir).length;
 
@@ -271,7 +271,7 @@ export const ViewChallansPage: React.FC = () => {
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((value) => {
                       const station = stations.find(
-                        (s) => s.stationId === value
+                        (s) => s.stationId === value,
                       );
                       return (
                         <Chip
@@ -643,6 +643,144 @@ export const ViewChallansPage: React.FC = () => {
                   {viewDialog.challan.stationName}
                 </Typography>
               </Grid>
+
+              {/* Emission/Noise Report - show if emissionReportId exists */}
+              {viewDialog.challan.emissionReportId && (
+                <>
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 1 }} />
+                    <Typography
+                      variant="subtitle2"
+                      color="primary"
+                      fontWeight={600}
+                    >
+                      {(viewDialog.challan.co !== undefined &&
+                        viewDialog.challan.co !== null) ||
+                      (viewDialog.challan.co2 !== undefined &&
+                        viewDialog.challan.co2 !== null) ||
+                      (viewDialog.challan.hc !== undefined &&
+                        viewDialog.challan.hc !== null) ||
+                      (viewDialog.challan.nox !== undefined &&
+                        viewDialog.challan.nox !== null)
+                        ? "📊 Emission Test Report"
+                        : "🔊 Noise Test Report"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Device Name
+                    </Typography>
+                    <Typography variant="body1" fontWeight={600}>
+                      {viewDialog.challan.deviceName || "N/A"}
+                    </Typography>
+                  </Grid>
+
+                  {/* Show Sound Level for noise violations */}
+                  {viewDialog.challan.soundLevelDBa &&
+                    !(
+                      viewDialog.challan.co ||
+                      viewDialog.challan.co2 ||
+                      viewDialog.challan.hc ||
+                      viewDialog.challan.nox
+                    ) && (
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          Sound Level (dBA)
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          fontWeight={700}
+                          color="error"
+                        >
+                          {viewDialog.challan.soundLevelDBa}
+                        </Typography>
+                      </Grid>
+                    )}
+
+                  {/* Show Emission gases for pollution violations */}
+                  {viewDialog.challan.co !== undefined &&
+                    viewDialog.challan.co !== null && (
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          CO (ppm)
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          fontWeight={700}
+                          color="error"
+                        >
+                          {viewDialog.challan.co.toFixed(2)}
+                        </Typography>
+                      </Grid>
+                    )}
+                  {viewDialog.challan.co2 !== undefined &&
+                    viewDialog.challan.co2 !== null && (
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          CO₂ (%)
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          fontWeight={700}
+                          color="error"
+                        >
+                          {viewDialog.challan.co2.toFixed(2)}
+                        </Typography>
+                      </Grid>
+                    )}
+                  {viewDialog.challan.hc !== undefined &&
+                    viewDialog.challan.hc !== null && (
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          HC (ppm)
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          fontWeight={700}
+                          color="error"
+                        >
+                          {viewDialog.challan.hc.toFixed(2)}
+                        </Typography>
+                      </Grid>
+                    )}
+                  {viewDialog.challan.nox !== undefined &&
+                    viewDialog.challan.nox !== null && (
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">
+                          NOx (ppm)
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          fontWeight={700}
+                          color="error"
+                        >
+                          {viewDialog.challan.nox.toFixed(2)}
+                        </Typography>
+                      </Grid>
+                    )}
+
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      ML Classification
+                    </Typography>
+                    <Typography variant="body1">
+                      {viewDialog.challan.mlClassification || "N/A"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Test Date
+                    </Typography>
+                    <Typography variant="body1">
+                      {viewDialog.challan.emissionTestDateTime
+                        ? dateHelpers.formatDateTime(
+                            viewDialog.challan.emissionTestDateTime,
+                          )
+                        : "N/A"}
+                    </Typography>
+                  </Grid>
+                </>
+              )}
 
               {viewDialog.challan.hasFir && (
                 <Grid item xs={12}>

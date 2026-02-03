@@ -33,7 +33,16 @@ export interface ChallanResponseDto {
   isCognizable: boolean;
   emissionReportId?: number | null; // Optional - only present for emission report challans
   deviceName?: string | null;
+
+  // Sound/Noise data (for noise violations)
   soundLevelDBa?: number | null;
+
+  // Emission gas data (for emission/pollution violations)
+  co?: number | null;
+  co2?: number | null;
+  hc?: number | null;
+  nox?: number | null;
+
   mlClassification?: string | null;
   emissionTestDateTime?: string | null;
   evidencePath?: string;

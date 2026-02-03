@@ -13,13 +13,20 @@ import { colors } from "../../styles/colors";
 interface PairedDeviceCardProps {
   device: IotDeviceResponseDto;
   onUnpair: () => void;
+  isConnected?: boolean;
+  onReconnect?: () => void;
+  isReconnecting?: boolean;
 }
 
 export const PairedDeviceCard: React.FC<PairedDeviceCardProps> = ({
   device,
   onUnpair,
+  isConnected = false,
+  onReconnect,
+  isReconnecting = false,
 }) => {
   console.log("PairedDeviceCard rendered with device:", device.deviceName);
+  console.log("Connection status:", isConnected);
 
   const handleUnpair = () => {
     console.log("PairedDeviceCard: handleUnpair called!");
@@ -29,7 +36,7 @@ export const PairedDeviceCard: React.FC<PairedDeviceCardProps> = ({
     // For web, use window.confirm; for mobile, use Alert.alert
     if (Platform.OS === "web") {
       const confirmed = window.confirm(
-        `Are you sure you want to unpair from "${device.deviceName}"?`
+        `Are you sure you want to unpair from "${device.deviceName}"?`,
       );
       if (confirmed) {
         console.log("User confirmed unpair (web)!");
@@ -51,7 +58,7 @@ export const PairedDeviceCard: React.FC<PairedDeviceCardProps> = ({
               onUnpair();
             },
           },
-        ]
+        ],
       );
     }
   };
@@ -71,8 +78,10 @@ export const PairedDeviceCard: React.FC<PairedDeviceCardProps> = ({
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>Currently Paired Device</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>ACTIVE</Text>
+        <View style={[styles.badge, !isConnected && styles.badgeInactive]}>
+          <Text style={styles.badgeText}>
+            {isConnected ? "ACTIVE" : "DISCONNECTED"}
+          </Text>
         </View>
       </View>
 
@@ -128,6 +137,23 @@ export const PairedDeviceCard: React.FC<PairedDeviceCardProps> = ({
         </View>
       </View>
 
+      {/* Show Reconnect button when disconnected */}
+      {!isConnected && onReconnect && (
+        <TouchableOpacity
+          style={[
+            styles.reconnectButton,
+            isReconnecting && styles.buttonDisabled,
+          ]}
+          activeOpacity={0.7}
+          onPress={onReconnect}
+          disabled={isReconnecting}
+        >
+          <Text style={styles.reconnectButtonText}>
+            {isReconnecting ? "🔄 Reconnecting..." : "🔗 Reconnect"}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={styles.unpairButton}
         activeOpacity={0.7}
@@ -175,6 +201,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
+  badgeInactive: {
+    backgroundColor: colors.error[600],
+  },
   badgeText: {
     color: colors.white,
     fontSize: 12,
@@ -204,6 +233,25 @@ const styles = StyleSheet.create({
   invalid: {
     color: colors.error[600],
   },
+  reconnectButton: {
+    backgroundColor: colors.primary[600],
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
+    width: "100%",
+    marginBottom: 12,
+  },
+  reconnectButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
   unpairButton: {
     backgroundColor: colors.error[600],
     paddingVertical: 12,
@@ -220,4 +268,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-

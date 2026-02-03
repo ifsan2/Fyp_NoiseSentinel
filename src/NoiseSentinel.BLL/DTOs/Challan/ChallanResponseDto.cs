@@ -37,7 +37,16 @@ public class ChallanResponseDto
     // Emission Report Details (Evidence) - Optional for some violations
     public int? EmissionReportId { get; set; }
     public string? DeviceName { get; set; }
+    
+    // Sound/Noise data (for noise violations)
     public decimal? SoundLevelDBa { get; set; }
+    
+    // Emission gas data (for emission/pollution violations)
+    public decimal? Co { get; set; }
+    public decimal? Co2 { get; set; }
+    public decimal? Hc { get; set; }
+    public decimal? Nox { get; set; }
+    
     public string? MlClassification { get; set; }
     public DateTime? EmissionTestDateTime { get; set; }
 
