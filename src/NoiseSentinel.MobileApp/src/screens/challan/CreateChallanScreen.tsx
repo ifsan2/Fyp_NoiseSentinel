@@ -20,6 +20,9 @@ import violationApi from "../../api/violationApi";
 import emissionReportApi from "../../api/emissionReportApi";
 import iotDeviceApi from "../../api/iotDeviceApi";
 import BleDeviceService from "../../services/BleDeviceService";
+import notificationService, {
+  NotificationType,
+} from "../../services/notification.service";
 import { ViolationSelector } from "../../components/challan/ViolationSelector";
 import { ChallanTypeBadge } from "../../components/challan/ChallanTypeBadge";
 import { Button } from "../../components/common/Button";
@@ -979,6 +982,21 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       // Mark challan as created so navigation doesn't show confirmation dialog
       setChallanCreated(true);
 
+      // Add notification for challan creation
+      if (userDetails?.officerId) {
+        await notificationService.addNotification(
+          userDetails.officerId,
+          NotificationType.CHALLAN_CREATED,
+          "Challan Created",
+          `${challanType} challan created for ${vehiclePlateNumber || "vehicle"}`,
+          {
+            challanId: response.challanId,
+            plateNumber: vehiclePlateNumber,
+            violationType: selectedViolation?.violationType,
+          },
+        );
+      }
+
       Toast.show({
         type: "success",
         text1: "Challan Created Successfully!",
@@ -1104,7 +1122,11 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
             />
           </View>
           <View style={styles.searchButtonWrapper}>
-            <Button title="Search" onPress={handleSearchVehicle} size="small" />
+            <Button
+              title="Search"
+              onPress={handleSearchVehicle}
+              size="medium"
+            />
           </View>
         </View>
       </Card>
@@ -1187,7 +1209,11 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
             />
           </View>
           <View style={styles.searchButtonWrapper}>
-            <Button title="Search" onPress={handleSearchAccused} size="small" />
+            <Button
+              title="Search"
+              onPress={handleSearchAccused}
+              size="medium"
+            />
           </View>
         </View>
       </Card>
@@ -1676,15 +1702,17 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     gap: 8,
     marginBottom: 12,
   },
   searchInputWrapper: {
     flex: 1,
+    marginBottom: -16,
   },
   searchButtonWrapper: {
-    marginBottom: 2,
+    minHeight: 52,
+    justifyContent: "center",
   },
   reviewTitle: {
     fontSize: 16,

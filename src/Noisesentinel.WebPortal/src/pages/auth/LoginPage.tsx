@@ -9,8 +9,15 @@ import {
   InputAdornment,
   IconButton,
   Chip,
+  Divider,
 } from "@mui/material";
-import { Visibility, VisibilityOff, ShieldOutlined } from "@mui/icons-material";
+import {
+  Visibility,
+  VisibilityOff,
+  ShieldOutlined,
+  Person as PersonIcon,
+  Receipt as ReceiptIcon,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,7 +62,7 @@ export const LoginPage: React.FC = () => {
           variant: "info",
         });
         navigate(
-          `${ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(response.email)}`
+          `${ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(response.email)}`,
         );
         return;
       }
@@ -63,7 +70,7 @@ export const LoginPage: React.FC = () => {
       // ✅ BLOCK Police Officers - they should use Mobile App
       if (response.role === ROLES.POLICE_OFFICER) {
         setErrorMessage(
-          "Police Officers cannot access the web portal. Please use the Mobile App."
+          "Police Officers cannot access the web portal. Please use the Mobile App.",
         );
         enqueueSnackbar("Access Denied: Please use the Mobile App", {
           variant: "error",
@@ -453,6 +460,7 @@ export const LoginPage: React.FC = () => {
           <Box
             sx={{
               textAlign: "center",
+              mt: 3,
               p: 2,
               borderRadius: "8px",
               bgcolor:
@@ -480,20 +488,73 @@ export const LoginPage: React.FC = () => {
             </Typography>
           </Box>
 
-          {/* Footer */}
-          <Box sx={{ textAlign: "center", mt: 6 }}>
+          {/* Footer with Public Links */}
+          <Box sx={{ textAlign: "center", mt: 5 }}>
             <Box
               sx={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 1,
                 color: theme.palette.text.disabled,
+                mb: 2,
               }}
             >
               <ShieldOutlined sx={{ fontSize: 16 }} />
               <Typography variant="caption">
                 Authorized Personnel Only
               </Typography>
+            </Box>
+
+            <Divider sx={{ my: 2, opacity: 0.6 }} />
+
+            {/* Compact Public Links */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 3,
+                flexWrap: "wrap",
+              }}
+            >
+              <Link
+                onClick={() => navigate("/accused-portal")}
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  color: theme.palette.text.secondary,
+                  textDecoration: "none",
+                  fontSize: "0.8125rem",
+                  transition: "color 0.2s",
+                  "&:hover": {
+                    color: theme.palette.primary.main,
+                  },
+                }}
+              >
+                <PersonIcon sx={{ fontSize: 16 }} />
+                <span>Accused Portal</span>
+              </Link>
+
+              <Link
+                onClick={() => navigate("/search-challans")}
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  color: theme.palette.text.secondary,
+                  textDecoration: "none",
+                  fontSize: "0.8125rem",
+                  transition: "color 0.2s",
+                  "&:hover": {
+                    color: theme.palette.primary.main,
+                  },
+                }}
+              >
+                <ReceiptIcon sx={{ fontSize: 16 }} />
+                <span>Search Challans</span>
+              </Link>
             </Box>
           </Box>
         </Box>

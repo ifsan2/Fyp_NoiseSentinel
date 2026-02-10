@@ -135,6 +135,34 @@ export const PublicChallanSearchPage: React.FC = () => {
         data.cnic,
       );
 
+      console.log("Search results:", results);
+      if (results.length > 0) {
+        console.log("First challan emission data:", {
+          emissionReportId: results[0].emissionReportId,
+          co: results[0].co,
+          co2: results[0].co2,
+          hc: results[0].hc,
+          nox: results[0].nox,
+          soundLevelDBa: results[0].soundLevelDBa,
+          violationType: results[0].violationType,
+        });
+        console.log("First challan evidence data:", {
+          challanId: results[0].challanId,
+          evidencePath: results[0].evidencePath
+            ? `${results[0].evidencePath.substring(0, 50)}... (length: ${results[0].evidencePath.length})`
+            : "NULL",
+          hasEvidence: !!results[0].evidencePath,
+          isBase64: results[0].evidencePath?.startsWith("data:image"),
+        });
+
+        // Log all challans evidence status
+        results.forEach((c, i) => {
+          console.log(
+            `Challan #${c.challanId}: evidencePath = ${c.evidencePath ? `YES (${c.evidencePath.length} chars)` : "NULL"}`,
+          );
+        });
+      }
+
       setChallans(results);
       setHasSearched(true);
 
@@ -624,10 +652,9 @@ export const PublicChallanSearchPage: React.FC = () => {
             <!-- Emission Report Section -->
             <div class="emission-section">
               <h3>${
-                (challan.co !== undefined && challan.co !== null) ||
-                (challan.co2 !== undefined && challan.co2 !== null) ||
-                (challan.hc !== undefined && challan.hc !== null) ||
-                (challan.nox !== undefined && challan.nox !== null)
+                challan.violationType?.toLowerCase().includes("pollution") ||
+                challan.violationType?.toLowerCase().includes("emission") ||
+                challan.violationType?.toLowerCase().includes("environmental")
                   ? "EMISSION TEST REPORT"
                   : "NOISE TEST REPORT"
               }</h3>
@@ -636,51 +663,52 @@ export const PublicChallanSearchPage: React.FC = () => {
                   <td class="label-cell">Device Name:</td>
                   <td class="value-cell">${challan.deviceName || "N/A"}</td>
                   ${
-                    challan.soundLevelDBa &&
-                    !(challan.co || challan.co2 || challan.hc || challan.nox)
+                    !(
+                      challan.violationType
+                        ?.toLowerCase()
+                        .includes("pollution") ||
+                      challan.violationType
+                        ?.toLowerCase()
+                        .includes("emission") ||
+                      challan.violationType
+                        ?.toLowerCase()
+                        .includes("environmental")
+                    )
                       ? `<td class="label-cell">Sound Level (dBA):</td>
-                       <td class="value-cell"><strong>${challan.soundLevelDBa}</strong></td>`
+                       <td class="value-cell"><strong>${challan.soundLevelDBa ?? 0}</strong></td>`
                       : `<td class="label-cell">Classification:</td>
                        <td class="value-cell">${challan.mlClassification || "N/A"}</td>`
                   }
                 </tr>
                 ${
-                  (challan.co !== undefined && challan.co !== null) ||
-                  (challan.co2 !== undefined && challan.co2 !== null) ||
-                  (challan.hc !== undefined && challan.hc !== null) ||
-                  (challan.nox !== undefined && challan.nox !== null)
+                  challan.violationType?.toLowerCase().includes("pollution") ||
+                  challan.violationType?.toLowerCase().includes("emission") ||
+                  challan.violationType?.toLowerCase().includes("environmental")
                     ? `
                 <tr>
-                  ${
-                    challan.co !== undefined && challan.co !== null
-                      ? `<td class="label-cell">CO:</td><td class="value-cell"><strong>${challan.co.toFixed(2)} ppm</strong></td>`
-                      : `<td class="label-cell"></td><td class="value-cell"></td>`
-                  }
-                  ${
-                    challan.co2 !== undefined && challan.co2 !== null
-                      ? `<td class="label-cell">CO₂:</td><td class="value-cell"><strong>${challan.co2.toFixed(2)} %</strong></td>`
-                      : `<td class="label-cell"></td><td class="value-cell"></td>`
-                  }
+                  <td class="label-cell">CO:</td><td class="value-cell"><strong>${(challan.co ?? 0).toFixed(2)} ppm</strong></td>
+                  <td class="label-cell">CO₂:</td><td class="value-cell"><strong>${(challan.co2 ?? 0).toFixed(2)} %</strong></td>
                 </tr>
                 <tr>
-                  ${
-                    challan.hc !== undefined && challan.hc !== null
-                      ? `<td class="label-cell">HC:</td><td class="value-cell"><strong>${challan.hc.toFixed(2)} ppm</strong></td>`
-                      : `<td class="label-cell"></td><td class="value-cell"></td>`
-                  }
-                  ${
-                    challan.nox !== undefined && challan.nox !== null
-                      ? `<td class="label-cell">NOx:</td><td class="value-cell"><strong>${challan.nox.toFixed(2)} ppm</strong></td>`
-                      : `<td class="label-cell"></td><td class="value-cell"></td>`
-                  }
+                  <td class="label-cell">HC:</td><td class="value-cell"><strong>${(challan.hc ?? 0).toFixed(2)} ppm</strong></td>
+                  <td class="label-cell">NOx:</td><td class="value-cell"><strong>${(challan.nox ?? 0).toFixed(2)} ppm</strong></td>
                 </tr>
                 `
                     : ``
                 }
                 <tr>
                   ${
-                    challan.soundLevelDBa &&
-                    !(challan.co || challan.co2 || challan.hc || challan.nox)
+                    !(
+                      challan.violationType
+                        ?.toLowerCase()
+                        .includes("pollution") ||
+                      challan.violationType
+                        ?.toLowerCase()
+                        .includes("emission") ||
+                      challan.violationType
+                        ?.toLowerCase()
+                        .includes("environmental")
+                    )
                       ? `<td class="label-cell">Classification:</td>
                        <td class="value-cell">${challan.mlClassification || "N/A"}</td>`
                       : `<td class="label-cell"></td><td class="value-cell"></td>`
@@ -986,13 +1014,13 @@ export const PublicChallanSearchPage: React.FC = () => {
                 variant="outlined"
                 size="small"
                 startIcon={<CaseIcon />}
-                onClick={() => navigate("/case-status")}
+                onClick={() => navigate("/accused-portal")}
                 sx={{
                   textTransform: "none",
                   borderRadius: 2,
                 }}
               >
-                Case Status
+                Accused Portal
               </Button>
               <ThemeToggleButton />
             </Box>
@@ -1515,14 +1543,15 @@ export const PublicChallanSearchPage: React.FC = () => {
                                   gutterBottom
                                   sx={{ fontWeight: 600 }}
                                 >
-                                  {(challan.co !== undefined &&
-                                    challan.co !== null) ||
-                                  (challan.co2 !== undefined &&
-                                    challan.co2 !== null) ||
-                                  (challan.hc !== undefined &&
-                                    challan.hc !== null) ||
-                                  (challan.nox !== undefined &&
-                                    challan.nox !== null)
+                                  {challan.violationType
+                                    ?.toLowerCase()
+                                    .includes("pollution") ||
+                                  challan.violationType
+                                    ?.toLowerCase()
+                                    .includes("emission") ||
+                                  challan.violationType
+                                    ?.toLowerCase()
+                                    .includes("environmental")
                                     ? "Emission Test Report"
                                     : "Noise Test Report"}
                                 </Typography>
@@ -1560,33 +1589,45 @@ export const PublicChallanSearchPage: React.FC = () => {
                                   </Box>
 
                                   {/* Show Sound Level for noise violations */}
-                                  {challan.soundLevelDBa &&
-                                    !(
-                                      challan.co ||
-                                      challan.co2 ||
-                                      challan.hc ||
-                                      challan.nox
-                                    ) && (
-                                      <Box>
-                                        <Typography
-                                          variant="caption"
-                                          color="text.secondary"
-                                        >
-                                          Sound Level (dBA)
-                                        </Typography>
-                                        <Typography
-                                          variant="body2"
-                                          fontWeight={700}
-                                          color="error"
-                                        >
-                                          {challan.soundLevelDBa}
-                                        </Typography>
-                                      </Box>
-                                    )}
+                                  {!(
+                                    challan.violationType
+                                      ?.toLowerCase()
+                                      .includes("pollution") ||
+                                    challan.violationType
+                                      ?.toLowerCase()
+                                      .includes("emission") ||
+                                    challan.violationType
+                                      ?.toLowerCase()
+                                      .includes("environmental")
+                                  ) && (
+                                    <Box>
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                      >
+                                        Sound Level (dBA)
+                                      </Typography>
+                                      <Typography
+                                        variant="body2"
+                                        fontWeight={700}
+                                        color="error"
+                                      >
+                                        {challan.soundLevelDBa ?? 0}
+                                      </Typography>
+                                    </Box>
+                                  )}
 
                                   {/* Show Emission gases for pollution violations */}
-                                  {challan.co !== undefined &&
-                                    challan.co !== null && (
+                                  {(challan.violationType
+                                    ?.toLowerCase()
+                                    .includes("pollution") ||
+                                    challan.violationType
+                                      ?.toLowerCase()
+                                      .includes("emission") ||
+                                    challan.violationType
+                                      ?.toLowerCase()
+                                      .includes("environmental")) && (
+                                    <>
                                       <Box>
                                         <Typography
                                           variant="caption"
@@ -1599,12 +1640,9 @@ export const PublicChallanSearchPage: React.FC = () => {
                                           fontWeight={700}
                                           color="error"
                                         >
-                                          {challan.co.toFixed(2)}
+                                          {(challan.co ?? 0).toFixed(2)}
                                         </Typography>
                                       </Box>
-                                    )}
-                                  {challan.co2 !== undefined &&
-                                    challan.co2 !== null && (
                                       <Box>
                                         <Typography
                                           variant="caption"
@@ -1617,12 +1655,9 @@ export const PublicChallanSearchPage: React.FC = () => {
                                           fontWeight={700}
                                           color="error"
                                         >
-                                          {challan.co2.toFixed(2)}
+                                          {(challan.co2 ?? 0).toFixed(2)}
                                         </Typography>
                                       </Box>
-                                    )}
-                                  {challan.hc !== undefined &&
-                                    challan.hc !== null && (
                                       <Box>
                                         <Typography
                                           variant="caption"
@@ -1635,12 +1670,9 @@ export const PublicChallanSearchPage: React.FC = () => {
                                           fontWeight={700}
                                           color="error"
                                         >
-                                          {challan.hc.toFixed(2)}
+                                          {(challan.hc ?? 0).toFixed(2)}
                                         </Typography>
                                       </Box>
-                                    )}
-                                  {challan.nox !== undefined &&
-                                    challan.nox !== null && (
                                       <Box>
                                         <Typography
                                           variant="caption"
@@ -1653,10 +1685,11 @@ export const PublicChallanSearchPage: React.FC = () => {
                                           fontWeight={700}
                                           color="error"
                                         >
-                                          {challan.nox.toFixed(2)}
+                                          {(challan.nox ?? 0).toFixed(2)}
                                         </Typography>
                                       </Box>
-                                    )}
+                                    </>
+                                  )}
 
                                   <Box>
                                     <Typography
@@ -1733,12 +1766,21 @@ export const PublicChallanSearchPage: React.FC = () => {
                                       e: React.SyntheticEvent<HTMLImageElement>,
                                     ) => {
                                       const target = e.currentTarget;
+                                      console.error(
+                                        "Error loading evidence image for challan",
+                                        challan.challanId,
+                                      );
+                                      console.log(
+                                        "Evidence path:",
+                                        challan.evidencePath?.substring(0, 100),
+                                      );
                                       target.style.display = "none";
                                       const parent = target.parentElement;
                                       if (parent) {
                                         parent.innerHTML = `
                                           <div style="padding: 40px; text-align: center; background: ${theme.palette.action.hover};">
                                             <p style="color: ${theme.palette.text.secondary};">Evidence image not available</p>
+                                            <p style="color: ${theme.palette.text.secondary}; font-size: 12px; margin-top: 8px;">${challan.evidencePath?.startsWith("data:image") ? "Base64 image" : "External image"}</p>
                                           </div>
                                         `;
                                       }
@@ -1840,7 +1882,7 @@ export const PublicChallanSearchPage: React.FC = () => {
           <Box display="flex" justifyContent="center" gap={2} flexWrap="wrap">
             <Link
               component="button"
-              onClick={() => navigate("/case-status")}
+              onClick={() => navigate("/accused-portal")}
               color="primary"
               underline="hover"
               sx={{
@@ -1850,7 +1892,7 @@ export const PublicChallanSearchPage: React.FC = () => {
                 fontSize: "0.875rem",
               }}
             >
-              <CaseIcon fontSize="small" /> Check Case Status
+              <CaseIcon fontSize="small" /> Accused Portal - Check Case Status
             </Link>
             <Typography variant="body2" color="text.secondary">
               •

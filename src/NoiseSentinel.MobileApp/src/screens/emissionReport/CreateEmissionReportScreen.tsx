@@ -16,6 +16,10 @@ import { Card } from "../../components/common/Card";
 import { Header } from "../../components/common/Header";
 import { Input } from "../../components/common/Input";
 import { CreateEmissionReportDto } from "../../models/EmissionReport";
+import notificationService, {
+  NotificationType,
+} from "../../services/notification.service";
+import { useAuth } from "../../contexts/AuthContext";
 import { colors } from "../../styles/colors";
 import { spacing } from "../../styles/spacing";
 import { typography } from "../../styles/typography";
@@ -29,6 +33,8 @@ interface CreateEmissionReportScreenProps {
 export const CreateEmissionReportScreen: React.FC<
   CreateEmissionReportScreenProps
 > = ({ navigation, route }) => {
+  const { userDetails } = useAuth();
+
   const [pairedDeviceId, setPairedDeviceId] = useState<number | null>(null);
   const [deviceName, setDeviceName] = useState("");
   const [soundLevel, setSoundLevel] = useState("");
@@ -129,6 +135,24 @@ export const CreateEmissionReportScreen: React.FC<
       };
 
       const response = await emissionReportApi.createEmissionReport(data);
+
+      // Add notification for emission report creation
+      if (userDetails?.officerId) {
+        await notificationService.addNotification(
+          userDetails.officerId,
+          response.isViolation
+            ? NotificationType.EMISSION_REPORT_CREATED
+            : NotificationType.TEST_COMPLETED,
+          response.isViolation ? "Violation Detected" : "Test Completed",
+          response.isViolation
+            ? `Emission test detected violation: ${response.soundLevelDBa} dBA`
+            : `Emission test passed: ${response.soundLevelDBa} dBA`,
+          {
+            deviceId: pairedDeviceId!,
+            deviceName: deviceName,
+          },
+        );
+      }
 
       Toast.show({
         type: "success",

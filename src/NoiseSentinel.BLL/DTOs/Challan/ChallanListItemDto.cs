@@ -37,8 +37,17 @@ public class ChallanListItemDto
     public int? EmissionReportId { get; set; }
     public string? DeviceName { get; set; }
     public decimal? SoundLevelDBa { get; set; }
+    
+    // Emission gas data (for emission/pollution violations)
+    public decimal? Co { get; set; }
+    public decimal? Co2 { get; set; }
+    public decimal? Hc { get; set; }
+    public decimal? Nox { get; set; }
+    
     public string? MlClassification { get; set; }
     public DateTime? EmissionTestDateTime { get; set; }
+    public string? IntegrityStatus { get; set; }
+    public string? BankDetails { get; set; }
     
     // Additional fields
     public bool IsCognizable { get; set; }

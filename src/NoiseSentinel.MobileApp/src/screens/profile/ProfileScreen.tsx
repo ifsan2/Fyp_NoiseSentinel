@@ -88,7 +88,10 @@ export const ProfileScreen: React.FC = ({ navigation }: any) => {
 
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate("Notifications")}
+            >
               <View
                 style={[
                   styles.menuIcon,
@@ -110,7 +113,10 @@ export const ProfileScreen: React.FC = ({ navigation }: any) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
           <View style={styles.menuCard}>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate("About")}
+            >
               <View
                 style={[styles.menuIcon, { backgroundColor: colors.info[50] }]}
               >

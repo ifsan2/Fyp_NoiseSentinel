@@ -200,53 +200,53 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
               <Text style={styles.value}>{challan.deviceName || "N/A"}</Text>
             </View>
 
-            {/* Show Sound Level for noise violations (soundLevelDBa exists and no emission gases) */}
-            {challan.soundLevelDBa != null &&
-            challan.co == null &&
-            challan.co2 == null &&
-            challan.hc == null &&
-            challan.nox == null ? (
+            {/* Show Sound Level for noise violations */}
+            {!(
+              challan.violationType?.toLowerCase().includes("pollution") ||
+              challan.violationType?.toLowerCase().includes("emission") ||
+              challan.violationType?.toLowerCase().includes("environmental")
+            ) ? (
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Sound Level:</Text>
                 <Text style={[styles.value, styles.soundLevel]}>
-                  {formatters.formatSoundLevel(challan.soundLevelDBa)}
+                  {formatters.formatSoundLevel(challan.soundLevelDBa ?? 0)}
                 </Text>
               </View>
             ) : null}
 
-            {/* Show Emissions for pollution violations (emission gases exist) */}
-            {challan.co != null ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>CO:</Text>
-                <Text style={[styles.value, styles.soundLevel]}>
-                  {challan.co.toFixed(2)} ppm
-                </Text>
-              </View>
-            ) : null}
-            {challan.co2 != null ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>CO₂:</Text>
-                <Text style={[styles.value, styles.soundLevel]}>
-                  {challan.co2.toFixed(2)} %
-                </Text>
-              </View>
-            ) : null}
-            {challan.hc != null ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>HC:</Text>
-                <Text style={[styles.value, styles.soundLevel]}>
-                  {challan.hc.toFixed(2)} ppm
-                </Text>
-              </View>
-            ) : null}
-            {challan.nox != null ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>NOx:</Text>
-                <Text style={[styles.value, styles.soundLevel]}>
-                  {challan.nox.toFixed(2)} ppm
-                </Text>
-              </View>
-            ) : null}
+            {/* Show Emissions for pollution violations */}
+            {(challan.violationType?.toLowerCase().includes("pollution") ||
+              challan.violationType?.toLowerCase().includes("emission") ||
+              challan.violationType
+                ?.toLowerCase()
+                .includes("environmental")) && (
+              <>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>CO:</Text>
+                  <Text style={[styles.value, styles.soundLevel]}>
+                    {(challan.co ?? 0).toFixed(2)} ppm
+                  </Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>CO₂:</Text>
+                  <Text style={[styles.value, styles.soundLevel]}>
+                    {(challan.co2 ?? 0).toFixed(2)} %
+                  </Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>HC:</Text>
+                  <Text style={[styles.value, styles.soundLevel]}>
+                    {(challan.hc ?? 0).toFixed(2)} ppm
+                  </Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>NOx:</Text>
+                  <Text style={[styles.value, styles.soundLevel]}>
+                    {(challan.nox ?? 0).toFixed(2)} ppm
+                  </Text>
+                </View>
+              </>
+            )}
 
             <View style={styles.infoRow}>
               <Text style={styles.label}>ML Classification:</Text>
@@ -328,8 +328,23 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
                     source={{ uri: challan.evidencePath }}
                     style={styles.evidenceImage}
                     resizeMode="cover"
+                    onError={(error) => {
+                      console.log(
+                        "Error loading evidence image:",
+                        error.nativeEvent.error,
+                      );
+                      console.log(
+                        "Evidence path:",
+                        challan.evidencePath?.substring(0, 100),
+                      );
+                    }}
                   />
                 </TouchableOpacity>
+                <Text style={styles.imageNote}>
+                  {challan.evidencePath?.startsWith("data:image")
+                    ? "Image from device"
+                    : "Image from server"}
+                </Text>
               </View>
             )}
             {challan.bankDetails && (
@@ -508,6 +523,13 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.success[600],
     fontWeight: "600",
+  },
+  imageNote: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: spacing.xs,
+    fontStyle: "italic",
   },
   firCard: {
     alignItems: "center",

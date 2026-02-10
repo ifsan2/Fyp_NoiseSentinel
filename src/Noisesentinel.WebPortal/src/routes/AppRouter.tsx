@@ -108,6 +108,7 @@ export const AppRouter: React.FC = () => {
 
         {/* Public Case Status - No Authentication Required (OTP Verification) */}
         <Route path="/case-status" element={<PublicCaseStatusPage />} />
+        <Route path="/accused-portal" element={<PublicCaseStatusPage />} />
 
         {/* Root Route - Role-Based Redirect */}
         <Route

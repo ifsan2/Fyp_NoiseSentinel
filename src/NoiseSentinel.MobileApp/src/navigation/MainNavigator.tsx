@@ -12,6 +12,8 @@ import { SearchAccusedScreen } from "../screens/search/SearchAccusedScreen";
 import { SearchVehicleScreen } from "../screens/search/SearchVehicleScreen";
 import { ViolationsScreen } from "../screens/search/ViolationsScreen";
 import { ChangePasswordScreen } from "../screens/settings/ChangePasswordScreen";
+import { NotificationsScreen } from "../screens/profile/NotificationsScreen";
+import { AboutScreen } from "../screens/profile/AboutScreen";
 import { TabNavigator } from "./TabNavigator";
 
 const Stack = createNativeStackNavigator();
@@ -55,6 +57,16 @@ export const MainNavigator: React.FC = () => {
       <Stack.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
+        options={{ presentation: "modal", animation: "slide_from_bottom" }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ presentation: "modal", animation: "slide_from_bottom" }}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
         options={{ presentation: "modal", animation: "slide_from_bottom" }}
       />
     </Stack.Navigator>

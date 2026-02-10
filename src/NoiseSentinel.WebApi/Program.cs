@@ -17,6 +17,12 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================================
+// NETWORK CONFIGURATION - Allow access from any device on same network
+// ============================================================================
+
+builder.WebHost.UseUrls("http://0.0.0.0:5200");
+
+// ============================================================================
 // DATABASE CONFIGURATION
 // ============================================================================
 
@@ -336,9 +342,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(origin => true) // Allow any origin
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials(); // Enable credentials for JWT/cookies
     });
 
     // Production CORS policy (more restrictive)

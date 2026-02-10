@@ -1,7 +1,8 @@
 // API Configuration
 export const API_CONFIG = {
-  // Default to backend running on localhost:5200 if env not provided
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5200/api",
+  // Direct backend URL - works on all devices on same network (like mobile app)
+  BASE_URL:
+    import.meta.env.VITE_API_BASE_URL || "http://192.168.100.16:5200/api",
   TIMEOUT: 30000,
 };
 

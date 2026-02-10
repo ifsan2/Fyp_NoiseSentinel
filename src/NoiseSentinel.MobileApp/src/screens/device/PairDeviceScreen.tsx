@@ -23,6 +23,10 @@ import {
 } from "../../models/IotDevice";
 import Toast from "react-native-toast-message";
 import BleDeviceService, { BleDevice } from "../../services/BleDeviceService";
+import notificationService, {
+  NotificationType,
+} from "../../services/notification.service";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface MatchedDevice {
   bleDevice: BleDevice;
@@ -39,6 +43,9 @@ export const PairDeviceScreen: React.FC<PairDeviceScreenProps> = ({
   navigation,
   route,
 }) => {
+  // Auth context
+  const { userDetails } = useAuth();
+
   // Check for reconnect message from CreateChallanScreen
   const reconnectMessage = route?.params?.message;
   const isReconnect = route?.params?.reconnect;
@@ -112,6 +119,21 @@ export const PairDeviceScreen: React.FC<PairDeviceScreenProps> = ({
         // Call unpair API to release device
         try {
           await iotDeviceApi.unpairDevice();
+
+          // Add notification for device unpairing
+          if (userDetails?.officerId && pairedDevice) {
+            await notificationService.addNotification(
+              userDetails.officerId,
+              NotificationType.DEVICE_UNPAIRED,
+              "Device Unpaired",
+              `${pairedDevice.deviceName} was disconnected and unpaired`,
+              {
+                deviceId: pairedDevice.deviceId,
+                deviceName: pairedDevice.deviceName,
+              },
+            );
+          }
+
           setPairedDevice(null);
           await loadAvailableDevicesFromDb();
           Toast.show({
@@ -469,6 +491,20 @@ export const PairDeviceScreen: React.FC<PairDeviceScreenProps> = ({
       const message = await iotDeviceApi.pairDevice({
         deviceId: matched.dbDevice.deviceId,
       });
+
+      // Add notification for device pairing
+      if (userDetails?.officerId) {
+        await notificationService.addNotification(
+          userDetails.officerId,
+          NotificationType.DEVICE_PAIRED,
+          "Device Paired",
+          `Successfully paired with ${matched.dbDevice.deviceName}`,
+          {
+            deviceId: matched.dbDevice.deviceId,
+            deviceName: matched.dbDevice.deviceName,
+          },
+        );
+      }
 
       Toast.show({
         type: "success",

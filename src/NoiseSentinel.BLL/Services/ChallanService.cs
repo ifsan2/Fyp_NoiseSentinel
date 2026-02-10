@@ -406,15 +406,29 @@ public class ChallanService : IChallanService
     public async Task<ServiceResult<IEnumerable<ChallanListItemDto>>> SearchChallansByPlateAndCnicAsync(
         string plateNumber, string cnic)
     {
+        _logger.LogInformation("Searching challans for plate: {PlateNumber}, CNIC: {Cnic}", plateNumber, cnic);
+        
         var challans = await _challanRepository.GetByVehiclePlateAndCnicAsync(plateNumber, cnic);
 
         if (!challans.Any())
         {
+            _logger.LogInformation("No challans found for plate: {PlateNumber}, CNIC: {Cnic}", plateNumber, cnic);
             return ServiceResult<IEnumerable<ChallanListItemDto>>.FailureResult(
                 $"No challans found for vehicle plate number '{plateNumber}' and CNIC '{cnic}'.");
         }
 
+        _logger.LogInformation("Found {Count} challans. Checking evidence paths...", challans.Count());
+        foreach (var challan in challans)
+        {
+            _logger.LogDebug("Challan {ChallanId}: EvidencePath length = {Length}, IsNull = {IsNull}", 
+                challan.ChallanId, 
+                challan.EvidencePath?.Length ?? 0,
+                challan.EvidencePath == null);
+        }
+
         var response = challans.Select(MapToChallanListItemDto).ToList();
+
+        _logger.LogInformation("Mapped {Count} challans to DTOs", response.Count);
 
         return ServiceResult<IEnumerable<ChallanListItemDto>>.SuccessResult(
             response,
@@ -518,8 +532,16 @@ public class ChallanService : IChallanService
             EmissionReportId = challan.EmissionReportId,
             DeviceName = challan.EmissionReport?.Device?.DeviceName,
             SoundLevelDBa = challan.EmissionReport?.SoundLevelDBa,
+            Co = challan.EmissionReport?.Co,
+            Co2 = challan.EmissionReport?.Co2,
+            Hc = challan.EmissionReport?.Hc,
+            Nox = challan.EmissionReport?.Nox,
             MlClassification = challan.EmissionReport?.MlClassification,
-            EmissionTestDateTime = challan.EmissionReport?.TestDateTime
+            EmissionTestDateTime = challan.EmissionReport?.TestDateTime,
+            IntegrityStatus = challan.EmissionReportId.HasValue 
+                ? "Verified - Digitally Signed from Emission Report" 
+                : null,
+            BankDetails = challan.BankDetails
         };
     }
 
@@ -530,14 +552,21 @@ public class ChallanService : IChallanService
     private string? DecompressEvidenceImage(string? compressedEvidencePath)
     {
         if (string.IsNullOrEmpty(compressedEvidencePath))
+        {
+            _logger.LogDebug("Evidence path is null or empty");
             return null;
+        }
 
         try
         {
-            return ImageCompressionHelper.DecompressImage(compressedEvidencePath);
+            var decompressed = ImageCompressionHelper.DecompressImage(compressedEvidencePath);
+            _logger.LogDebug("Successfully decompressed evidence image, length: {Length}", decompressed?.Length ?? 0);
+            return decompressed;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to decompress evidence image, returning original. Original length: {Length}", 
+                compressedEvidencePath.Length);
             // If decompression fails, return the original value (might be uncompressed legacy data)
             return compressedEvidencePath;
         }

@@ -1101,11 +1101,11 @@ export const PublicCaseStatusPage: React.FC = () => {
           <LockIcon sx={{ fontSize: 32, color: "white" }} />
         </Box>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
-          Identity Verification
+          Access Your Records
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Enter your details to receive a verification code on your registered
-          email.
+          Enter your vehicle and personal details to securely access your case
+          status and challan records.
         </Typography>
       </Box>
 
@@ -2077,7 +2077,7 @@ export const PublicCaseStatusPage: React.FC = () => {
               alignItems="center"
               gap={2}
               sx={{ cursor: "pointer" }}
-              onClick={() => navigate("/case-status")}
+              onClick={() => navigate("/accused-portal")}
             >
               <BrandLogo size="large" />
               <Box>
@@ -2089,7 +2089,7 @@ export const PublicCaseStatusPage: React.FC = () => {
                   NoiseSentinel
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Public Case Status Portal
+                  Accused Portal - Case Status
                 </Typography>
               </Box>
             </Box>
