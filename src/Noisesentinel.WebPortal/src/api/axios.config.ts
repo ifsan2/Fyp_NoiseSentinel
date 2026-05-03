@@ -6,6 +6,21 @@ import axios, {
 import { API_CONFIG } from "@/utils/constants";
 import storageService from "@/utils/storage";
 
+const resolveRequestUrl = (
+  baseURL: string | undefined,
+  url: string | undefined,
+) => {
+  if (!url) {
+    return baseURL || "unknown";
+  }
+
+  if (!baseURL) {
+    return url;
+  }
+
+  return `${baseURL.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
+};
+
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -24,9 +39,16 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    const resolvedUrl = resolveRequestUrl(
+      config.baseURL || API_CONFIG.BASE_URL,
+      config.url,
+    );
+
     console.log("📤 API Request:", {
       method: config.method?.toUpperCase(),
       url: config.url,
+      baseURL: config.baseURL || API_CONFIG.BASE_URL,
+      resolvedUrl,
       hasAuth: !!token,
     });
 
@@ -49,9 +71,16 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError<any>) => {
+    const resolvedUrl = resolveRequestUrl(
+      error.config?.baseURL || API_CONFIG.BASE_URL,
+      error.config?.url,
+    );
+
     console.error("❌ API Error:", {
       status: error.response?.status,
       url: error.config?.url,
+      baseURL: error.config?.baseURL || API_CONFIG.BASE_URL,
+      resolvedUrl,
       message: error.response?.data?.message || error.message,
       code: error.code,
     });
@@ -61,7 +90,11 @@ apiClient.interceptors.response.use(
       console.error(
         "🔌 Network Error: Check if the backend server is running and accessible",
       );
-      console.error("🔧 Backend URL:", error.config?.baseURL || "Not set");
+      console.error(
+        "🔧 Backend URL:",
+        error.config?.baseURL || API_CONFIG.BASE_URL,
+      );
+      console.error("🔗 Resolved URL:", resolvedUrl);
     }
 
     // Handle SSL errors

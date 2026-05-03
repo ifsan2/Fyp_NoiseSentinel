@@ -104,6 +104,24 @@ docker compose logs -f
 - API health: https://noisesentinel.tech/api/health
 - Swagger is disabled in production.
 
+### Quick mapping checks
+
+Run this from your droplet after deployment:
+
+```bash
+curl -fsS https://noisesentinel.tech/api/health
+curl -fsS -X POST https://noisesentinel.tech/api/Auth/register/admin \
+   -H 'Content-Type: application/json' \
+   -d '{}'
+```
+
+- The first command should return a JSON health payload.
+- The second command should return a 400 validation response, not 404.
+- If you get 404, the `/api` reverse proxy is not reaching the Web API.
+- If you get network or SSL errors, check Cloudflare, Caddy, and ports 80/443.
+
+For a combined check, use [check_deployment.sh](check_deployment.sh).
+
 ## 6) Update deployment
 
 ```bash

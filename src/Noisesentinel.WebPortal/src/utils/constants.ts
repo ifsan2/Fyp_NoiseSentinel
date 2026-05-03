@@ -1,8 +1,8 @@
 // API Configuration
 export const API_CONFIG = {
   // Direct backend URL - works on all devices on same network (like mobile app)
-  BASE_URL:
-    import.meta.env.VITE_API_BASE_URL || "http://192.168.100.16:5200/api",
+  // Production should use the same-origin /api reverse-proxy route.
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || "/api",
   TIMEOUT: 30000,
 };
 
