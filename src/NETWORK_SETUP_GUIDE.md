@@ -21,7 +21,7 @@ ipconfig | findstr "IPv4"
 ```typescript
 BASE_URL: __DEV__
   ? "http://YOUR_IP:5200/api"  // ← Change this
-  : "https://your-production-api.com/api",
+  : "https://noisesentinel.tech/api",
 ```
 
 ### 2. **Web Portal (CRITICAL)** → `Noisesentinel.WebPortal/.env`

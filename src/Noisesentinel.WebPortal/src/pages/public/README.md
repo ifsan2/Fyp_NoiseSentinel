@@ -103,7 +103,7 @@ This feature allows the public to search for traffic violation challans without 
 
 ### For End Users
 
-1. Visit: `http://your-domain/search-challans`
+1. Visit: `https://noisesentinel.tech/search-challans`
 2. Enter your vehicle plate number (e.g., PK-ABC-123)
 3. Enter your CNIC in format: 12345-1234567-1
 4. Click "Search"
@@ -115,7 +115,7 @@ This feature allows the public to search for traffic violation challans without 
 The public search page can be accessed directly without logging in:
 
 - Development: `http://localhost:5173/search-challans`
-- Production: `https://your-domain/search-challans`
+- Production: `https://noisesentinel.tech/search-challans`
 
 ## Security
 

@@ -1,0 +1,51 @@
+services:
+  webapi:
+    build:
+      context: .
+      dockerfile: src/NoiseSentinel.WebApi/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://0.0.0.0:5200
+      ConnectionStrings__DefaultConnection: ${DB_CONNECTION_STRING}
+      JwtSettings__SecretKey: ${JWT_SECRET}
+      JwtSettings__Issuer: ${JWT_ISSUER}
+      JwtSettings__Audience: ${JWT_AUDIENCE}
+      JwtSettings__ExpirationMinutes: ${JWT_EXPIRATION_MINUTES}
+      EmailSettings__SmtpHost: ${SMTP_HOST}
+      EmailSettings__SmtpPort: ${SMTP_PORT}
+      EmailSettings__SenderEmail: ${SMTP_SENDER_EMAIL}
+      EmailSettings__SenderName: ${SMTP_SENDER_NAME}
+      EmailSettings__AppPassword: ${SMTP_APP_PASSWORD}
+      EmailSettings__EnableSsl: ${SMTP_ENABLE_SSL}
+      EmailSettings__OtpExpirationMinutes: ${SMTP_OTP_EXPIRATION_MINUTES}
+    expose:
+      - "5200"
+    restart: unless-stopped
+
+  webportal:
+    build:
+      context: .
+      dockerfile: src/Noisesentinel.WebPortal/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    expose:
+      - "80"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.8-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - webapi
+      - webportal
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

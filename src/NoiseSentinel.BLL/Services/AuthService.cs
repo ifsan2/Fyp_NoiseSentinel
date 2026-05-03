@@ -1064,7 +1064,7 @@ public class AuthService : IAuthService
         await _userRepository.UpdateEmailVerificationAsync(user, otp, expiresAt);
 
         // Generate verification link
-        var verificationLink = $"https://your-frontend-url.com/verify-email?email={Uri.EscapeDataString(user.NormalizedEmail!)}&otp={otp}";
+        var verificationLink = $"https://noisesentinel.tech/verify-email?email={Uri.EscapeDataString(user.NormalizedEmail!)}&otp={otp}";
 
         // Send verification email
         try
@@ -1146,7 +1146,7 @@ public class AuthService : IAuthService
         await _userRepository.UpdateEmailVerificationAsync(user, otp, expiresAt);
 
         // Generate verification link
-        var verificationLink = $"https://your-frontend-url.com/verify-email?email={Uri.EscapeDataString(user.NormalizedEmail!)}&otp={otp}";
+        var verificationLink = $"https://noisesentinel.tech/verify-email?email={Uri.EscapeDataString(user.NormalizedEmail!)}&otp={otp}";
 
         // Send verification email
         await _emailService.SendEmailVerificationAsync(

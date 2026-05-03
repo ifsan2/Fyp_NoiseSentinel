@@ -5,7 +5,7 @@ export const API_CONFIG = {
   // For real device: use your PC's IP (e.g., http://192.168.100.16:5200/api)
   BASE_URL: __DEV__
     ? "http://192.168.100.16:5200/api" // Your computer's local IP - change if different
-    : "https://your-production-api.com/api", // Production
+    : "https://noisesentinel.tech/api", // Production
   TIMEOUT: 60000, // Increased to 60 seconds for image uploads
 };
 

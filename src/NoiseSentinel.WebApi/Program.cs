@@ -289,7 +289,7 @@ builder.Services.AddSwaggerGen(options =>
         Contact = new OpenApiContact
         {
             Name = "NoiseSentinel Support",
-            Email = "support@noisesentinel.com"
+            Email = "support@noisesentinel.tech"
         }
     });
 
@@ -351,7 +351,7 @@ builder.Services.AddCors(options =>
     // Production CORS policy (more restrictive)
     options.AddPolicy("ProductionPolicy", policy =>
     {
-        policy.WithOrigins("https://yourdomain.com", "https://www.yourdomain.com")
+        policy.WithOrigins("https://noisesentinel.tech", "https://www.noisesentinel.tech")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

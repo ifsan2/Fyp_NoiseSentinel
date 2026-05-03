@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
     ///     POST /api/auth/register/admin
     ///     {
     ///         "fullName": "System Administrator",
-    ///         "email": "admin@noisesentinel.com",
+    ///         "email": "admin@noisesentinel.tech",
     ///         "username": "admin",
     ///         "password": "Admin@1234",
     ///         "confirmPassword": "Admin@1234"
@@ -102,7 +102,7 @@ public class AuthController : ControllerBase
     ///     Authorization: Bearer {your-admin-token}
     ///     {
     ///         "fullName": "Secondary Admin",
-    ///         "email": "admin2@noisesentinel.com",
+    ///         "email": "admin2@noisesentinel.tech",
     ///         "username": "admin2",
     ///         "password": "SecureAdmin@5678"
     ///     }
@@ -430,7 +430,7 @@ public class AuthController : ControllerBase
     /// 
     ///     POST /api/auth/login
     ///     {
-    ///         "username": "admin@noisesentinel.com",
+    ///         "username": "admin@noisesentinel.tech",
     ///         "password": "Admin@1234"
     ///     }
     /// 

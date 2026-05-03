@@ -138,7 +138,7 @@ export const CreateAdminPage: React.FC = () => {
                     {...field}
                     type="email"
                     label="Email"
-                    placeholder="e.g., admin2@noisesentinel.com"
+                    placeholder="e.g., admin2@noisesentinel.tech"
                     fullWidth
                     error={!!errors.email}
                     helperText={errors.email?.message}

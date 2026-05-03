@@ -59,7 +59,7 @@ export const RegisterAdminPage: React.FC = () => {
 
       enqueueSnackbar(
         "Registration successful! Please check your email to verify your account.",
-        { variant: "success" }
+        { variant: "success" },
       );
 
       // Redirect to verification page with email
@@ -326,7 +326,7 @@ export const RegisterAdminPage: React.FC = () => {
                       {...field}
                       type="email"
                       label="Email"
-                      placeholder="admin@noisesentinel.com"
+                      placeholder="admin@noisesentinel.tech"
                       fullWidth
                       error={!!errors.email}
                       helperText={errors.email?.message}

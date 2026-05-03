@@ -64,9 +64,9 @@ This guide will help you configure email authentication for NoiseSentinel using 
   "EmailSettings": {
     "SmtpHost": "smtp.gmail.com",
     "SmtpPort": 587,
-    "SmtpUsername": "admin@noisesentinel.com",
+    "SmtpUsername": "admin@noisesentinel.tech",
     "SmtpPassword": "abcdefghijklmnop",
-    "FromEmail": "admin@noisesentinel.com",
+    "FromEmail": "admin@noisesentinel.tech",
     "FromName": "NoiseSentinel",
     "EnableSsl": true,
     "OtpExpirationMinutes": 15
@@ -117,7 +117,7 @@ VITE_API_BASE_URL=https://localhost:7000/api
 **For Production:**
 
 ```env
-VITE_API_BASE_URL=https://yourdomain.com/api
+VITE_API_BASE_URL=https://noisesentinel.tech/api
 ```
 
 ### Step 2: Update axios.config.ts (if needed)
@@ -170,7 +170,7 @@ const API_BASE_URL = "http://192.168.1.100:7000/api"; // Replace with your IP
 **For Production:**
 
 ```typescript
-const API_BASE_URL = "https://yourdomain.com/api";
+const API_BASE_URL = "https://noisesentinel.tech/api";
 ```
 
 ### Step 2: Install Dependencies
