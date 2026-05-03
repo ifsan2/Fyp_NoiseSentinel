@@ -401,7 +401,7 @@ export const PairDeviceScreen: React.FC<PairDeviceScreenProps> = ({
       console.log("Starting unpair process...");
 
       // Disconnect BLE if connected
-      if (BleDeviceService.isConnected()) {
+      if (await BleDeviceService.isConnected()) {
         await BleDeviceService.disconnect();
       }
 
@@ -529,7 +529,7 @@ export const PairDeviceScreen: React.FC<PairDeviceScreenProps> = ({
       console.error("❌ Pairing error:", error);
 
       // Disconnect on error
-      if (BleDeviceService.isConnected()) {
+      if (await BleDeviceService.isConnected()) {
         await BleDeviceService.disconnect();
       }
 

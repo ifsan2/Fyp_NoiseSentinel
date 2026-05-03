@@ -1,4 +1,4 @@
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * Notification Service
@@ -49,7 +49,7 @@ class NotificationService {
   async getNotifications(officerId: number): Promise<Notification[]> {
     try {
       const key = this.getOfficerKey(officerId);
-      const data = await SecureStore.getItemAsync(key);
+      const data = await AsyncStorage.getItem(key);
 
       if (!data) return [];
 
@@ -95,7 +95,7 @@ class NotificationService {
       const trimmedNotifications = notifications.slice(0, MAX_NOTIFICATIONS);
 
       const key = this.getOfficerKey(officerId);
-      await SecureStore.setItemAsync(key, JSON.stringify(trimmedNotifications));
+      await AsyncStorage.setItem(key, JSON.stringify(trimmedNotifications));
     } catch (error) {
       console.error("Error adding notification:", error);
       throw error;
@@ -113,7 +113,7 @@ class NotificationService {
       );
 
       const key = this.getOfficerKey(officerId);
-      await SecureStore.setItemAsync(key, JSON.stringify(updated));
+      await AsyncStorage.setItem(key, JSON.stringify(updated));
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -128,7 +128,7 @@ class NotificationService {
       const updated = notifications.map((n) => ({ ...n, read: true }));
 
       const key = this.getOfficerKey(officerId);
-      await SecureStore.setItemAsync(key, JSON.stringify(updated));
+      await AsyncStorage.setItem(key, JSON.stringify(updated));
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
     }
@@ -148,7 +148,7 @@ class NotificationService {
   async clearAll(officerId: number): Promise<void> {
     try {
       const key = this.getOfficerKey(officerId);
-      await SecureStore.deleteItemAsync(key);
+      await AsyncStorage.removeItem(key);
     } catch (error) {
       console.error("Error clearing notifications:", error);
     }
@@ -166,7 +166,7 @@ class NotificationService {
       const filtered = notifications.filter((n) => n.id !== notificationId);
 
       const key = this.getOfficerKey(officerId);
-      await SecureStore.setItemAsync(key, JSON.stringify(filtered));
+      await AsyncStorage.setItem(key, JSON.stringify(filtered));
     } catch (error) {
       console.error("Error deleting notification:", error);
     }

@@ -70,8 +70,8 @@ public class EmissionreportService : IEmissionreportService
                 $"Device '{device.DeviceName}' is not calibrated. Readings may be inaccurate.");
         }
 
-        // Validate test date/time is not in future
-        if (dto.TestDateTime > DateTime.UtcNow)
+        // Validate test date/time is not in future (allow 1 minute buffer for clock skew)
+        if (dto.TestDateTime > DateTime.UtcNow.AddMinutes(1))
         {
             return ServiceResult<EmissionReportResponseDto>.FailureResult(
                 "Test date/time cannot be in the future.");

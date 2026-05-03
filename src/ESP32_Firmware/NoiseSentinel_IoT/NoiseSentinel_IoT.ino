@@ -15,6 +15,7 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 #include <ArduinoJson.h>
+#include <Preferences.h>
 #include "ble_protocol.h"
 #include "sensor_calibration.h"
 
@@ -28,7 +29,7 @@
 // LED Status Indicators
 #define LED_RED_PIN 2    // Red LED - Not connected/paired
 #define LED_YELLOW_PIN 4 // Yellow LED - Connected/paired (idle)
-#define LED_GREEN_PIN 21   // Green LED - Scanning in progress
+#define LED_GREEN_PIN 21 // Green LED - Scanning in progress
 
 // Legacy alias for compatibility
 #define LED_PIN LED_RED_PIN
@@ -53,6 +54,19 @@ String currentViolationType = "";
 // Firmware info
 const String FIRMWARE_VERSION = "v1.2.0";
 const int BATTERY_LEVEL = 85; // Mock value (implement actual battery reading if needed)
+
+// ============================================================================
+// CALIBRATION STORAGE
+// ============================================================================
+Preferences prefs;
+const char *PREFS_NAMESPACE = "NoiseSentinel";
+const char *KEY_SOUND_OFFSET = "sound_offset";
+const char *KEY_MQ7_R0 = "mq7_r0";
+const char *KEY_MQ2_R0 = "mq2_r0";
+
+float soundOffsetDb = 0.0f;
+float mq7R0 = MQ7_R0_DEFAULT;
+float mq2R0 = MQ2_R0_DEFAULT;
 
 // ============================================================================
 // NON-BLOCKING EMISSION TEST STATE MACHINE
@@ -80,16 +94,21 @@ unsigned long lastSampleTime = 0;
 
 // Forward declarations
 void handleCommand(const char *jsonCommand);
+void handleChallanCreated(JsonDocument &doc);
+void handleStartNoiseTest(JsonDocument &doc);
+void handleStartEmissionTest(JsonDocument &doc);
 void sendJsonResponse(JsonDocument &doc);
 void sendErrorResponse(String message);
 float measureNoiseLevel();
+float measureNoiseLevelWithOffset(float offsetDb);
 void measureEmissions(float &co, float &hc, float &nox);
+float readAverageVoltage(int pin, int samples);
+float calculateR0FromPpm(float rs, float ppm, float m, float b);
 String classifyNoise(float dba);
 String classifyEmission(float co, float hc);
 void handleGetStatus(JsonDocument &doc);
 void handleCalibrate(JsonDocument &doc);
 void processEmissionTest();
-String classifyEmission(float co, float hc);
 
 // LED status helper functions
 void setLedStatus(bool red, bool yellow, bool green);
@@ -449,7 +468,7 @@ void processEmissionTest()
 
             // Read MQ-7 (CO)
             int mq7Raw = analogRead(MQ7_PIN);
-            float coValue = calculateCO_ppm(mq7Raw);
+            float coValue = calculateCO_ppm(mq7Raw, mq7R0);
             if (!isnan(coValue) && coValue > 0 && coValue < 10000)
             {
                 emissionCoSum += coValue;
@@ -458,7 +477,7 @@ void processEmissionTest()
 
             // Read MQ-2 (HC)
             int mq2Raw = analogRead(MQ2_PIN);
-            float hcValue = calculateHC_ppm(mq2Raw);
+            float hcValue = calculateHC_ppm(mq2Raw, mq2R0);
             if (!isnan(hcValue) && hcValue > 0 && hcValue < 10000)
             {
                 emissionHcSum += hcValue;
@@ -553,18 +572,60 @@ void handleCalibrate(JsonDocument &doc)
     deviceMode = MODE_CALIBRATION_STR;
     Serial.println("🔧 Calibrating sensors...");
 
-    float refSound = doc["reference_sound"] | 94.0;
-    float refCO = doc["reference_co"] | 50.0;
-    float refHC = doc["reference_hc"] | 100.0;
+    float refSound = doc["reference_sound"] | 94.0f;
+    float refCO = doc["reference_co"] | 50.0f;
+    float refHC = doc["reference_hc"] | 100.0f;
 
-    delay(5000); // Mock calibration
+    // ===== Sound calibration =====
+    float measuredDb = measureNoiseLevelWithOffset(0.0f);
+    if (isfinite(measuredDb))
+    {
+        soundOffsetDb = refSound - measuredDb;
+        prefs.putFloat(KEY_SOUND_OFFSET, soundOffsetDb);
+    }
+
+    // ===== Gas sensor calibration (optional reference ppm) =====
+    const int gasSamples = 40;
+
+    if (refCO > 0.0f)
+    {
+        float mq7Voltage = readAverageVoltage(MQ7_PIN, gasSamples);
+        if (isValidSensorVoltage(mq7Voltage))
+        {
+            float rs = calculateSensorResistance(mq7Voltage, MQ7_RL);
+            float newR0 = calculateR0FromPpm(rs, refCO, MQ7_CO_M, MQ7_CO_B);
+            if (isfinite(newR0) && newR0 > 0.0f)
+            {
+                mq7R0 = newR0;
+                prefs.putFloat(KEY_MQ7_R0, mq7R0);
+            }
+        }
+    }
+
+    if (refHC > 0.0f)
+    {
+        float mq2Voltage = readAverageVoltage(MQ2_PIN, gasSamples);
+        if (isValidSensorVoltage(mq2Voltage))
+        {
+            float rs = calculateSensorResistance(mq2Voltage, MQ2_RL);
+            float newR0 = calculateR0FromPpm(rs, refHC, MQ2_HC_M, MQ2_HC_B);
+            if (isfinite(newR0) && newR0 > 0.0f)
+            {
+                mq2R0 = newR0;
+                prefs.putFloat(KEY_MQ2_R0, mq2R0);
+            }
+        }
+    }
 
     StaticJsonDocument<256> response;
     response["status"] = "CALIBRATION_COMPLETE";
     response["device_id"] = deviceId;
-    response["sound_offset"] = 0.0;
-    response["co_offset"] = 0.0;
-    response["hc_offset"] = 0.0;
+    response["sound_offset"] = soundOffsetDb;
+    response["co_offset"] = mq7R0;
+    response["hc_offset"] = mq2R0;
+    response["sound_measured_db"] = measuredDb;
+    response["mq7_r0"] = mq7R0;
+    response["mq2_r0"] = mq2R0;
     response["firmware_version"] = FIRMWARE_VERSION;
 
     sendJsonResponse(response);
@@ -583,46 +644,49 @@ void handleCalibrate(JsonDocument &doc)
  */
 float measureNoiseLevel()
 {
+    return measureNoiseLevelWithOffset(soundOffsetDb);
+}
+
+float measureNoiseLevelWithOffset(float offsetDb)
+{
     const int SAMPLES = 800;
-    const float ADC_REF = 4095.0;
-    const float V_REF = 3.3;
-    const float MIC_SENSITIVITY = 0.00631;
-    const float CALIBRATION_OFFSET = 94.0;
+    const int SAMPLE_RATE_HZ = 8000;
+    const float MIC_SENSITIVITY_V_PER_PA = 0.00631f;
+    const float MIC_PREAMP_GAIN = 125.0f;
+    const float REF_PRESSURE_PA = 0.00002f;
 
-    float micSamples[SAMPLES];
+    // Welford's algorithm for mean and RMS without storing samples
+    float mean = 0.0f;
+    float m2 = 0.0f;
 
-    // ====== MAX4466 AUDIO SAMPLING ======
     for (int i = 0; i < SAMPLES; i++)
     {
-        micSamples[i] = analogRead(MIC_PIN);
-        delayMicroseconds(1000000 / 8000); // 8kHz sample rate
+        float sampleV = analogReadMilliVolts(MIC_PIN) / 1000.0f;
+        float delta = sampleV - mean;
+        mean += delta / (i + 1);
+        float delta2 = sampleV - mean;
+        m2 += delta * delta2;
+
+        delayMicroseconds(1000000 / SAMPLE_RATE_HZ);
     }
 
-    // Remove DC offset
-    float mean = 0;
-    for (int i = 0; i < SAMPLES; i++)
-        mean += micSamples[i];
-    mean /= SAMPLES;
-
-    // RMS calculation
-    float sumSquares = 0;
-    for (int i = 0; i < SAMPLES; i++)
+    float rms = sqrt(m2 / SAMPLES);
+    if (!isfinite(rms) || rms <= 0.0f)
     {
-        float ac = micSamples[i] - mean;
-        sumSquares += ac * ac;
+        return 30.0f;
     }
-
-    float rms = sqrt(sumSquares / SAMPLES);
-
-    // Convert to voltage
-    float voltage = (rms / ADC_REF) * V_REF;
 
     // SPL → dB(A)
-    float spl = 20.0 * log10(voltage / MIC_SENSITIVITY);
-    float dBA = spl + CALIBRATION_OFFSET;
+    float pressurePa = rms / (MIC_SENSITIVITY_V_PER_PA * MIC_PREAMP_GAIN);
+    if (!isfinite(pressurePa) || pressurePa < REF_PRESSURE_PA)
+    {
+        pressurePa = REF_PRESSURE_PA;
+    }
+    float spl = 20.0f * log10(pressurePa / REF_PRESSURE_PA);
+    float dBA = spl + offsetDb;
 
     // Constrain to realistic range
-    dBA = constrain(dBA, 30.0, 130.0);
+    dBA = constrain(dBA, 30.0f, 130.0f);
 
     return dBA;
 }
@@ -643,7 +707,7 @@ void measureEmissions(float &co, float &hc, float &nox)
     {
         // ====== MQ-7 (CO) SENSOR ======
         int mq7Raw = analogRead(MQ7_PIN);
-        float coValue = calculateCO_ppm(mq7Raw);
+        float coValue = calculateCO_ppm(mq7Raw, mq7R0);
 
         // Validate reading
         if (!isnan(coValue) && coValue > 0 && coValue < 10000)
@@ -654,7 +718,7 @@ void measureEmissions(float &co, float &hc, float &nox)
 
         // ====== MQ-2 (HC/Gas) SENSOR ======
         int mq2Raw = analogRead(MQ2_PIN);
-        float hcValue = calculateHC_ppm(mq2Raw);
+        float hcValue = calculateHC_ppm(mq2Raw, mq2R0);
 
         // Validate reading
         if (!isnan(hcValue) && hcValue > 0 && hcValue < 10000)
@@ -688,6 +752,33 @@ void measureEmissions(float &co, float &hc, float &nox)
     Serial.println("  CO: " + String(co) + " ppm (" + String(validCO) + "/" + String(samples) + " valid samples)");
     Serial.println("  HC: " + String(hc) + " ppm (" + String(validHC) + "/" + String(samples) + " valid samples)");
     Serial.println("  NOx (estimated): " + String(nox) + " ppm");
+}
+
+float readAverageVoltage(int pin, int samples)
+{
+    float sum = 0.0f;
+    for (int i = 0; i < samples; i++)
+    {
+        sum += analogReadMilliVolts(pin) / 1000.0f;
+        delay(20);
+    }
+    return sum / samples;
+}
+
+float calculateR0FromPpm(float rs, float ppm, float m, float b)
+{
+    if (!isfinite(rs) || rs <= 0.0f || ppm <= 0.0f)
+    {
+        return NAN;
+    }
+
+    float ratio = pow(10.0f, (m * log10(ppm)) + b);
+    if (!isfinite(ratio) || ratio <= 0.0f)
+    {
+        return NAN;
+    }
+
+    return rs / ratio;
 }
 
 // ============================================================================
@@ -813,6 +904,21 @@ void setup()
     Serial.begin(115200);
     delay(1000);
 
+    analogReadResolution(12);
+    analogSetPinAttenuation(MIC_PIN, ADC_11db);
+    analogSetPinAttenuation(MQ7_PIN, ADC_11db);
+    analogSetPinAttenuation(MQ2_PIN, ADC_11db);
+
+    prefs.begin(PREFS_NAMESPACE, false);
+    soundOffsetDb = prefs.getFloat(KEY_SOUND_OFFSET, 0.0f);
+    mq7R0 = prefs.getFloat(KEY_MQ7_R0, MQ7_R0_DEFAULT);
+    mq2R0 = prefs.getFloat(KEY_MQ2_R0, MQ2_R0_DEFAULT);
+
+    if (!isfinite(mq7R0) || mq7R0 <= 0.0f)
+        mq7R0 = MQ7_R0_DEFAULT;
+    if (!isfinite(mq2R0) || mq2R0 <= 0.0f)
+        mq2R0 = MQ2_R0_DEFAULT;
+
     // Initialize all LED pins
     pinMode(LED_RED_PIN, OUTPUT);
     pinMode(LED_YELLOW_PIN, OUTPUT);
@@ -824,6 +930,10 @@ void setup()
     Serial.println("===========================================");
     Serial.println("  NoiseSentinel IoT Device");
     Serial.println("  Firmware: " + FIRMWARE_VERSION);
+    Serial.println("  Calibration:");
+    Serial.println("    Sound Offset (dB): " + String(soundOffsetDb, 2));
+    Serial.println("    MQ7 R0: " + String(mq7R0, 2));
+    Serial.println("    MQ2 R0: " + String(mq2R0, 2));
     Serial.println("===========================================");
     Serial.println("  LED Status:");
     Serial.println("    Red    (Pin " + String(LED_RED_PIN) + ") - Not Connected");

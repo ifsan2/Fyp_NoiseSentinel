@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  Platform,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { IotDeviceResponseDto } from "../../models/IotDevice";
 import { colors } from "../../styles/colors";
 
@@ -33,34 +26,21 @@ export const PairedDeviceCard: React.FC<PairedDeviceCardProps> = ({
     console.log("Device:", device.deviceName);
     console.log("onUnpair prop:", typeof onUnpair);
 
-    // For web, use window.confirm; for mobile, use Alert.alert
-    if (Platform.OS === "web") {
-      const confirmed = window.confirm(
-        `Are you sure you want to unpair from "${device.deviceName}"?`,
-      );
-      if (confirmed) {
-        console.log("User confirmed unpair (web)!");
-        onUnpair();
-      } else {
-        console.log("User cancelled unpair (web)");
-      }
-    } else {
-      Alert.alert(
-        "Unpair Device",
-        `Are you sure you want to unpair from "${device.deviceName}"?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Unpair",
-            style: "destructive",
-            onPress: () => {
-              console.log("User confirmed unpair (mobile)!");
-              onUnpair();
-            },
+    Alert.alert(
+      "Unpair Device",
+      `Are you sure you want to unpair from "${device.deviceName}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unpair",
+          style: "destructive",
+          onPress: () => {
+            console.log("User confirmed unpair!");
+            onUnpair();
           },
-        ],
-      );
-    }
+        },
+      ],
+    );
   };
 
   const formatDate = (dateString?: string | null) => {

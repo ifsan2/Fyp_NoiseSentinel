@@ -14,6 +14,21 @@
 #include <Arduino.h>
 #include <math.h>
 
+inline float adcToVoltage(int analogValue)
+{
+    return analogValue * (3.3f / 4095.0f);
+}
+
+inline bool isValidSensorVoltage(float voltage)
+{
+    return voltage > 0.02f && voltage < 3.28f;
+}
+
+inline float calculateSensorResistance(float voltage, float loadResistorKOhm)
+{
+    return ((3.3f - voltage) / voltage) * loadResistorKOhm;
+}
+
 // ============================================================================
 // MICROPHONE CALIBRATION (dBA Calculation)
 // ============================================================================
@@ -54,41 +69,32 @@ float calculateDBa(int analogValue)
 // MQ-2 SENSOR CALIBRATION (HC - Hydrocarbons)
 // ============================================================================
 // MQ-2 Parameters (from datasheet characteristic curve)
-#define MQ2_RL 10.0    // Load resistor (10kΩ)
-#define MQ2_R0 10.0    // Sensor resistance in clean air (calibrate)
-#define MQ2_HC_M -0.45 // Slope of HC curve
-#define MQ2_HC_B 1.30  // Intercept of HC curve
+#define MQ2_RL 10.0f         // Load resistor (10kΩ)
+#define MQ2_R0_DEFAULT 10.0f // Sensor resistance in clean air (calibrate)
+#define MQ2_HC_M -0.45f      // Slope of HC curve
+#define MQ2_HC_B 1.30f       // Intercept of HC curve
 
 /**
  * Convert MQ-2 analog reading to HC (Hydrocarbon) concentration
  *
  * @param analogValue Raw ADC value (0-4095)
+ * @param r0 Sensor resistance in clean air (calibrated)
  * @return HC concentration in ppm
  *
  * Formula: ppm = 10^((log10(Rs/R0) - b) / m)
  */
-float calculateHC_ppm(int analogValue)
+float calculateHC_ppm(int analogValue, float r0 = MQ2_R0_DEFAULT)
 {
-    // Convert ADC to voltage
-    float voltage = analogValue * (3.3 / 4095.0);
+    float voltage = adcToVoltage(analogValue);
+    if (!isValidSensorVoltage(voltage))
+        return NAN;
 
-    // Avoid division by zero
-    if (voltage >= 3.29)
-        voltage = 3.29;
-    if (voltage <= 0.01)
-        voltage = 0.01;
-
-    // Calculate sensor resistance (Rs)
-    float Rs = (3.3 - voltage) / voltage * MQ2_RL;
-
-    // Calculate Rs/R0 ratio
-    float ratio = Rs / MQ2_R0;
-
-    // Apply characteristic curve formula
+    float Rs = calculateSensorResistance(voltage, MQ2_RL);
+    float ratio = Rs / r0;
     float ppm = pow(10, ((log10(ratio) - MQ2_HC_B) / MQ2_HC_M));
-
-    // Constrain to sensor range (allow low values to verify readings)
-    ppm = constrain(ppm, 0.1, 10000.0);
+    if (!isfinite(ppm))
+        return NAN;
+    ppm = constrain(ppm, 0.0f, 10000.0f);
 
     return ppm;
 }
@@ -97,39 +103,30 @@ float calculateHC_ppm(int analogValue)
 // MQ-2 SMOKE DETECTION
 // ============================================================================
 // MQ-2 also detects smoke particles (separate curve from HC)
-#define MQ2_SMOKE_M -0.48 // Slope of smoke curve
-#define MQ2_SMOKE_B 1.40  // Intercept of smoke curve
+#define MQ2_SMOKE_M -0.48f // Slope of smoke curve
+#define MQ2_SMOKE_B 1.40f  // Intercept of smoke curve
 
 /**
  * Convert MQ-2 analog reading to Smoke concentration
  *
  * @param analogValue Raw ADC value (0-4095)
+ * @param r0 Sensor resistance in clean air (calibrated)
  * @return Smoke concentration in ppm
  *
  * Formula: ppm = 10^((log10(Rs/R0) - b) / m)
  */
-float calculateSmoke_ppm(int analogValue)
+float calculateSmoke_ppm(int analogValue, float r0 = MQ2_R0_DEFAULT)
 {
-    // Convert ADC to voltage
-    float voltage = analogValue * (3.3 / 4095.0);
+    float voltage = adcToVoltage(analogValue);
+    if (!isValidSensorVoltage(voltage))
+        return NAN;
 
-    // Avoid division by zero
-    if (voltage >= 3.29)
-        voltage = 3.29;
-    if (voltage <= 0.01)
-        voltage = 0.01;
-
-    // Calculate sensor resistance (Rs)
-    float Rs = (3.3 - voltage) / voltage * MQ2_RL;
-
-    // Calculate Rs/R0 ratio
-    float ratio = Rs / MQ2_R0;
-
-    // Apply smoke characteristic curve formula
+    float Rs = calculateSensorResistance(voltage, MQ2_RL);
+    float ratio = Rs / r0;
     float ppm = pow(10, ((log10(ratio) - MQ2_SMOKE_B) / MQ2_SMOKE_M));
-
-    // Constrain to sensor range (allow low values to verify readings)
-    ppm = constrain(ppm, 0.1, 10000.0);
+    if (!isfinite(ppm))
+        return NAN;
+    ppm = constrain(ppm, 0.0f, 10000.0f);
 
     return ppm;
 }
@@ -138,41 +135,32 @@ float calculateSmoke_ppm(int analogValue)
 // MQ-7 SENSOR CALIBRATION (CO - Carbon Monoxide)
 // ============================================================================
 // MQ-7 Parameters (from datasheet characteristic curve)
-#define MQ7_RL 10.0    // Load resistor (10kΩ)
-#define MQ7_R0 10.0    // Sensor resistance in clean air (calibrate)
-#define MQ7_CO_M -0.35 // Slope of CO curve
-#define MQ7_CO_B 0.99  // Intercept of CO curve
+#define MQ7_RL 10.0f         // Load resistor (10kΩ)
+#define MQ7_R0_DEFAULT 10.0f // Sensor resistance in clean air (calibrate)
+#define MQ7_CO_M -0.35f      // Slope of CO curve
+#define MQ7_CO_B 0.99f       // Intercept of CO curve
 
 /**
  * Convert MQ-7 analog reading to CO (Carbon Monoxide) concentration
  *
  * @param analogValue Raw ADC value (0-4095)
+ * @param r0 Sensor resistance in clean air (calibrated)
  * @return CO concentration in ppm
  *
  * Formula: ppm = 10^((log10(Rs/R0) - b) / m)
  */
-float calculateCO_ppm(int analogValue)
+float calculateCO_ppm(int analogValue, float r0 = MQ7_R0_DEFAULT)
 {
-    // Convert ADC to voltage
-    float voltage = analogValue * (3.3 / 4095.0);
+    float voltage = adcToVoltage(analogValue);
+    if (!isValidSensorVoltage(voltage))
+        return NAN;
 
-    // Avoid division by zero
-    if (voltage >= 3.29)
-        voltage = 3.29;
-    if (voltage <= 0.01)
-        voltage = 0.01;
-
-    // Calculate sensor resistance (Rs)
-    float Rs = (3.3 - voltage) / voltage * MQ7_RL;
-
-    // Calculate Rs/R0 ratio
-    float ratio = Rs / MQ7_R0;
-
-    // Apply characteristic curve formula
+    float Rs = calculateSensorResistance(voltage, MQ7_RL);
+    float ratio = Rs / r0;
     float ppm = pow(10, ((log10(ratio) - MQ7_CO_B) / MQ7_CO_M));
-
-    // Constrain to sensor range (allow low values to verify readings)
-    ppm = constrain(ppm, 0.1, 1000.0);
+    if (!isfinite(ppm))
+        return NAN;
+    ppm = constrain(ppm, 0.0f, 10000.0f);
 
     return ppm;
 }
@@ -202,7 +190,6 @@ float estimateCO2(float coPpm)
  * Calculate battery percentage from voltage divider
  *
  * @param analogValue Raw ADC value from battery monitor pin
- * @return Battery percentage (0-100%)
  *
  * Assumes Li-Ion battery:
  * - 4.2V = 100% (fully charged)

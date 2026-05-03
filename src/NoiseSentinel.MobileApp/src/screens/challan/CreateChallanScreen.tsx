@@ -38,7 +38,7 @@ import {
 } from "../../utils/challanTypeHelper";
 import { colors } from "../../styles/colors";
 import { validation } from "../../utils/validation";
-import { BANK_DETAILS } from "../../utils/constants";
+import { BANK_DETAILS, SOUND_THRESHOLD } from "../../utils/constants";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface CreateChallanScreenProps {
@@ -125,7 +125,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       return; // Only monitor for Non-Traffic challans with a paired device
     }
 
-    let connectionCheckInterval: NodeJS.Timeout;
+    let connectionCheckInterval: ReturnType<typeof setInterval> | null = null;
 
     const checkConnection = async () => {
       try {
@@ -635,11 +635,32 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
       if (result.status === "COMPLETED") {
         // Populate form with REAL sensor data
-        setSoundLevel(result.data.sound_level_dba?.toString() || "");
-        setCo(result.data.co?.toString() || "");
-        setCo2(result.data.co2?.toString() || "");
-        setHc(result.data.hc?.toString() || "");
-        setNox(result.data.nox?.toString() || "");
+        setSoundLevel(
+          result.data.sound_level_dba !== null &&
+            result.data.sound_level_dba !== undefined
+            ? result.data.sound_level_dba.toFixed(1)
+            : "",
+        );
+        setCo(
+          result.data.co !== null && result.data.co !== undefined
+            ? result.data.co.toFixed(2)
+            : "",
+        );
+        setCo2(
+          result.data.co2 !== null && result.data.co2 !== undefined
+            ? result.data.co2.toFixed(2)
+            : "",
+        );
+        setHc(
+          result.data.hc !== null && result.data.hc !== undefined
+            ? result.data.hc.toFixed(2)
+            : "",
+        );
+        setNox(
+          result.data.nox !== null && result.data.nox !== undefined
+            ? result.data.nox.toFixed(2)
+            : "",
+        );
         setMlClassification(result.data.ml_classification || "");
         setScanned(true);
 
@@ -677,19 +698,8 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
         text2: error.message || "Failed to communicate with IoT device",
       });
 
-      // Fallback to dummy data for testing (remove in production)
-      const violationType = selectedViolation.violationType.toLowerCase();
-      const isNoise = violationType.includes("noise");
-      if (isNoise) {
-        setSoundLevel("92.5");
-        setMlClassification("Excessive Noise Detected (Fallback)");
-      } else {
-        setCo("2.3");
-        setCo2("14.7");
-        setHc("180");
-        setMlClassification("Excessive Emissions Detected (Fallback)");
-      }
-      setScanned(true);
+      // Do not use mock values. Keep scan state false until real sensor data is received.
+      setScanned(false);
     } finally {
       setLoading(false);
       setTestInProgress(false);
@@ -743,7 +753,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     const newErrors: any = {};
 
     // For Traffic: steps are 1 (violation) → 2 (vehicle) → 3 (accused) → 4 (evidence)
-    // For Non-Traffic: steps are 1 (violation) → 2 (vehicle) → 3 (accused) → 4 (scan) → 5 (evidence)
+    // For Non-Traffic: steps are 1 (violation) → 2 (scan) → 3 (vehicle) → 4 (accused) → 5 (evidence)
 
     if (challanType === "Traffic") {
       switch (currentStep) {
@@ -790,7 +800,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
     } else {
       // Non-Traffic flow
       switch (currentStep) {
-        case 1: // Violation (first)
+        case 1: // Violation
           if (!selectedViolation) {
             Toast.show({
               type: "error",
@@ -801,7 +811,18 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
           }
           break;
 
-        case 2: // Vehicle
+        case 2: // Scan (Emission Report)
+          if (!scanned) {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Please scan device data first",
+            });
+            return false;
+          }
+          break;
+
+        case 3: // Vehicle
           if (!vehiclePlateNumber.trim()) {
             newErrors.vehiclePlateNumber = "Plate number is required";
           }
@@ -810,7 +831,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
           }
           break;
 
-        case 3: // Accused
+        case 4: // Accused
           if (!accusedCnic.trim()) {
             newErrors.accusedCnic = "CNIC is required";
           } else if (!validation.cnic(accusedCnic)) {
@@ -827,17 +848,6 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
               newErrors.accusedAddress = "Address required";
             if (!accusedContact.trim())
               newErrors.accusedContact = "Contact required";
-          }
-          break;
-
-        case 4: // Scan
-          if (!scanned) {
-            Toast.show({
-              type: "error",
-              text1: "Error",
-              text2: "Please scan device data first",
-            });
-            return false;
           }
           break;
       }
@@ -861,10 +871,10 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
       await notifyDeviceAboutChallan(selectedViolation);
     }
 
-    // For Non-Traffic, after scan (step 4), create emission report before moving to evidence
+    // For Non-Traffic, after scan (step 2), create emission report before moving to vehicle details
     if (
       challanType === "Non-Traffic" &&
-      step === 4 &&
+      step === 2 &&
       scanned &&
       !createdEmissionReportId
     ) {
@@ -1108,7 +1118,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
   const renderStep2 = () => (
     <ScrollView style={styles.stepContent} keyboardShouldPersistTaps="handled">
-      <Text style={styles.stepTitle}>Step 2: Vehicle Details</Text>
+      <Text style={styles.stepTitle}>Step 3: Vehicle Details</Text>
 
       <Card>
         <Text style={styles.cardTitle}>🔍 Search Existing Vehicle</Text>
@@ -1195,7 +1205,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
   const renderStep3 = () => (
     <ScrollView style={styles.stepContent} keyboardShouldPersistTaps="handled">
-      <Text style={styles.stepTitle}>Step 3: Accused/Owner Details</Text>
+      <Text style={styles.stepTitle}>Step 4: Accused/Owner Details</Text>
 
       <Card>
         <Text style={styles.cardTitle}>🔍 Search Existing Person</Text>
@@ -1311,7 +1321,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
     return (
       <ScrollView style={styles.stepContent}>
-        <Text style={styles.stepTitle}>Step 4: Device Scan</Text>
+        <Text style={styles.stepTitle}>Step 2: Emission Report</Text>
 
         <Card>
           <Text style={styles.cardTitle}>📡 IoT Device Information</Text>
@@ -1422,12 +1432,12 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
                         : styles.scanValueNormal,
                     ]}
                   >
-                    {soundLevel} dB
+                    {soundLevel} dB(A)
                   </Text>
                 </View>
-                {soundLevel && parseFloat(soundLevel) > 85 && (
+                {soundLevel && parseFloat(soundLevel) > SOUND_THRESHOLD && (
                   <Text style={styles.warningText}>
-                    ⚠️ Sound level exceeds legal limit (85 dB)
+                    ⚠️ Sound level exceeds legal limit ({SOUND_THRESHOLD} dB(A))
                   </Text>
                 )}
               </View>
@@ -1476,7 +1486,7 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
 
   const renderStep4 = () => (
     <ScrollView style={styles.stepContent} keyboardShouldPersistTaps="handled">
-      <Text style={styles.stepTitle}>Step 4: Evidence & Bank Details</Text>
+      <Text style={styles.stepTitle}>Step 5: Evidence & Bank Details</Text>
 
       <Card>
         <Text style={styles.cardTitle}>📸 Evidence (Optional)</Text>
@@ -1613,13 +1623,13 @@ export const CreateChallanScreen: React.FC<CreateChallanScreenProps> = ({
         </>
       )}
 
-      {/* Non-Traffic Flow: Steps 1-5 (Violation → Vehicle → Accused → Scan → Evidence) */}
+      {/* Non-Traffic Flow: Steps 1-5 (Violation → Emission Report → Vehicle → Accused → Evidence) */}
       {challanType === "Non-Traffic" && (
         <>
           {step === 1 && renderStep1()}
-          {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
-          {step === 4 && renderScanStep()}
+          {step === 2 && renderScanStep()}
+          {step === 3 && renderStep2()}
+          {step === 4 && renderStep3()}
           {step === 5 && renderStep4()}
         </>
       )}

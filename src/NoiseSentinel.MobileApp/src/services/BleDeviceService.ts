@@ -31,6 +31,8 @@ const DATA_CHARACTERISTIC_UUID = "0000FFE2-0000-1000-8000-00805F9B34FB";
 const SCAN_TIMEOUT = 10000; // 10 seconds
 const CONNECTION_TIMEOUT = 15000; // 15 seconds
 const TEST_TIMEOUT = 90000; // 90 seconds (for emission test with warm-up)
+const BLE_UNAVAILABLE_ERROR =
+  "Bluetooth BLE is not available in Expo Go. Use a development build (npx expo run:android) to use IoT features.";
 
 // ============================================================================
 // TYPES
@@ -79,11 +81,12 @@ export interface TestResult {
 // BLE DEVICE SERVICE CLASS
 // ============================================================================
 class BleDeviceService {
-  private manager: BleManager;
+  private manager!: BleManager;
+  private bleSupported: boolean = true;
   private connectedDevice: Device | null = null;
   private notificationSubscription: any = null;
   private pendingResultCallback: ((result: any) => void) | null = null;
-  private pendingResultTimer: NodeJS.Timeout | null = null;
+  private pendingResultTimer: ReturnType<typeof setTimeout> | null = null;
   private responseBuffer: string = "";
   private lastDeviceId: number = 0;
   private disconnectionListener: (() => void) | null = null;
@@ -92,13 +95,26 @@ class BleDeviceService {
     | null = null;
 
   constructor() {
-    this.manager = new BleManager();
+    try {
+      this.manager = new BleManager();
+    } catch (error) {
+      this.bleSupported = false;
+      console.warn("⚠️ BLE native module unavailable:", error);
+    }
+  }
+
+  private ensureBleAvailable(): void {
+    if (!this.bleSupported) {
+      throw new Error(BLE_UNAVAILABLE_ERROR);
+    }
   }
 
   /**
    * Initialize BLE Manager
    */
   async initialize(): Promise<void> {
+    this.ensureBleAvailable();
+
     try {
       const state = await this.manager.state();
       console.log(`📱 BLE State: ${state}`);
@@ -150,7 +166,12 @@ class BleDeviceService {
         } catch (e) {
           // Ignore destroy errors
         }
-        this.manager = new BleManager();
+        try {
+          this.manager = new BleManager();
+        } catch (createError) {
+          this.bleSupported = false;
+          throw new Error(BLE_UNAVAILABLE_ERROR);
+        }
         // Retry initialization once
         const state = await this.manager.state();
         console.log(`📱 BLE State after reinit: ${state}`);
@@ -301,7 +322,7 @@ class BleDeviceService {
         );
 
       // Small delay to ensure notification subscription is fully established
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
       console.log("✅ Notifications enabled and ready");
     } catch (error) {
       console.error("❌ Connection failed:", error);
@@ -645,13 +666,13 @@ class BleDeviceService {
   /**
    * Keep-alive interval to prevent BLE disconnection
    */
-  private keepAliveInterval: NodeJS.Timeout | null = null;
+  private keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 
   /**
    * Poll for response as backup when notifications don't work
    * Also keeps connection alive by reading RSSI every 500ms
    */
-  private pollingInterval: NodeJS.Timeout | null = null;
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
   /**
    * Start keep-alive mechanism - simple RSSI reads (ESP32 is now non-blocking)
@@ -839,6 +860,8 @@ class BleDeviceService {
    * Check if Bluetooth is enabled
    */
   async isBluetoothEnabled(): Promise<boolean> {
+    this.ensureBleAvailable();
+
     try {
       const state = await this.manager.state();
       return state === State.PoweredOn;
@@ -852,6 +875,10 @@ class BleDeviceService {
    * Cleanup resources
    */
   async cleanup(): Promise<void> {
+    if (!this.bleSupported) {
+      return;
+    }
+
     // Clear pending callbacks
     if (this.pendingResultTimer) {
       clearTimeout(this.pendingResultTimer);

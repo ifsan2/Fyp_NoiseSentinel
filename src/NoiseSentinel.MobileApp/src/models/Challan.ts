@@ -69,6 +69,7 @@ export interface ChallanListItemDto {
   accusedName: string;
   vehiclePlateNumber: string;
   violationType: string;
+  emissionReportId?: number | null;
   penaltyAmount: number;
   issueDateTime: string;
   dueDateTime: string;
@@ -81,4 +82,5 @@ export interface ChallanListItemDto {
 }
 
 // Helper export
-export { getChallanType, ChallanType } from "../utils/challanTypeHelper";
+export { getChallanType } from "../utils/challanTypeHelper";
+export type { ChallanType } from "../utils/challanTypeHelper";

@@ -230,7 +230,7 @@ export const ChallanDetailScreen: React.FC<ChallanDetailScreenProps> = ({
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>CO₂:</Text>
                   <Text style={[styles.value, styles.soundLevel]}>
-                    {(challan.co2 ?? 0).toFixed(2)} %
+                    {(challan.co2 ?? 0).toFixed(2)} ppm
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
