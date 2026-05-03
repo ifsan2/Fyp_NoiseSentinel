@@ -459,12 +459,18 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Health check endpoint
-app.MapGet("/health", () => Results.Ok(new
+var healthHandler = () => Results.Ok(new
 {
     status = "Healthy",
     timestamp = DateTime.UtcNow,
     environment = app.Environment.EnvironmentName
-}))
+});
+
+app.MapGet("/health", healthHandler)
+.WithTags("Health")
+.AllowAnonymous();
+
+app.MapGet("/api/health", healthHandler)
 .WithTags("Health")
 .AllowAnonymous();
 

@@ -9,6 +9,11 @@ log() {
   printf '%s\n' "$1"
 }
 
+resolve_url() {
+  local url="$1"
+  printf '%s\n' "$url"
+}
+
 fail() {
   printf 'FAILED: %s\n' "$1" >&2
   exit 1
@@ -20,7 +25,7 @@ if ! printf '%s' "$portal_body" | grep -qi 'NoiseSentinel'; then
   fail "Portal root responded, but it does not look like the NoiseSentinel app"
 fi
 
-log "Checking API health: ${HEALTH_URL}"
+log "Checking API health: $(resolve_url "$HEALTH_URL")"
 health_body=$(curl -fsS "$HEALTH_URL") || fail "API health endpoint is not reachable"
 if ! printf '%s' "$health_body" | grep -qi 'Healthy'; then
   fail "API health endpoint did not return Healthy"
