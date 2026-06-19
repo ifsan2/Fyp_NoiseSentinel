@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Home, Clock, FileText, User } from "lucide-react-native";
+import { Activity, Home, Clock, FileText, User } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { colors } from "../../styles/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,6 +33,8 @@ export const GlassTabBar: React.FC<BottomTabBarProps> = ({
         return Clock;
       case "Scan":
         return FileText;
+      case "Detect":
+        return Activity;
       case "Profile":
         return User;
       default:

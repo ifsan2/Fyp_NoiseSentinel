@@ -23,13 +23,13 @@
 // PIN DEFINITIONS
 // ============================================================================
 #define MIC_PIN 34 // MAX4466 or MAX9814 microphone
-#define MQ7_PIN 33 // MQ-7 (CO sensor)
-#define MQ2_PIN 32 // MQ-2 (HC/NOx sensor)
+#define MQ7_PIN 32 // MQ-7 (CO sensor)
+#define MQ2_PIN 35 // MQ-2 (HC/NOx sensor)
 
 // LED Status Indicators
-#define LED_RED_PIN 2    // Red LED - Not connected/paired
-#define LED_YELLOW_PIN 4 // Yellow LED - Connected/paired (idle)
-#define LED_GREEN_PIN 21 // Green LED - Scanning in progress
+#define LED_RED_PIN 12    // Red LED - Not connected/paired
+#define LED_YELLOW_PIN 14 // Yellow LED - Connected/paired (idle)
+#define LED_GREEN_PIN 27  // Green LED - Scanning in progress
 
 // Legacy alias for compatibility
 #define LED_PIN LED_RED_PIN
@@ -50,6 +50,12 @@ String deviceMode = MODE_IDLE_STR;
 int deviceId = 1;            // Default device ID
 bool challanCreated = false; // Track if challan notification received
 String currentViolationType = "";
+
+// Realtime streaming (detection mode)
+bool realtimeStreaming = false;
+unsigned long lastStreamAt = 0;
+const unsigned long STREAM_INTERVAL_MS = 500;
+const int STREAM_GAS_SAMPLES = 5;
 
 // Firmware info
 const String FIRMWARE_VERSION = "v1.2.0";
@@ -97,6 +103,8 @@ void handleCommand(const char *jsonCommand);
 void handleChallanCreated(JsonDocument &doc);
 void handleStartNoiseTest(JsonDocument &doc);
 void handleStartEmissionTest(JsonDocument &doc);
+void handleStartRealtimeStream(JsonDocument &doc);
+void handleStopRealtimeStream(JsonDocument &doc);
 void sendJsonResponse(JsonDocument &doc);
 void sendErrorResponse(String message);
 float measureNoiseLevel();
@@ -109,6 +117,7 @@ String classifyEmission(float co, float hc);
 void handleGetStatus(JsonDocument &doc);
 void handleCalibrate(JsonDocument &doc);
 void processEmissionTest();
+void processRealtimeStream();
 
 // LED status helper functions
 void setLedStatus(bool red, bool yellow, bool green);
@@ -178,6 +187,7 @@ class ServerCallbacks : public BLEServerCallbacks
         challanCreated = false;
         currentViolationType = "";
         deviceMode = MODE_IDLE_STR;
+        realtimeStreaming = false;
     }
 };
 
@@ -226,6 +236,14 @@ void handleCommand(const char *jsonCommand)
     else if (command == "START_EMISSION_TEST")
     {
         handleStartEmissionTest(doc);
+    }
+    else if (command == "START_REALTIME_STREAM")
+    {
+        handleStartRealtimeStream(doc);
+    }
+    else if (command == "STOP_REALTIME_STREAM")
+    {
+        handleStopRealtimeStream(doc);
     }
     else if (command == "GET_STATUS")
     {
@@ -282,6 +300,12 @@ void handleStartNoiseTest(JsonDocument &doc)
     {
         sendErrorResponse("No challan created. Create challan first.");
         return;
+    }
+
+    if (realtimeStreaming)
+    {
+        realtimeStreaming = false;
+        deviceMode = MODE_IDLE_STR;
     }
 
     deviceMode = MODE_NOISE_TEST_STR;
@@ -348,6 +372,12 @@ void handleStartEmissionTest(JsonDocument &doc)
         return;
     }
 
+    if (realtimeStreaming)
+    {
+        realtimeStreaming = false;
+        deviceMode = MODE_IDLE_STR;
+    }
+
     // Already running a test?
     if (emissionState != EMISSION_IDLE)
     {
@@ -392,6 +422,59 @@ void handleStartEmissionTest(JsonDocument &doc)
     }
 
     Serial.println("⏳ Warming up sensors (non-blocking)...");
+}
+
+// ============================================================================
+// COMMAND: START_REALTIME_STREAM / STOP_REALTIME_STREAM
+// ============================================================================
+void handleStartRealtimeStream(JsonDocument &doc)
+{
+    if (emissionState != EMISSION_IDLE || deviceMode == MODE_NOISE_TEST_STR ||
+        deviceMode == MODE_EMISSION_TEST_STR || deviceMode == MODE_CALIBRATION_STR)
+    {
+        sendErrorResponse("Device busy. Try again when idle.");
+        return;
+    }
+
+    if (!deviceConnected || dataCharacteristic == nullptr)
+    {
+        sendErrorResponse("Device not connected");
+        return;
+    }
+
+    deviceId = doc["device_id"] | deviceId;
+    deviceMode = MODE_DETECTION_STR;
+    realtimeStreaming = true;
+    lastStreamAt = 0;
+
+    setLedScanning(); // Green LED - realtime detection
+    Serial.println("📡 Realtime streaming started");
+
+    StaticJsonDocument<128> response;
+    response["status"] = STATUS_STREAM;
+    response["type"] = "STREAM_STARTED";
+    response["device_id"] = deviceId;
+    sendJsonResponse(response);
+}
+
+void handleStopRealtimeStream(JsonDocument &doc)
+{
+    if (!realtimeStreaming)
+    {
+        return;
+    }
+
+    deviceId = doc["device_id"] | deviceId;
+    realtimeStreaming = false;
+    deviceMode = MODE_IDLE_STR;
+    setLedConnected();
+    Serial.println("🛑 Realtime streaming stopped");
+
+    StaticJsonDocument<128> response;
+    response["status"] = STATUS_STREAM;
+    response["type"] = "STREAM_STOPPED";
+    response["device_id"] = deviceId;
+    sendJsonResponse(response);
 }
 
 // ============================================================================
@@ -548,6 +631,63 @@ void processEmissionTest()
 }
 
 // ============================================================================
+// REALTIME STREAMING (called from loop)
+// ============================================================================
+void processRealtimeStream()
+{
+    if (!realtimeStreaming)
+    {
+        return;
+    }
+
+    if (!deviceConnected)
+    {
+        realtimeStreaming = false;
+        deviceMode = MODE_IDLE_STR;
+        return;
+    }
+
+    if (emissionState != EMISSION_IDLE)
+    {
+        return;
+    }
+
+    unsigned long now = millis();
+    if (now - lastStreamAt < STREAM_INTERVAL_MS)
+    {
+        return;
+    }
+
+    lastStreamAt = now;
+
+    float soundLevel = measureNoiseLevel();
+
+    int mq7Raw = getAverageReading(MQ7_PIN, STREAM_GAS_SAMPLES);
+    float coValue = calculateCO_ppm(mq7Raw, mq7R0);
+
+    int mq2Raw = getAverageReading(MQ2_PIN, STREAM_GAS_SAMPLES);
+    float hcValue = calculateHC_ppm(mq2Raw, mq2R0);
+
+    float noxValue = (isfinite(hcValue) && hcValue > 0.0f) ? (hcValue * 0.3f) : 0.0f;
+    float co2Value = (isfinite(coValue) && coValue > 0.0f) ? estimateCO2(coValue) : 0.0f;
+
+    StaticJsonDocument<256> response;
+    response["status"] = STATUS_STREAM;
+    response["type"] = "SENSOR_DATA";
+    response["device_id"] = deviceId;
+    response["timestamp_ms"] = now;
+
+    JsonObject data = response.createNestedObject("data");
+    data["sound_level_dba"] = soundLevel;
+    if (isfinite(coValue))  data["co"]  = coValue;  else data["co"].set(nullptr);
+if (isfinite(co2Value)) data["co2"] = co2Value; else data["co2"].set(nullptr);
+if (isfinite(hcValue))  data["hc"]  = hcValue;  else data["hc"].set(nullptr);
+if (isfinite(noxValue)) data["nox"] = noxValue; else data["nox"].set(nullptr);
+
+    sendJsonResponse(response);
+}
+
+// ============================================================================
 // COMMAND: GET_STATUS
 // ============================================================================
 void handleGetStatus(JsonDocument &doc)
@@ -569,6 +709,12 @@ void handleGetStatus(JsonDocument &doc)
 // ============================================================================
 void handleCalibrate(JsonDocument &doc)
 {
+    if (realtimeStreaming)
+    {
+        realtimeStreaming = false;
+        deviceMode = MODE_IDLE_STR;
+    }
+
     deviceMode = MODE_CALIBRATION_STR;
     Serial.println("🔧 Calibrating sensors...");
 
@@ -1011,6 +1157,9 @@ void loop()
 
     // Process non-blocking emission test state machine
     processEmissionTest();
+
+    // Process realtime sensor streaming
+    processRealtimeStream();
 
     // Small delay to prevent watchdog issues (but not blocking!)
     delay(10);

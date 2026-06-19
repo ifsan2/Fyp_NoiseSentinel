@@ -4,7 +4,7 @@ export const API_CONFIG = {
   // For Android emulator: use http://10.0.2.2:5200/api
   // For real device: use your PC's IP (e.g., http://192.168.100.16:5200/api)
   BASE_URL: __DEV__
-    ? "http://192.168.100.16:5200/api" // Your computer's local IP - change if different
+    ? "https://noisesentinel.tech/api" // Dev uses production backend; switch to local IP if needed
     : "https://noisesentinel.tech/api", // Production
   TIMEOUT: 60000, // Increased to 60 seconds for image uploads
 };

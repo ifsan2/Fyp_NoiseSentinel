@@ -72,6 +72,31 @@
  * }
  */
 
+/**
+ * START_REALTIME_STREAM
+ * Starts realtime sensor streaming (no challan required)
+ *
+ * Request JSON:
+ * {
+ *   "command": "START_REALTIME_STREAM",
+ *   "device_id": 1,
+ *   "officer_id": 42,
+ *   "timestamp": "2026-01-30T10:40:00Z"
+ * }
+ */
+
+/**
+ * STOP_REALTIME_STREAM
+ * Stops realtime sensor streaming
+ *
+ * Request JSON:
+ * {
+ *   "command": "STOP_REALTIME_STREAM",
+ *   "device_id": 1,
+ *   "timestamp": "2026-01-30T10:41:00Z"
+ * }
+ */
+
 // ============================================================================
 // RESPONSE TYPES (ESP32 → Mobile App)
 // ============================================================================
@@ -161,6 +186,25 @@
  * }
  */
 
+/**
+ * STREAM_SAMPLES (Realtime Sensor Data)
+ *
+ * Response JSON:
+ * {
+ *   "status": "STREAM",
+ *   "type": "SENSOR_DATA",
+ *   "device_id": 1,
+ *   "timestamp_ms": 123456,
+ *   "data": {
+ *     "sound_level_dba": 72.4,
+ *     "co": 128.2,
+ *     "co2": 9615.0,
+ *     "hc": 104.8,
+ *     "nox": 31.4
+ *   }
+ * }
+ */
+
 // ============================================================================
 // BLE CONNECTION PARAMETERS
 // ============================================================================
@@ -179,6 +223,7 @@
 #define STATUS_IN_PROGRESS "IN_PROGRESS"
 #define STATUS_COMPLETED "COMPLETED"
 #define STATUS_ERROR "ERROR"
+#define STATUS_STREAM "STREAM"
 
 // Test types
 #define TEST_TYPE_NOISE "NOISE"
@@ -190,5 +235,6 @@
 #define MODE_NOISE_TEST_STR "NOISE_TEST"
 #define MODE_EMISSION_TEST_STR "EMISSION_TEST"
 #define MODE_CALIBRATION_STR "CALIBRATION"
+#define MODE_DETECTION_STR "DETECTION"
 
 #endif // BLE_PROTOCOL_H

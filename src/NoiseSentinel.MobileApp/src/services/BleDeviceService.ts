@@ -48,6 +48,8 @@ export interface TestCommand {
     | "CHALLAN_CREATED"
     | "START_NOISE_TEST"
     | "START_EMISSION_TEST"
+    | "START_REALTIME_STREAM"
+    | "STOP_REALTIME_STREAM"
     | "CALIBRATE"
     | "GET_STATUS";
   device_id: number;
@@ -77,6 +79,20 @@ export interface TestResult {
   signature?: string;
 }
 
+export interface RealtimeSensorData {
+  status: "STREAM";
+  type: "SENSOR_DATA" | "STREAM_STARTED" | "STREAM_STOPPED";
+  device_id: number;
+  timestamp_ms?: number;
+  data?: {
+    sound_level_dba: number | null;
+    co: number | null;
+    co2: number | null;
+    hc: number | null;
+    nox: number | null;
+  };
+}
+
 // ============================================================================
 // BLE DEVICE SERVICE CLASS
 // ============================================================================
@@ -93,6 +109,8 @@ class BleDeviceService {
   private progressCallback:
     | ((phase: string, countdown: number) => void)
     | null = null;
+  private realtimeDataCallback: ((data: RealtimeSensorData) => void) | null =
+    null;
 
   constructor() {
     try {
@@ -381,6 +399,16 @@ class BleDeviceService {
           return;
         }
 
+        if (result.status === "STREAM") {
+          const streamData = result as RealtimeSensorData;
+          if (streamData.type === "SENSOR_DATA" && this.realtimeDataCallback) {
+            this.realtimeDataCallback(streamData);
+          } else {
+            console.log("📡 Stream event:", streamData.type);
+          }
+          return;
+        }
+
         // This is a final result - resolve pending promise if exists
         if (this.pendingResultCallback) {
           console.log("🔄 Calling pendingResultCallback...");
@@ -512,6 +540,20 @@ class BleDeviceService {
    */
   removeProgressCallback(): void {
     this.progressCallback = null;
+  }
+
+  /**
+   * Set a callback for realtime sensor stream updates
+   */
+  setRealtimeDataCallback(callback: (data: RealtimeSensorData) => void): void {
+    this.realtimeDataCallback = callback;
+  }
+
+  /**
+   * Remove realtime sensor stream callback
+   */
+  removeRealtimeDataCallback(): void {
+    this.realtimeDataCallback = null;
   }
 
   /**
@@ -661,6 +703,38 @@ class BleDeviceService {
     }
 
     return await resultPromise;
+  }
+
+  /**
+   * Start realtime sensor streaming
+   */
+  async startRealtimeStream(
+    deviceId: number,
+    officerId?: number,
+  ): Promise<void> {
+    this.lastDeviceId = deviceId;
+    const command: TestCommand = {
+      command: "START_REALTIME_STREAM",
+      device_id: deviceId,
+      officer_id: officerId,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.sendCommand(command);
+  }
+
+  /**
+   * Stop realtime sensor streaming
+   */
+  async stopRealtimeStream(deviceId?: number): Promise<void> {
+    const command: TestCommand = {
+      command: "STOP_REALTIME_STREAM",
+      device_id: deviceId || this.lastDeviceId,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.sendCommand(command);
+    this.stopKeepAlive();
   }
 
   /**
@@ -885,6 +959,7 @@ class BleDeviceService {
       this.pendingResultTimer = null;
     }
     this.pendingResultCallback = null;
+    this.realtimeDataCallback = null;
 
     // Disconnect if connected
     await this.disconnect();

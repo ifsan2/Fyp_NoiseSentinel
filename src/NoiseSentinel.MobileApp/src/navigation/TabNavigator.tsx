@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { DashboardScreen } from "../screens/dashboard/DashboardScreen";
 import { ChallanTypeSelectionScreen } from "../screens/challan/ChallanTypeSelectionScreen";
 import { MyChallansScreen } from "../screens/challan/MyChallansScreen";
+import { LiveDetectionScreen } from "../screens/detection/LiveDetectionScreen";
 import { ProfileScreen } from "../screens/profile/ProfileScreen";
 import { GlassTabBar } from "../components/navigation/GlassTabBar";
 
@@ -30,6 +31,11 @@ export const TabNavigator: React.FC = () => {
         name="Scan"
         component={ChallanTypeSelectionScreen}
         options={{ title: "Scan" }}
+      />
+      <Tab.Screen
+        name="Detect"
+        component={LiveDetectionScreen}
+        options={{ title: "Detect" }}
       />
       <Tab.Screen
         name="Profile"
